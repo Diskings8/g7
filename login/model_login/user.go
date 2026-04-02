@@ -1,4 +1,4 @@
-package model
+package model_login
 
 import "time"
 
@@ -11,7 +11,7 @@ type User struct {
 	IsBand      bool      `gorm:"column:is_band"`
 	ChannelType int32     `gorm:"column:channel_type"`
 	ChannelID   string    `gorm:"column:channel_id"`
-	PlayerIDs   string    `gorm:"column:players_ids"`
+	ChannelAuth string    `gorm:"column:channel_auth"`
 }
 
 func (User) TableName() string {
