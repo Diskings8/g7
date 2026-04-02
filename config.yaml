@@ -1,0 +1,41 @@
+# 三服端口配置
+server:
+  platform: ":8080"   # 平台服端口
+  login:    ":8081"   # 登录服端口
+  game:     ":8082"   # 游戏服端口
+
+# 公共数据库（账号、渠道、区服）
+mysql_global:
+  user: "root"
+  pass: ""
+  addr: "127.0.0.1"
+  port: "3306"
+  db_name_prefix: "global_db"
+  params: "charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "root:@tcp(127.0.0.1:3306)/global_db?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 游戏服数据库（角色、货币、背包，专服可独立分库）
+mysql_game:
+  user: "root"
+  pass: ""
+  addr: "127.0.0.1"
+  port: "3306"
+  db_name_prefix: "game_db"
+  params: "charset=utf8mb4&parseTime=True&loc=Local"
+  dsn: "root:@tcp(127.0.0.1:3306)/game_db?charset=utf8mb4&parseTime=True&loc=Local"
+
+# Redis 公共缓存
+redis:
+  addr: "127.0.0.1:6379"
+  password: ""
+  db: 0
+
+# 雪花算法配置（专服扩容用）
+snowflake:
+  datacenter_id: 1
+  worker_id: 1
+
+# JWT 密钥
+jwt:
+  secret: "g7-game-service_login-secret-key-2025"
+  expire_hours: 24

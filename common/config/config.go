@@ -1,0 +1,71 @@
+package config
+
+import (
+	"fmt"
+	"gopkg.in/yaml.v3"
+	"os"
+)
+
+var GCfg Config
+
+type MySQL struct {
+	User         string `yaml:"user"`
+	Pass         string `yaml:"pass"`
+	Addr         string `yaml:"addr"`
+	Port         string `yaml:"port"`
+	DbNamePrefix string `yaml:"db_name_prefix"`
+	Params       string `yaml:"params"`
+}
+
+func (ms *MySQL) Dsn() string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s?%s", ms.User, ms.Pass, ms.Addr, ms.Port, ms.DbNamePrefix, ms.Params)
+}
+
+func (ms *MySQL) DsnWithName(name string) string {
+	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s_%s?%s", ms.User, ms.Pass, ms.Addr, ms.Port, ms.DbNamePrefix, name, ms.Params)
+}
+
+type Redis struct {
+	Addr     string `yaml:"addr"`
+	Password string `yaml:"password"`
+	DB       int    `yaml:"db"`
+}
+
+// Snowflake 雪花算法配置
+type Snowflake struct {
+	DatacenterID int64 `yaml:"datacenter_id"`
+	WorkerID     int64 `yaml:"worker_id"`
+}
+
+type Server struct {
+	Platform string `yaml:"platform"`
+	Login    string `yaml:"login"`
+	Game     string `yaml:"game"`
+}
+
+type JWT struct {
+	Secret      string `yaml:"secret"`
+	ExpireHours int    `yaml:"expire_hours"`
+}
+
+type Config struct {
+	MySQLGlobal MySQL     `yaml:"mysql_global"`
+	MySQLGame   MySQL     `yaml:"mysql_game"`
+	Redis       Redis     `yaml:"redis"`
+	Snowflake   Snowflake `yaml:"snowflake"`
+	Server      Server    `yaml:"server"`
+	JWT         JWT       `yaml:"jwt"`
+}
+
+// Load 加载配置文件
+func Load(path string) {
+	data, err := os.ReadFile(path)
+	if err != nil {
+		panic("load config fail: " + err.Error())
+	}
+
+	err = yaml.Unmarshal(data, &GCfg)
+	if err != nil {
+		panic("parse config fail: " + err.Error())
+	}
+}
