@@ -48,6 +48,10 @@ type JWT struct {
 	ExpireHours int    `yaml:"expire_hours"`
 }
 
+type Etcd struct {
+	Dsn string `yaml:"dsn"`
+}
+
 type Config struct {
 	MySQLGlobal MySQL     `yaml:"mysql_global"`
 	MySQLGame   MySQL     `yaml:"mysql_game"`
@@ -55,6 +59,7 @@ type Config struct {
 	Snowflake   Snowflake `yaml:"snowflake"`
 	Server      Server    `yaml:"server"`
 	JWT         JWT       `yaml:"jwt"`
+	Etcd        Etcd      `yaml:"etcd"`
 }
 
 // Load 加载配置文件
