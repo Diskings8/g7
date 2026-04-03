@@ -13,7 +13,7 @@ type Session struct {
 	roleID   int64 // 角色ID
 	serverID int32 // 要连接的游戏服ID
 	//gameConn net.Conn // 与游戏服的连接
-	gameStream pb.GameService_StreamClient
+	gameStream pb.GameStreamService_StreamClient
 	closed     bool
 	lock       sync.Mutex
 }

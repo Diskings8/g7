@@ -5,7 +5,7 @@ option go_package = "./pb";
 
 
 message Req_AuthClientToGame {
-  int64 uID = 1;  // 角色id
+  int64 playerID = 1;  // 角色id
 }
 
 message Rsp_AuthClientToGame {

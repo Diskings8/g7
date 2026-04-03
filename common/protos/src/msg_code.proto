@@ -14,7 +14,5 @@ enum MsgID {
   MSG_AUTH = 10001;          // 鉴权
 
   // 游戏业务 start from 20000
-  MSG_ENTER_GAME = 2001;    // 进入游戏
-  MSG_MOVE = 2002;          // 移动
-  MSG_ATTACK = 2003;        // 攻击
+  MSG_ENTER_GAME = 20001;    // 进入游戏
 }

@@ -5,6 +5,6 @@ import (
 	"g7/login/internal/dao_login"
 )
 
-func GetServerByID(serverID int) (*model_common.Server, error) {
+func GetServerByID(serverID int32) (*model_common.Server, error) {
 	return dao_login.GetServerByID(serverID)
 }

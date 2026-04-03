@@ -1,0 +1,13 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+message Req_LoginGame {
+
+}
+
+message Rsp_LoginGame{
+  bool result = 1;  // 结果
+}

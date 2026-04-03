@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+
+message Req_Node_CreatePlayer{
+  int64 userID =  1;
+  int32 serverID = 2;
+  string nickname = 4;
+}
+
+message Rsp_Node_CreatePlayer{
+  int64 playerID = 1;
+  int32 serverID = 2;
+  int64 ID = 3;
+  int64 userID = 4;
+  string nickname = 5;
+  string token = 6;
+}

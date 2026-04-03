@@ -1,15 +1,16 @@
 package api
 
 import (
-	"bytes"
+	"context"
 	"encoding/json"
 	"g7/common/jwt"
+	"g7/common/protocol"
+	"g7/common/protos/pb"
 	"g7/login/internal/dao_login"
 	"g7/login/internal/service_login"
-	"g7/login/req_login"
 	"github.com/gin-gonic/gin"
-	"io"
 	"net/http"
+	"time"
 )
 
 // PlayerList 获取角色列表
@@ -35,73 +36,88 @@ func PlayerList(c *gin.Context) {
 // CreatePlayer 创建角色
 func CreatePlayer(c *gin.Context) {
 
-	var req req_login.CreatePlayerReq
+	var req pb.Req_Http_CreatePlayer
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "参数错误"})
 		return
 	}
 
 	// 1. 获取区服地址
-	server, err := dao_login.GetServerByID(req.ServerID)
+	server, err := dao_login.GetServerByID(req.GetServerID())
 	if err != nil {
 		c.JSON(400, gin.H{"code": 400, "msg": "区服不存在"})
 		return
 	}
 
 	// 2. 转发请求到游戏服内部接口
-	url := "http://" + server.Addr + "/api/game/create_player"
-	body, _ := json.Marshal(map[string]any{
-		"user_id":   req.UserID,
-		"nickname":  req.Nickname,
-		"server_id": req.ServerID,
-	})
-
-	resp, err := http.Post(url, "application/json", bytes.NewBuffer(body))
+	ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelConn()
+	client, err := protocol.NewGameNodeClient(ctxConn, server.Addr)
+	if err != nil {
+		c.JSON(400, gin.H{"code": 400, "msg": "注册服务暂不可用"})
+		return
+	}
+	nodeReq := pb.Req_Node_CreatePlayer{
+		UserID:   req.GetUserID(),
+		ServerID: req.GetServerID(),
+		Nickname: req.GetNickname(),
+	}
+	ctxReq, cancelReq := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancelReq()
+	nodeRsp, err := client.LoginNodeCreatePlayer(ctxReq, &nodeReq)
 	if err != nil {
 		c.JSON(500, gin.H{"code": 500, "msg": "游戏服连接失败:" + err.Error()})
 		return
 	}
-	defer resp.Body.Close()
-
 	// 3. 返回游戏服结果
-	result, _ := io.ReadAll(resp.Body)
+	rsp := pb.Rsp_Http_CreatePlayer{
+		PlayerID: nodeRsp.PlayerID,
+		ServerID: nodeRsp.ServerID,
+		Nickname: nodeRsp.Nickname,
+		ID:       nodeRsp.ID,
+		UserID:   nodeRsp.UserID,
+	}
+	rsp.Token, _ = jwt.GenGameToken(rsp.GetUserID(), rsp.GetPlayerID(), rsp.GetServerID())
+
+	result, _ := json.Marshal(&rsp)
 	c.Data(200, "application/json", result)
 }
 
 // SelectPlayer 选角（返回游戏服Token+地址）
 func SelectPlayer(c *gin.Context) {
 
-	var reqs req_login.SelectPlayerReq
+	var reqs pb.Req_Http_SelectPlayer
 	if err := c.ShouldBindJSON(&reqs); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "参数错误"})
 		return
 	}
 
 	//动态查询游戏服地址
-	gServer, err := service_login.GetServerByID(reqs.ServerID)
+	_, err := service_login.GetServerByID(reqs.ServerID)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "区服不存在或维护中"})
 		return
 	}
 
-	player, err := service_login.SelectPlayer(reqs.UserID, reqs.UID)
+	_, err = service_login.SelectPlayer(reqs.GetUID(), reqs.GetPlayerID())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
 	// 生成游戏服Token（含账号ID+角色UID）
-	gameToken, err := jwt.GenGameToken(reqs.UserID, reqs.UID)
+	gameToken, err := jwt.GenGameToken(reqs.GetUID(), reqs.GetPlayerID(), reqs.GetServerID())
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "生成游戏Token失败"})
 		return
 	}
+	rsp := pb.Rsp_Http_SelectPlayer{
+		ServerID: reqs.GetServerID(),
+		PlayerID: reqs.GetPlayerID(),
+		ID:       reqs.GetUID(),
+		UserID:   reqs.GetUID(),
+		Token:    gameToken,
+	}
 
-	c.JSON(http.StatusOK, gin.H{
-		"code":        200,
-		"msg":         "选角成功",
-		"game_token":  gameToken,
-		"game_server": gServer.Addr, // 游戏服地址
-		"player":      player,
-	})
+	c.JSON(http.StatusOK, &rsp)
 }

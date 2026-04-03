@@ -15,12 +15,17 @@ func GetDefaultGin() *gin.Engine {
 
 func Register(r *gin.Engine) {
 
-	authGroup := r.Group("/api/login")
+	authGroup := r.Group("/api/auth")
 	{
 		authGroup.POST("/register", api.Register)
-		authGroup.POST("/accountLogin", api.Login)
-		authGroup.POST("/player/list", api.PlayerList)
-		authGroup.POST("/create", api.CreatePlayer)
-		authGroup.POST("/select", api.SelectPlayer)
+		authGroup.POST("/login", api.Login)
+
 	}
+	playerGroup := r.Group("/api/player")
+	{
+		playerGroup.POST("/list", api.PlayerList)
+		playerGroup.POST("/create", api.CreatePlayer)
+		playerGroup.POST("/select", api.SelectPlayer)
+	}
+
 }

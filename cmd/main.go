@@ -1,25 +1,47 @@
 package main
 
 import (
-	"g7/pkg/logger"
-	"g7/pkg/mysqlx"
-	"g7/pkg/redisx"
-	"github.com/gin-gonic/gin"
+	"flag"
+	"g7/common/config"
+	"g7/common/globals"
+	"g7/common/logger"
+	"g7/common/pkg/mysqlx"
+	"g7/common/redisx"
+	"g7/common/snowflake"
+	"g7/common/utils"
+	"go.uber.org/zap"
+	"strconv"
 )
 
 func main() {
-	// 1. 初始化日志
+	// 1. 解析环境参数
+	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
+	flag.Parse()
+
+	// 2、获取配置
+	var confStr string
+	if !utils.IsDev() {
+		confStr = globals.ConfPro
+	} else {
+		confStr = globals.ConfDev
+	}
+	config.Load(confStr)
+
+	// 3. 初始化日志
 	logger.Init()
+	logger.Log.Info("启动服务", zap.String("env", globals.Env))
 
-	// 2. 初始化 MySQL
-	mysqlx.Init("root:@tcp(127.0.0.1:3306)/game_db?charset=utf8mb4&parseTime=True&loc=Local")
+	// 4. 初始化 MySQL
+	mysqlx.Init(config.Cfg.MySQL.DSN)
 
-	// 3. 初始化 Redis
-	redisx.Init("127.0.0.1:6379", "", 0)
+	// 5. 初始化 Redis
+	redisx.Init(config.Cfg.Redis.Addr, config.Cfg.Redis.Password, config.Cfg.Redis.DB)
 
-	// 4. 启动服务
-	r := gin.Default()
+	// 6. 初始化雪花算法（从YAML读取）
+	snowflake.Init()
 
-	logger.Log.Info("服务启动成功 :8080")
-	r.Run(":8080")
+	// 8. 启动
+	port := config.Cfg.Server.Port
+	logger.Log.Info("服务启动成功", zap.Int("port", port))
+	_ = r.Run(":" + strconv.Itoa(port))
 }

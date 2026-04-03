@@ -19,123 +19,215 @@ import (
 const _ = grpc.SupportPackageIsVersion7
 
 const (
-	GameService_Stream_FullMethodName = "/game.GameService/Stream"
+	GameStreamService_Stream_FullMethodName = "/game.GameStreamService/Stream"
 )
 
-// GameServiceClient is the client API for GameService service.
+// GameStreamServiceClient is the client API for GameStreamService service.
 //
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
-type GameServiceClient interface {
-	Stream(ctx context.Context, opts ...grpc.CallOption) (GameService_StreamClient, error)
+type GameStreamServiceClient interface {
+	Stream(ctx context.Context, opts ...grpc.CallOption) (GameStreamService_StreamClient, error)
 }
 
-type gameServiceClient struct {
+type gameStreamServiceClient struct {
 	cc grpc.ClientConnInterface
 }
 
-func NewGameServiceClient(cc grpc.ClientConnInterface) GameServiceClient {
-	return &gameServiceClient{cc}
+func NewGameStreamServiceClient(cc grpc.ClientConnInterface) GameStreamServiceClient {
+	return &gameStreamServiceClient{cc}
 }
 
-func (c *gameServiceClient) Stream(ctx context.Context, opts ...grpc.CallOption) (GameService_StreamClient, error) {
-	stream, err := c.cc.NewStream(ctx, &GameService_ServiceDesc.Streams[0], GameService_Stream_FullMethodName, opts...)
+func (c *gameStreamServiceClient) Stream(ctx context.Context, opts ...grpc.CallOption) (GameStreamService_StreamClient, error) {
+	stream, err := c.cc.NewStream(ctx, &GameStreamService_ServiceDesc.Streams[0], GameStreamService_Stream_FullMethodName, opts...)
 	if err != nil {
 		return nil, err
 	}
-	x := &gameServiceStreamClient{stream}
+	x := &gameStreamServiceStreamClient{stream}
 	return x, nil
 }
 
-type GameService_StreamClient interface {
-	Send(*ClientPacket) error
-	Recv() (*ServerPacket, error)
+type GameStreamService_StreamClient interface {
+	Send(*GameMessage) error
+	Recv() (*GameMessage, error)
 	grpc.ClientStream
 }
 
-type gameServiceStreamClient struct {
+type gameStreamServiceStreamClient struct {
 	grpc.ClientStream
 }
 
-func (x *gameServiceStreamClient) Send(m *ClientPacket) error {
+func (x *gameStreamServiceStreamClient) Send(m *GameMessage) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *gameServiceStreamClient) Recv() (*ServerPacket, error) {
-	m := new(ServerPacket)
+func (x *gameStreamServiceStreamClient) Recv() (*GameMessage, error) {
+	m := new(GameMessage)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-// GameServiceServer is the server API for GameService service.
-// All implementations must embed UnimplementedGameServiceServer
+// GameStreamServiceServer is the server API for GameStreamService service.
+// All implementations must embed UnimplementedGameStreamServiceServer
 // for forward compatibility
-type GameServiceServer interface {
-	Stream(GameService_StreamServer) error
-	mustEmbedUnimplementedGameServiceServer()
+type GameStreamServiceServer interface {
+	Stream(GameStreamService_StreamServer) error
+	mustEmbedUnimplementedGameStreamServiceServer()
 }
 
-// UnimplementedGameServiceServer must be embedded to have forward compatible implementations.
-type UnimplementedGameServiceServer struct {
+// UnimplementedGameStreamServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedGameStreamServiceServer struct {
 }
 
-func (UnimplementedGameServiceServer) Stream(GameService_StreamServer) error {
+func (UnimplementedGameStreamServiceServer) Stream(GameStreamService_StreamServer) error {
 	return status.Errorf(codes.Unimplemented, "method Stream not implemented")
 }
-func (UnimplementedGameServiceServer) mustEmbedUnimplementedGameServiceServer() {}
+func (UnimplementedGameStreamServiceServer) mustEmbedUnimplementedGameStreamServiceServer() {}
 
-// UnsafeGameServiceServer may be embedded to opt out of forward compatibility for this service.
-// Use of this interface is not recommended, as added methods to GameServiceServer will
+// UnsafeGameStreamServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GameStreamServiceServer will
 // result in compilation errors.
-type UnsafeGameServiceServer interface {
-	mustEmbedUnimplementedGameServiceServer()
+type UnsafeGameStreamServiceServer interface {
+	mustEmbedUnimplementedGameStreamServiceServer()
 }
 
-func RegisterGameServiceServer(s grpc.ServiceRegistrar, srv GameServiceServer) {
-	s.RegisterService(&GameService_ServiceDesc, srv)
+func RegisterGameStreamServiceServer(s grpc.ServiceRegistrar, srv GameStreamServiceServer) {
+	s.RegisterService(&GameStreamService_ServiceDesc, srv)
 }
 
-func _GameService_Stream_Handler(srv interface{}, stream grpc.ServerStream) error {
-	return srv.(GameServiceServer).Stream(&gameServiceStreamServer{stream})
+func _GameStreamService_Stream_Handler(srv interface{}, stream grpc.ServerStream) error {
+	return srv.(GameStreamServiceServer).Stream(&gameStreamServiceStreamServer{stream})
 }
 
-type GameService_StreamServer interface {
-	Send(*ServerPacket) error
-	Recv() (*ClientPacket, error)
+type GameStreamService_StreamServer interface {
+	Send(*GameMessage) error
+	Recv() (*GameMessage, error)
 	grpc.ServerStream
 }
 
-type gameServiceStreamServer struct {
+type gameStreamServiceStreamServer struct {
 	grpc.ServerStream
 }
 
-func (x *gameServiceStreamServer) Send(m *ServerPacket) error {
+func (x *gameStreamServiceStreamServer) Send(m *GameMessage) error {
 	return x.ServerStream.SendMsg(m)
 }
 
-func (x *gameServiceStreamServer) Recv() (*ClientPacket, error) {
-	m := new(ClientPacket)
+func (x *gameStreamServiceStreamServer) Recv() (*GameMessage, error) {
+	m := new(GameMessage)
 	if err := x.ServerStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
 	return m, nil
 }
 
-// GameService_ServiceDesc is the grpc.ServiceDesc for GameService service.
+// GameStreamService_ServiceDesc is the grpc.ServiceDesc for GameStreamService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
-var GameService_ServiceDesc = grpc.ServiceDesc{
-	ServiceName: "game.GameService",
-	HandlerType: (*GameServiceServer)(nil),
+var GameStreamService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "game.GameStreamService",
+	HandlerType: (*GameStreamServiceServer)(nil),
 	Methods:     []grpc.MethodDesc{},
 	Streams: []grpc.StreamDesc{
 		{
 			StreamName:    "Stream",
-			Handler:       _GameService_Stream_Handler,
+			Handler:       _GameStreamService_Stream_Handler,
 			ServerStreams: true,
 			ClientStreams: true,
 		},
 	},
+	Metadata: "src/rpc_server.proto",
+}
+
+const (
+	GameNodeService_LoginNodeCreatePlayer_FullMethodName = "/game.GameNodeService/LoginNodeCreatePlayer"
+)
+
+// GameNodeServiceClient is the client API for GameNodeService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type GameNodeServiceClient interface {
+	// 登录服创建玩家
+	LoginNodeCreatePlayer(ctx context.Context, in *Req_Node_CreatePlayer, opts ...grpc.CallOption) (*Rsp_Node_CreatePlayer, error)
+}
+
+type gameNodeServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewGameNodeServiceClient(cc grpc.ClientConnInterface) GameNodeServiceClient {
+	return &gameNodeServiceClient{cc}
+}
+
+func (c *gameNodeServiceClient) LoginNodeCreatePlayer(ctx context.Context, in *Req_Node_CreatePlayer, opts ...grpc.CallOption) (*Rsp_Node_CreatePlayer, error) {
+	out := new(Rsp_Node_CreatePlayer)
+	err := c.cc.Invoke(ctx, GameNodeService_LoginNodeCreatePlayer_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GameNodeServiceServer is the server API for GameNodeService service.
+// All implementations must embed UnimplementedGameNodeServiceServer
+// for forward compatibility
+type GameNodeServiceServer interface {
+	// 登录服创建玩家
+	LoginNodeCreatePlayer(context.Context, *Req_Node_CreatePlayer) (*Rsp_Node_CreatePlayer, error)
+	mustEmbedUnimplementedGameNodeServiceServer()
+}
+
+// UnimplementedGameNodeServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedGameNodeServiceServer struct {
+}
+
+func (UnimplementedGameNodeServiceServer) LoginNodeCreatePlayer(context.Context, *Req_Node_CreatePlayer) (*Rsp_Node_CreatePlayer, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method LoginNodeCreatePlayer not implemented")
+}
+func (UnimplementedGameNodeServiceServer) mustEmbedUnimplementedGameNodeServiceServer() {}
+
+// UnsafeGameNodeServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GameNodeServiceServer will
+// result in compilation errors.
+type UnsafeGameNodeServiceServer interface {
+	mustEmbedUnimplementedGameNodeServiceServer()
+}
+
+func RegisterGameNodeServiceServer(s grpc.ServiceRegistrar, srv GameNodeServiceServer) {
+	s.RegisterService(&GameNodeService_ServiceDesc, srv)
+}
+
+func _GameNodeService_LoginNodeCreatePlayer_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_CreatePlayer)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameNodeServiceServer).LoginNodeCreatePlayer(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameNodeService_LoginNodeCreatePlayer_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameNodeServiceServer).LoginNodeCreatePlayer(ctx, req.(*Req_Node_CreatePlayer))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// GameNodeService_ServiceDesc is the grpc.ServiceDesc for GameNodeService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var GameNodeService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "game.GameNodeService",
+	HandlerType: (*GameNodeServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "LoginNodeCreatePlayer",
+			Handler:    _GameNodeService_LoginNodeCreatePlayer_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
 	Metadata: "src/rpc_server.proto",
 }

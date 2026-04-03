@@ -26,8 +26,8 @@ func CreatePlayer(userID int64, nickname string) (*model_login.Player, error) {
 }
 
 // SelectPlayer 选角（校验权限）
-func SelectPlayer(userID int64, uid int64) (*model_login.Player, error) {
-	player, err := dao_login.GetPlayerByUID(uid)
+func SelectPlayer(userID int64, playerID int64) (*model_login.Player, error) {
+	player, err := dao_login.GetPlayerByUID(playerID)
 	if err != nil {
 		return nil, errors.New("角色不存在")
 	}

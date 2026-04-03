@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"g7/common/config"
+	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/mysqlx"
@@ -29,6 +30,10 @@ func main() {
 
 	logger.Init()
 	logger.Log.Info("登录服启动中...")
+
+	// 3、注册etcd,监听游戏服
+	etcd.InitETCD(config.GCfg.Etcd.Dsn)
+	etcd.RegisterLogin(config.GCfg.Server.Login)
 
 	snowflake.Init()
 

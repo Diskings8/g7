@@ -74,7 +74,7 @@ func HandleClient(conn net.Conn) {
 	clientToGateway(conn, sess, stream)
 }
 
-func connectToGameServer(gameAddr string) (pb.GameService_StreamClient, error) {
+func connectToGameServer(gameAddr string) (pb.GameStreamService_StreamClient, error) {
 	conn, err := grpc.Dial(gameAddr,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
@@ -82,13 +82,13 @@ func connectToGameServer(gameAddr string) (pb.GameService_StreamClient, error) {
 		return nil, err
 	}
 
-	client := pb.NewGameServiceClient(conn)
+	client := pb.NewGameStreamServiceClient(conn)
 	stream, err := client.Stream(context.Background())
 	return stream, err
 }
 
 // 客户端 → 网关 → 游戏服
-func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameService_StreamClient) {
+func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameStreamService_StreamClient) {
 	makeFirstMessage(_sess, gameStream)
 	for {
 		msg, err := protocol.ReadMessage(conn)
@@ -97,24 +97,24 @@ func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameService_St
 			return
 		}
 		// 把客户端的包转发给游戏服 gRPC 流
-		_ = gameStream.Send(&pb.ClientPacket{
-			MsgId: msg.MsgID,
+		_ = gameStream.Send(&pb.GameMessage{
+			MsgId: uint32(msg.MsgID),
 			Body:  msg.Body,
 		})
 	}
 }
 
-func makeFirstMessage(sess *Session, gameStream pb.GameService_StreamClient) {
-	msg := pb.Req_AuthClientToGame{UID: sess.uid}
+func makeFirstMessage(sess *Session, gameStream pb.GameStreamService_StreamClient) {
+	msg := pb.Req_AuthClientToGame{PlayerID: sess.uid}
 	msgBody, _ := json.Marshal(&msg)
-	_ = gameStream.Send(&pb.ClientPacket{
-		MsgId: pb.MsgID_MSG_AUTH,
+	_ = gameStream.Send(&pb.GameMessage{
+		MsgId: uint32(pb.MsgID_MSG_AUTH),
 		Body:  msgBody,
 	})
 }
 
 // 游戏服 → 网关 → 客户端
-func gatewayToClient(conn net.Conn, sess *Session, gameStream pb.GameService_StreamClient) {
+func gatewayToClient(conn net.Conn, sess *Session, gameStream pb.GameStreamService_StreamClient) {
 	for {
 		pkt, err := gameStream.Recv()
 		if err != nil {
@@ -123,7 +123,7 @@ func gatewayToClient(conn net.Conn, sess *Session, gameStream pb.GameService_Str
 			return
 		}
 		// 把游戏服的包转发给客户端 TCP
-		_ = protocol.WriteMessage(conn, pkt.MsgId, pkt.Body)
+		_ = protocol.WriteMessage(conn, pb.MsgID(pkt.MsgId), pkt.Body)
 	}
 }
 

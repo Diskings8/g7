@@ -1,0 +1,9 @@
+syntax = "proto3";
+package game;
+option go_package = "./pb";
+
+
+message GameMessage  {
+  uint32  msg_id = 1;  // 协议ID
+  bytes   body   = 2;  // proto 数据
+}

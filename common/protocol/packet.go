@@ -1,8 +1,11 @@
 package protocol
 
 import (
+	"context"
 	"encoding/binary"
 	"g7/common/protos/pb"
+	"google.golang.org/grpc"
+	"google.golang.org/grpc/credentials/insecure"
 	"io"
 	"net"
 )
@@ -42,4 +45,19 @@ func WriteMessage(conn net.Conn, msgID pb.MsgID, body []byte) error {
 
 	_, err := conn.Write(buf)
 	return err
+}
+
+func NewGameNodeClient(ctx context.Context, addr string) (pb.GameNodeServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := grpc.DialContext(ctx,
+		addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewGameNodeServiceClient(conn)
+	return client, nil
 }
