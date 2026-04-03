@@ -52,6 +52,15 @@ type Etcd struct {
 	Dsn string `yaml:"dsn"`
 }
 
+type GateWay struct {
+	Addr string `yaml:"addr"`
+	Port string `yaml:"port"`
+}
+
+func (gw *GateWay) Dsn() string {
+	return fmt.Sprintf("%s:%s", gw.Addr, gw.Port)
+}
+
 type Config struct {
 	MySQLGlobal MySQL     `yaml:"mysql_global"`
 	MySQLGame   MySQL     `yaml:"mysql_game"`
@@ -60,6 +69,7 @@ type Config struct {
 	Server      Server    `yaml:"server"`
 	JWT         JWT       `yaml:"jwt"`
 	Etcd        Etcd      `yaml:"etcd"`
+	GateWay     GateWay   `yaml:"gateWay"`
 }
 
 // Load 加载配置文件

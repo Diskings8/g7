@@ -36,6 +36,9 @@ func getGatewayPrefix() string {
 func getGameServerPrefix(serverID string) string {
 	return "/" + globals.GameServer + "/" + serverID + "/"
 }
+func getLoginPrefix() string {
+	return "/" + globals.LoginServer + "/"
+}
 
 // RegisterGateway 注册网关
 func RegisterGateway(addr string) {
@@ -46,6 +49,12 @@ func RegisterGateway(addr string) {
 // RegisterGameServer 注册游戏服
 func RegisterGameServer(serverID string, addr string) {
 	key := getGameServerPrefix(serverID) + addr
+	registerWithLease(key, addr)
+}
+
+// RegisterLogin 注册登录服
+func RegisterLogin(addr string) {
+	key := getLoginPrefix() + addr
 	registerWithLease(key, addr)
 }
 

@@ -7,8 +7,9 @@ import (
 )
 
 type Claims struct {
-	UserID int64 `json:"user_id"` // 账号ID
-	UID    int64 `json:"uid"`     // 角色雪花ID
+	UserID   int64 `json:"user_id"`   // 账号ID
+	UID      int64 `json:"uid"`       // 角色雪花ID
+	ServerID int32 `json:"server_id"` // 游戏服ID
 	jwt.RegisteredClaims
 }
 
@@ -26,12 +27,13 @@ func GenLoginToken(userID int64) (string, error) {
 	return token.SignedString([]byte(config.GCfg.JWT.Secret))
 }
 
-// GenGameToken 选角后签发：含账号ID + 角色UID
-func GenGameToken(userID, uid int64) (string, error) {
+// GenGameToken 选角后签发：含账号ID、角色UID、服务器ID
+func GenGameToken(userID, uid int64, serverID int32) (string, error) {
 	expire := time.Duration(config.GCfg.JWT.ExpireHours) * time.Hour
 	claims := Claims{
-		UserID: userID,
-		UID:    uid,
+		UserID:   userID,
+		UID:      uid,
+		ServerID: serverID,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: jwt.NewNumericDate(time.Now().Add(expire)),
 			IssuedAt:  jwt.NewNumericDate(time.Now()),

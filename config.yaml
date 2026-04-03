@@ -39,3 +39,10 @@ snowflake:
 jwt:
   secret: "g7-game-service_login-secret-key-2025"
   expire_hours: 24
+
+etcd:
+  dsn: "127.0.0.1:2379"
+
+gateWay:
+  addr: "127.0.0.1"
+  port: "9001"
