@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+message Req_AuthClientToGame {
+  int64 uID = 1;  // 角色id
+}
+
+message Rsp_AuthClientToGame {
+  bool result = 1;  // 结果
+}
+
+message Req_AuthClientToGateWay{
+  int64 uID = 1;
+  int64 roleID = 2;
+  int32 serverID = 3;
+  string token = 4;
+}

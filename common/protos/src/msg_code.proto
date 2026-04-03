@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+// ==========================
+// 🔥 所有协议号 全部在这里定义
+// ==========================
+enum MsgID {
+  MSG_INVALID = 0; // 必须从0开始
+
+  // 网关 ↔ 游戏服
+  MSG_AUTH = 10001;          // 鉴权
+
+  // 游戏业务 start from 20000
+  MSG_ENTER_GAME = 2001;    // 进入游戏
+  MSG_MOVE = 2002;          // 移动
+  MSG_ATTACK = 2003;        // 攻击
+}

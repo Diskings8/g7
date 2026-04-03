@@ -1,0 +1,22 @@
+syntax = "proto3";
+package game;
+option go_package = "./pb";
+
+import "src/msg_code.proto";
+
+// 网关 ↔ 游戏服 双向流（唯一、长连接、专属某个玩家）
+service GameService {
+  rpc Stream(stream ClientPacket) returns (stream ServerPacket) {}
+}
+
+// 客户端 → 游戏服（只需要协议号 + 二进制数据）
+message ClientPacket {
+  MsgID  msg_id = 1;  // 协议ID
+  bytes  body   = 2;  // proto 数据
+}
+
+// 游戏服 → 客户端（只需要协议号 + 二进制数据）
+message ServerPacket {
+  MsgID  msg_id = 1;
+  bytes  body   = 2;
+}
