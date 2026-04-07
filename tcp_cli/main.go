@@ -29,7 +29,7 @@ func main() {
 	//}
 	firstMsg(conn)
 
-	MakeMsgToSend(conn, pb.MsgID_MSG_ENTER_GAME, pb.Req_LoginGame{})
+	MakeMsgToSend(conn, pb.MsgID_MSG_Req_EnterGame, pb.Req_LoginGame{})
 
 	// 等待接收网关返回
 	buf := make([]byte, 1024)
@@ -39,10 +39,10 @@ func main() {
 
 func MyData() pb.Req_AuthClientToGateWay {
 	return pb.Req_AuthClientToGateWay{
-		UID:      910001,
-		RoleID:   10241,
+		UerID:    2041160605846605824,
+		PlayerID: 2041413406195585024,
 		ServerID: 91001,
-		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoxMDI0MSwidWlkIjo5MTAwMDEsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc3NTI4NjYxMSwiaWF0IjoxNzc1MjAwMjExfQ.P_tqKk4QGzPsxfXF5wtvFvog777OYGrc5ii1poIBeLM",
+		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDQxMTYwNjA1ODQ2NjA1ODI0LCJ1aWQiOjIwNDE0MTM0MDYxOTU1ODUwMjQsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc3NTYzMjM5MSwiaWF0IjoxNzc1NTQ1OTkxfQ.fZxJNPdO0cy6odEUq7QUw6Rz-1AnGBAY9zpFoSsXxCc",
 	}
 }
 

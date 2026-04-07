@@ -1,6 +1,6 @@
 # 三服端口配置
 server:
-  platform: ":8080"   # 平台服端口
+  platform: ":8080" # 平台服端口
   login:    ":8081"   # 登录服端口
   game:     ":8082"   # 游戏服端口
 
@@ -23,6 +23,13 @@ mysql_game:
   db_name_prefix: "game_db"
   params: "charset=utf8mb4&parseTime=True&loc=Local"
   dsn: "root:@tcp(127.0.0.1:3306)/game_db?charset=utf8mb4&parseTime=True&loc=Local"
+
+# 游戏服数据库
+mongodb_game:
+  uri: "mongodb://root:123456@127.0.0.1:27017"
+  db_name_prefix: "game_db"
+  pool_min: 5
+  pool_max: 50
 
 # Redis 公共缓存
 redis:

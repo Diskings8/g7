@@ -40,14 +40,14 @@ func HandleClient(conn net.Conn) {
 	_ = json.Unmarshal(msg.Body, &req)
 
 	// 验证 Token（真实环境：调用登录服RPC/HTTP）
-	if _, ok := checkToken(req.Token, req.UID); !ok {
+	if _, ok := checkToken(req.Token, req.GetUerID()); !ok {
 		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(401, "token失效"))
 		return
 	}
 
 	// --- 认证成功！会话赋值 ---
-	sess.uid = req.UID
-	sess.roleID = req.RoleID
+	sess.userID = req.GetUerID()
+	sess.playerID = req.GetPlayerID()
 	sess.serverID = req.ServerID
 
 	// --- 获取游戏服地址（从Watch缓存）---
@@ -67,7 +67,7 @@ func HandleClient(conn net.Conn) {
 	}
 	sess.gameStream = stream
 
-	log.Printf("认证成功：uid=%d role=%d serverID=%d", sess.uid, sess.roleID, sess.serverID)
+	log.Printf("认证成功：uid=%d role=%d serverID=%d", sess.userID, sess.playerID, sess.serverID)
 
 	// --- 开始双向透传 ---
 	go gatewayToClient(conn, sess, stream)
@@ -105,7 +105,7 @@ func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameStreamServ
 }
 
 func makeFirstMessage(sess *Session, gameStream pb.GameStreamService_StreamClient) {
-	msg := pb.Req_AuthClientToGame{PlayerID: sess.uid}
+	msg := pb.Req_AuthClientToGame{PlayerID: sess.playerID}
 	msgBody, _ := json.Marshal(&msg)
 	_ = gameStream.Send(&pb.GameMessage{
 		MsgId: uint32(pb.MsgID_MSG_AUTH),
@@ -131,11 +131,13 @@ func checkToken(tokenStr string, clientUID int64) (*jwt.Claims, bool) {
 	// 1. 本地直接解析校验
 	claims, err := jwt.ParseToken(tokenStr)
 	if err != nil {
+		log.Printf("ParseToken error " + err.Error())
 		return nil, false
 	}
 
 	// 2. 防篡改：客户端传的UID必须和Token里的UID一致
-	if claims.UID != clientUID {
+	if claims.UserID != clientUID {
+		log.Printf("clientUID error " + fmt.Sprintf("%s, Req %s", claims.UID, clientUID))
 		return nil, false
 	}
 

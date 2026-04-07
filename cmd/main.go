@@ -7,7 +7,7 @@ import (
 	"g7/common/logger"
 	"g7/common/pkg/mysqlx"
 	"g7/common/redisx"
-	"g7/common/snowflake"
+	"g7/common/snowflakes"
 	"g7/common/utils"
 	"go.uber.org/zap"
 	"strconv"
@@ -38,7 +38,7 @@ func main() {
 	redisx.Init(config.Cfg.Redis.Addr, config.Cfg.Redis.Password, config.Cfg.Redis.DB)
 
 	// 6. 初始化雪花算法（从YAML读取）
-	snowflake.Init()
+	snowflakes.Init()
 
 	// 8. 启动
 	port := config.Cfg.Server.Port

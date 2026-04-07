@@ -25,6 +25,13 @@ func (ms *MySQL) DsnWithName(name string) string {
 	return fmt.Sprintf("%s:%s@tcp(%s:%s)/%s_%s?%s", ms.User, ms.Pass, ms.Addr, ms.Port, ms.DbNamePrefix, name, ms.Params)
 }
 
+type MongoDBConfig struct {
+	URI          string `yaml:"uri"`
+	DbNamePrefix string `yaml:"db_name_prefix"`
+	PoolMin      int    `yaml:"pool_min"`
+	PoolMax      int    `yaml:"pool_max"`
+}
+
 type Redis struct {
 	Addr     string `yaml:"addr"`
 	Password string `yaml:"password"`

@@ -40,6 +40,9 @@ func WatchGameServers() {
 // WatchGameServersWithClient 变化（生产级核心）
 func WatchGameServersWithClient(etcdClient *clientv3.Client) {
 	prefix := "/" + globals.GameServer + "/"
+
+	// 全量获取档期活跃服务器
+	loadAllGameServers(prefix)
 	log.Println("开始监听 etcd 游戏服变化：", prefix)
 
 	// 监听前缀
@@ -73,5 +76,35 @@ func WatchGameServersWithClient(etcdClient *clientv3.Client) {
 			}
 		}
 		time.Sleep(100 * time.Millisecond)
+	}
+}
+
+// loadAllGameServers 启动时全量拉取已注册的 GameServer
+func loadAllGameServers(prefix string) {
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
+	defer cancel()
+	// 前缀查询：获取 /game_servers/ 下所有节点
+	resp, err := etcdClient.Get(ctx, prefix, clientv3.WithPrefix())
+	if err != nil {
+		log.Printf("全量获取游戏服失败: %v", err)
+		return
+	}
+
+	// 写入本地列表
+	for _, kv := range resp.Kvs {
+		key := string(kv.Key)
+		value := string(kv.Value)
+
+		// 解析 key：/game_server/91001/127.0.0.1:8082
+		parts := strings.Split(key, "/")
+		if len(parts) < 3 {
+			continue
+		}
+
+		serverID := parts[2] // 提取 91001
+
+		GameServerCache.mu.Lock()
+		GameServerCache.cache[serverID] = value
+		GameServerCache.mu.Unlock()
 	}
 }

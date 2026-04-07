@@ -13,8 +13,8 @@ message Rsp_AuthClientToGame {
 }
 
 message Req_AuthClientToGateWay{
-  int64 uID = 1;
-  int64 roleID = 2;
+  int64 uerID = 1;
+  int64 playerID = 2;
   int32 serverID = 3;
   string token = 4;
 }

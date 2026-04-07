@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+import "src/msg_common.proto";
+
+
+message Req_BagData {
+  int32 bagType = 1;  // 背包类型
+}
+
+message Rsp_BagData {
+  int32 bagType = 1;  // 背包类型
+  repeated KvInt32Int64 bagData = 2;  // 背包数据
+}
+
+message Notify_BagDataChange {
+  int32 bagType = 1;  // 背包类型
+  repeated KvInt32Int64 bagChangeData = 2;  // 背包数据
+}

@@ -2,9 +2,9 @@ package model_common
 
 type GlobalPlayerIndex struct {
 	ID       int64 `gorm:"primaryKey"`
-	UID      int64 `gorm:"uniqueIndex"`
-	UserID   int64 `gorm:"index"`
-	ServerID int
+	UserID   int64 `gorm:"index" column:"user_id"`
+	PlayerId int64 `column:"player_id"`
+	ServerID int32
 	Nickname string
 }
 

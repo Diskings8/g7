@@ -18,4 +18,5 @@ message Rsp_Node_CreatePlayer{
   int64 userID = 4;
   string nickname = 5;
   string token = 6;
+  int32 state = 7;
 }

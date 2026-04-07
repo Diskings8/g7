@@ -19,7 +19,7 @@ func ReadMessage(conn net.Conn) (*Message, error) {
 
 	// 解析长度和协议ID
 	length := binary.BigEndian.Uint32(header[:headSizeIndex])
-	msgID := binary.BigEndian.Uint32(header[headSizeIndex:msgSizeIndex])
+	msgID := binary.BigEndian.Uint16(header[headSizeIndex:msgSizeIndex])
 
 	// 读取body
 	body := make([]byte, length)
@@ -40,7 +40,7 @@ func WriteMessage(conn net.Conn, msgID pb.MsgID, body []byte) error {
 	buf := make([]byte, HeaderSize+len(body))
 
 	binary.BigEndian.PutUint32(buf[:headSizeIndex], length)
-	binary.BigEndian.PutUint32(buf[headSizeIndex:msgSizeIndex], uint32(msgID))
+	binary.BigEndian.PutUint16(buf[headSizeIndex:msgSizeIndex], uint16(msgID))
 	copy(buf[msgSizeIndex:], body)
 
 	_, err := conn.Write(buf)

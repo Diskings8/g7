@@ -6,9 +6,9 @@ import "g7/common/protos/pb"
 // [4字节长度][2字节协议ID]
 
 const (
-	HeaderSize    = 4 + 4 // 长度固定
+	HeaderSize    = 4 + 2 // 长度固定
 	headSizeIndex = 4
-	msgSizeIndex  = 8
+	msgSizeIndex  = 6
 )
 
 // Message 消息结构

@@ -30,7 +30,7 @@ func PlayerList(c *gin.Context) {
 		return
 	}
 
-	c.JSON(http.StatusOK, gin.H{"code": 200, "data": players})
+	c.JSON(http.StatusOK, gin.H{"code": 200, "conf_data": players})
 }
 
 // CreatePlayer 创建角色
@@ -115,7 +115,6 @@ func SelectPlayer(c *gin.Context) {
 		ServerID: reqs.GetServerID(),
 		PlayerID: reqs.GetPlayerID(),
 		ID:       reqs.GetUID(),
-		UserID:   reqs.GetUID(),
 		Token:    gameToken,
 	}
 

@@ -2,6 +2,7 @@ package service_login
 
 import (
 	"errors"
+	"g7/common/snowflakes"
 	"g7/login/internal/dao_login"
 	"g7/login/model_login"
 	"golang.org/x/crypto/bcrypt"
@@ -23,6 +24,7 @@ func Register(username, password string) error {
 
 	// 创建账号
 	user := &model_login.User{
+		ID:       snowflakes.GenUID(),
 		Username: username,
 		Password: string(hashPwd),
 	}

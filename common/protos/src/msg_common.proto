@@ -7,3 +7,8 @@ message GameMessage  {
   uint32  msg_id = 1;  // 协议ID
   bytes   body   = 2;  // proto 数据
 }
+
+message KvInt32Int64  {
+  int32  key    = 1;  // k
+  int64  value  = 2;  //v
+}

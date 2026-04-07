@@ -1,4 +1,4 @@
-package snowflake
+package snowflakes
 
 import (
 	"g7/common/config"
@@ -38,4 +38,8 @@ func Init() {
 // GenUID 生成全局唯一UID
 func GenUID() int64 {
 	return node.Generate().Int64()
+}
+
+func GenUUID() uint64 {
+	return uint64(GenUID())
 }

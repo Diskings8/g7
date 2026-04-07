@@ -9,8 +9,8 @@ import (
 // Session 会话：网关只存这些！绝对不存业务数据！
 type Session struct {
 	conn     net.Conn
-	uid      int64 // 用户ID
-	roleID   int64 // 角色ID
+	userID   int64 // 用户ID
+	playerID int64 // 角色ID
 	serverID int32 // 要连接的游戏服ID
 	//gameConn net.Conn // 与游戏服的连接
 	gameStream pb.GameStreamService_StreamClient

@@ -3,13 +3,14 @@ package main
 import (
 	"flag"
 	"g7/common/config"
+	"g7/common/dbc"
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
-	"g7/common/mysqlx"
-	"g7/common/snowflake"
+	"g7/common/snowflakes"
 	"g7/common/utils"
-	"g7/login/internal/dao_login"
+	"g7/login/global_login"
+	"g7/login/model_login"
 	"g7/login/routers"
 )
 
@@ -35,11 +36,13 @@ func main() {
 	etcd.InitETCD(config.GCfg.Etcd.Dsn)
 	etcd.RegisterLogin(config.GCfg.Server.Login)
 
-	snowflake.Init()
+	snowflakes.Init()
 
-	mysqlx.InitGlobalDb(config.GCfg.MySQLGlobal.Dsn())
-	dao_login.AutoMigrate()
+	// 4、使用数据库
+	global_login.GLoginDB = dbc.InitDB(globals.DBMysql, config.GCfg.MySQLGlobal.Dsn())
+	_ = dbc.AutoMigrates(global_login.GLoginDB, &model_login.User{})
 
+	// 5、初始化路由
 	r := routers.GetDefaultGin()
 	routers.Register(r)
 
