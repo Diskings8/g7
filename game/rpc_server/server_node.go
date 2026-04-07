@@ -7,7 +7,9 @@ import (
 	"g7/common/protos/pb"
 	"g7/common/snowflakes"
 	"g7/game/global_game"
+	"g7/game/manager_game"
 	"g7/game/model_game"
+	"time"
 )
 
 type GameNodeServer struct {
@@ -16,19 +18,23 @@ type GameNodeServer struct {
 
 func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req_Node_CreatePlayer) (*pb.Rsp_Node_CreatePlayer, error) {
 	//logger.Log.Info("pb.Req_Node_CreatePlayer")
-	player := model_game.Player{
-		UserId:   req.GetUserID(),
-		PlayerId: snowflakes.GenUID(),
-		ServerId: req.GetServerID(),
-		Nickname: req.GetNickname(),
+	player := &model_game.Player{
+		UserId:           req.GetUserID(),
+		PlayerId:         snowflakes.GenUID(),
+		ServerId:         req.GetServerID(),
+		Nickname:         req.GetNickname(),
+		LastDailyResetAt: time.Now(),
 	}
+	dao := player.ToDao()
+	// 初始化各个系统的数据
+	manager_game.GISystemManager.LoadData(dao, player)
+
 	rsp := &pb.Rsp_Node_CreatePlayer{
 		PlayerID: player.PlayerId,
 		ServerID: player.ServerId,
 		Nickname: player.Nickname,
 		UserID:   player.UserId,
 	}
-	dao := player.ToDao()
 	err := global_game.GGameDB.Insert(dao)
 	if err != nil {
 		logger.Log.Error(err.Error())

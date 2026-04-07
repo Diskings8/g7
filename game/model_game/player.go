@@ -2,6 +2,8 @@ package model_game
 
 import (
 	"encoding/json"
+	"fmt"
+	"g7/common/logger"
 	"g7/common/model_common"
 	"time"
 )
@@ -14,10 +16,13 @@ type Player struct {
 	ActionLogs []*model_common.ActionLog
 
 	// 在线数据
-	IsOnline      bool      // 是否在线
-	OfflineAt     time.Time // 离线时间
-	OnlineAt      time.Time // 当前上线时间
-	LastOfflineAt time.Time // 上次离线时间
+	IsOnline         bool      // 是否在线
+	OfflineAt        time.Time // 离线时间
+	OnlineAt         time.Time // 当前上线时间
+	LastOfflineAt    time.Time // 上次离线时间
+	LastDailyResetAt time.Time // 上次每日重置的时间
+	LastWeekResetAt  time.Time // 每周重置时间
+	LastMonthResetAt time.Time // 每月重置时间
 
 	// 角色固定数据
 	PlayerId int64
@@ -44,7 +49,11 @@ func (this *Player) MarkOnline() {
 // RunInActor 发送逻辑到玩家玩家主协程（串行、安全）
 func (p *Player) RunInActor(fn func()) {
 	if !p.IsChanClosed {
-		p.ActionChan <- fn
+		select {
+		case p.ActionChan <- fn:
+		default:
+			logger.Log.Warn(fmt.Sprintf("player %d action is full", p.PlayerId))
+		}
 	}
 }
 
@@ -93,6 +102,9 @@ func (p *Player) ToDao() *PlayerDao {
 	dao.ServerId = p.ServerId
 	dao.UserId = p.UserId
 	dao.PlayerId = p.PlayerId
+	dao.LastDailyResetAt = p.LastDailyResetAt
+	dao.LastWeekResetAt = p.LastWeekResetAt
+	dao.LastMonthResetAt = p.LastMonthResetAt
 
 	// 通用数据
 	var generalD = dao.GeneralD

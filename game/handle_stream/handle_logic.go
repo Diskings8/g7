@@ -18,7 +18,7 @@ func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp an
 
 func handle_MSG_ENTER_GAME(req []byte, player *model_game.Player) (rsp any) {
 
-	manager_game.GISystemManager.DailyReset(player)
+	manager_game.GResetSystemManager.AllReset(player)
 	manager_game.GISystemManager.OnEnterGame(player)
 
 	rsp = &pb.Rsp_LoginGame{Result: true}

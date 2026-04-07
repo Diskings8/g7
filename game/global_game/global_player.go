@@ -4,6 +4,7 @@ import (
 	"g7/common/utils"
 	"g7/game/model_game"
 	"sync"
+	"time"
 )
 
 var GPlayerMaps playerMaps
@@ -46,4 +47,30 @@ func (this *playerMaps) DelAll() {
 	this.rwLock.Lock()
 	defer this.rwLock.Unlock()
 	clear(this.Data)
+}
+
+func (this *playerMaps) AllRunFunc(fc func(*model_game.Player)) {
+	this.rwLock.RLock()
+	players := make([]*model_game.Player, 0, len(this.Data))
+	for _, v := range this.Data {
+		players = append(players, v)
+	}
+	this.rwLock.RUnlock()
+	batchSize := 100
+	for i := 0; i < len(players); i += batchSize {
+		end := i + batchSize
+		if end > len(players) {
+			end = len(players)
+		}
+		batch := players[i:end]
+
+		go func(batch []*model_game.Player) {
+			for _, v := range batch {
+				v.RunInActor(func() {
+					fc(v)
+				})
+			}
+		}(batch)
+		time.Sleep(10 * time.Millisecond)
+	}
 }

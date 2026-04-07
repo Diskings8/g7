@@ -68,6 +68,10 @@ func (gw *GateWay) Dsn() string {
 	return fmt.Sprintf("%s:%s", gw.Addr, gw.Port)
 }
 
+type Env struct {
+	ResetHour int `yaml:"reset_hour"`
+}
+
 type Config struct {
 	MySQLGlobal MySQL     `yaml:"mysql_global"`
 	MySQLGame   MySQL     `yaml:"mysql_game"`
@@ -77,6 +81,7 @@ type Config struct {
 	JWT         JWT       `yaml:"jwt"`
 	Etcd        Etcd      `yaml:"etcd"`
 	GateWay     GateWay   `yaml:"gateWay"`
+	Env         Env       `yaml:"env"`
 }
 
 // Load 加载配置文件

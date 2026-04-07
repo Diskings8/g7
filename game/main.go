@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"g7/common/config"
+	"g7/common/cronx"
 	"g7/common/dbc"
 	"g7/common/etcd"
 	"g7/common/globals"
@@ -61,6 +62,10 @@ func main() {
 	global_game.GPlayerMaps.Init()
 	global_game.GPlayerCache.Init()
 
+	//初始化定时器
+	cronx.InitCron()
+
+	//初始化管理系
 	manager_game.GSaveSystemManager.Init()
 
 	// 注册grpc服务
