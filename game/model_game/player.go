@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"g7/common/logger"
 	"g7/common/model_common"
+	"g7/common/protos/pb"
 	"time"
 )
 
@@ -94,6 +95,23 @@ func (p *Player) Save() {
 		// 2. 丢进全局DB队列（不阻塞）
 		p.SaveChan <- dao
 	})
+}
+
+func (p *Player) Kick(reason string) {
+	logger.Log.Debug(fmt.Sprintf("player %d kick success by reason:%s", p.PlayerId, reason))
+	if p.DisconnectCancelTimer != nil {
+		p.DisconnectCancelTimer()
+	}
+	p.saveTicker.Stop()
+	p.SendMessage(pb.MsgID_MSG_HeartBeat, &pb.Notify_Kick{Reason: reason})
+	p.Save()
+	p.IsChanClosed = true
+	if p.StreamCancelFunc != nil {
+		p.StreamCancelFunc()
+	} else {
+		logger.Log.Warn("no cancel func")
+	}
+	p.StreamConn = nil
 }
 
 func (p *Player) ToDao() *PlayerDao {

@@ -5,5 +5,6 @@ import (
 )
 
 const (
-	SaveDaoTimeTick = 30 * time.Second
+	SaveDaoTimeTick  = 30 * time.Second
+	TcpCloseWaitTime = 30 * time.Second
 )

@@ -56,3 +56,4 @@ gateWay:
 
 env:
   reset_hour: 5
+  heat_beat_seconds: 30

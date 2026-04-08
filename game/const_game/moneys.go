@@ -10,4 +10,5 @@ const (
 const (
 	BagType_Default uint8 = iota
 	BagType_Currency
+	BagType_Goods
 )

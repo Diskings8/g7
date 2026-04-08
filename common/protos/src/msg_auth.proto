@@ -18,3 +18,10 @@ message Req_AuthClientToGateWay{
   int32 serverID = 3;
   string token = 4;
 }
+
+message Req_HeartBeat {
+}
+
+message Notify_Kick {
+  string Reason = 1;
+}

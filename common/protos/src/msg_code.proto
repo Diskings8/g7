@@ -11,7 +11,9 @@ enum MsgID {
   MSG_INVALID = 0; // 必须从0开始
 
   // 网关 ↔ 游戏服
-  MSG_AUTH = 10001;          // 鉴权
+  MSG_AUTH      = 10001;          // 鉴权
+  MSG_HeartBeat = 10002;          // 心跳
+  MSG_Kick      = 10003;          // 下线
 
   // 游戏业务 start from 20000
   MSG_Req_EnterGame = 20001;    // 进入游戏请求

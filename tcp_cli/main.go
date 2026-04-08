@@ -1,40 +1,51 @@
 package main
 
 import (
-	"bufio"
 	"encoding/json"
 	"fmt"
+	"g7/common/cronx"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
+	"io"
 	"net"
 )
+
+var gConn net.Conn
 
 func main() {
 	// 1. 连接网关
 	conn, err := net.Dial("tcp", "127.0.0.1:9001")
+	gConn = conn
 	if err != nil {
 		fmt.Println("连接网关失败：", err)
 		return
 	}
-	defer conn.Close()
+	defer gConn.Close()
 
 	fmt.Println("✅ 成功连接到 Gateway！")
+	cronx.InitCron()
+	firstMsg()
+	//cronx.AddPer5SecondTask(heartbeat)
 
-	// 发送消息到网关
-	//msg := "hello gateway!!"
-	//_, err = conn.Write([]byte(msg))
-	//if err != nil {
-	//	fmt.Println("发送失败：", err)
-	//	return
-	//}
-	firstMsg(conn)
-
-	MakeMsgToSend(conn, pb.MsgID_MSG_Req_EnterGame, pb.Req_LoginGame{})
+	MakeMsgToSend(pb.MsgID_MSG_Req_EnterGame, pb.Req_LoginGame{})
 
 	// 等待接收网关返回
-	buf := make([]byte, 1024)
-	n, _ := bufio.NewReader(conn).Read(buf)
-	fmt.Println("网关返回：", string(buf[:n]))
+	//buf := make([]byte, 1024)
+	for {
+		msg, errx := protocol.ReadMessage(gConn)
+		if errx == io.EOF {
+			break
+		}
+		if msg == nil {
+			continue
+		}
+		fmt.Printf("网关返回：MsgId:%d, %s", msg.MsgID, string(msg.Body))
+		switch msg.MsgID {
+		case pb.MsgID_MSG_Kick:
+			_ = gConn.Close()
+		}
+
+	}
 }
 
 func MyData() pb.Req_AuthClientToGateWay {
@@ -46,15 +57,20 @@ func MyData() pb.Req_AuthClientToGateWay {
 	}
 }
 
-func firstMsg(conn net.Conn) {
+func firstMsg() {
 	msg := MyData()
 	msgBody, _ := json.Marshal(&msg)
-	protocol.WriteMessage(conn, pb.MsgID_MSG_AUTH, msgBody)
+	protocol.WriteMessage(gConn, pb.MsgID_MSG_AUTH, msgBody)
 	return
 }
 
-func MakeMsgToSend(conn net.Conn, MsgId pb.MsgID, message any) {
+func MakeMsgToSend(MsgId pb.MsgID, message any) {
 	msgBody, _ := json.Marshal(&message)
-	protocol.WriteMessage(conn, MsgId, msgBody)
+	protocol.WriteMessage(gConn, MsgId, msgBody)
+	return
+}
+
+func heartbeat() {
+	protocol.WriteMessage(gConn, pb.MsgID_MSG_HeartBeat, []byte(""))
 	return
 }

@@ -20,6 +20,9 @@ func InitCron() {
 const (
 	EveryDay0Hour = "0 0 0 * * ?"
 	EveryDay5Hour = "0 0 5 * * ?"
+	Per5Second    = "0/5 * * * * ?"
+	Per30Second   = "0/30 * * * * ?"
+	Per1Minute    = "0 0/1 * * * ?"
 )
 
 func addCronTask(expr string, task func()) (cron.EntryID, error) {
@@ -32,4 +35,12 @@ func AddDaily5HourTask(task func()) {
 
 func AddDaily0HourTask(task func()) {
 	_, _ = addCronTask(EveryDay0Hour, task)
+}
+
+func AddPer5SecondTask(task func()) {
+	_, _ = addCronTask(Per5Second, task)
+}
+
+func AddPer30SecondTask(task func()) {
+	_, _ = addCronTask(Per30Second, task)
 }

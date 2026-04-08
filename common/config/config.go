@@ -69,7 +69,8 @@ func (gw *GateWay) Dsn() string {
 }
 
 type Env struct {
-	ResetHour int `yaml:"reset_hour"`
+	ResetHour       int `yaml:"reset_hour"`
+	HeatBeatSeconds int `yaml:"heat_beat_seconds"`
 }
 
 type Config struct {

@@ -1,6 +1,7 @@
 package global_game
 
 import (
+	"g7/common/config"
 	"g7/common/utils"
 	"g7/game/model_game"
 	"sync"
@@ -47,6 +48,36 @@ func (this *playerMaps) DelAll() {
 	this.rwLock.Lock()
 	defer this.rwLock.Unlock()
 	clear(this.Data)
+}
+
+func (this *playerMaps) HeartBeatCheck() {
+	curTime := time.Now()
+	checkBeatTime := time.Duration(config.GCfg.Env.HeatBeatSeconds)
+	if checkBeatTime <= 0 {
+		checkBeatTime = 30
+	}
+	this.rwLock.RLock()
+	players := make([]*model_game.Player, 0, len(this.Data))
+	for _, v := range this.Data {
+		if v.GetLastHearBeatTime().Add(checkBeatTime * time.Second).Before(curTime) {
+			players = append(players, v)
+		}
+	}
+	this.rwLock.RUnlock()
+	for _, v := range players {
+		v.RunInActor(func() {
+			v.Kick("heartbeat timeout")
+		})
+	}
+	this.rwLock.Lock()
+	for _, v := range players {
+		key := utils.Int64ToString(v.PlayerId)
+		// 仅当玩家存在时删除，避免无效操作
+		if _, exists := this.Data[key]; exists {
+			delete(this.Data, key)
+		}
+	}
+	this.rwLock.Unlock()
 }
 
 func (this *playerMaps) AllRunFunc(fc func(*model_game.Player)) {

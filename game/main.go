@@ -67,6 +67,7 @@ func main() {
 
 	//初始化管理系
 	manager_game.GSaveSystemManager.Init()
+	manager_game.GPlayerManager.Init()
 
 	// 注册grpc服务
 	s := grpc.NewServer()

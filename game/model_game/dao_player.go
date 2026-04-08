@@ -6,7 +6,7 @@ import (
 )
 
 type PlayerDao struct {
-	PlayerId         int64           `gorm:"primaryKey column:user_id"`
+	PlayerId         int64           `gorm:"primaryKey;column:player_id"`
 	UserId           int64           `gorm:"column:user_id"`
 	ServerId         int32           `gorm:"column:server_id"`
 	Nickname         string          `gorm:"column:nickname"`

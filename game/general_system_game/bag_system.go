@@ -25,12 +25,15 @@ type bagSystem struct {
 }
 
 func init() {
-	manager_game.GISystemManager.Register(&bagSystem{})
+	manager_game.GISystemManager.Register(const_game.General_BagSystem, &bagSystem{})
 }
 
 func (this *bagSystem) Init() {
 	this.bagTypeList = []uint8{const_game.BagType_Default, const_game.BagType_Currency}
+}
 
+func (this *bagSystem) GetName() string {
+	return "general_bag_system"
 }
 
 func (this *bagSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Player) {
