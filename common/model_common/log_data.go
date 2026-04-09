@@ -9,8 +9,29 @@ type DBTableInterface interface {
 	TableName() string
 }
 
+type DBMqInterface interface {
+	TableName() string
+	GetServerId() int32
+	GetEventType() int32
+}
+
+type BaseLog struct {
+	ID         int64     `gorm:"column:id;primaryKey;autoIncrement"`
+	ServerId   int32     `gorm:"column:server_id"`
+	EventType  int32     `gorm:"column:event_type"`
+	CreateTime time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP"`
+	SaveTime   time.Time `gorm:"column:save_time;default:CURRENT_TIMESTAMP"`
+}
+
+func (l BaseLog) GetServerId() int32 {
+	return l.ServerId
+}
+func (l BaseLog) GetEventType() int32 {
+	return l.EventType
+}
+
 type ActionLog struct {
-	ID           int64                  `gorm:"column:id;primaryKey;autoIncrement"`
+	BaseLog
 	PlayerID     int64                  `gorm:"column:player_id"`
 	Action       string                 `gorm:"column:action"`
 	Reason       string                 `gorm:"column:reason"`
@@ -19,8 +40,6 @@ type ActionLog struct {
 	GainItem     []structs.KInt32VInt64 `gorm:"column:gain_item;serializer:json"`
 	GainCurrency []structs.KInt32VInt64 `gorm:"column:gain_currency;serializer:json"`
 	Ext          string                 `gorm:"column:ext"`
-	CreateTime   time.Time              `gorm:"column:create_time;default:CURRENT_TIMESTAMP"`
-	SaveTime     time.Time              `gorm:"column:save_time;default:CURRENT_TIMESTAMP"`
 }
 
 func (ActionLog) TableName() string {

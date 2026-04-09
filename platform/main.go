@@ -33,5 +33,5 @@ func main() {
 		c.JSON(200, gin.H{"servers": []gin.H{{"id": 1, "name": "官方服-1"}}})
 	})
 
-	_ = r.Run(config.GCfg.Platform.Port)
+	_ = r.Run(config.GCfg.Server.Platform)
 }

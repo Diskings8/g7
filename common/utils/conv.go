@@ -10,6 +10,10 @@ func Int64ToString(i int64) string {
 	return strconv.FormatInt(i, 10)
 }
 
+func Int32ToString(i int32) string {
+	return strconv.FormatInt(int64(i), 10)
+}
+
 func Int32ToUint8(i int32) (uint8, error) {
 	// 必须判断范围！
 	if i < 0 || i > 255 {

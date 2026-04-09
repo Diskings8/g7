@@ -8,6 +8,7 @@ import (
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
+	"g7/common/mqc"
 	"g7/common/protos/pb"
 	"g7/common/redisx"
 	"g7/common/snowflakes"
@@ -53,6 +54,9 @@ func main() {
 
 	// 初始化redis
 	redisx.Init(config.GCfg.Redis.Addr, config.GCfg.Redis.Password, config.GCfg.Redis.DB)
+
+	// 初始化mq
+	global_game.GGlobalMQ = mqc.InitMQProducer(config.GCfg.MQ.Kind, config.GCfg.MQ.Dsn)
 
 	// 注册etcd
 	etcd.InitETCD(config.GCfg.Etcd.Dsn)

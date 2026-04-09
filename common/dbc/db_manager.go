@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"g7/common/dbc/dbc_interface"
 	"g7/common/dbc/mongo_driver"
 	"g7/common/dbc/mysql_driver"
 	"g7/common/logger"
@@ -9,7 +10,7 @@ import (
 )
 
 // InitDB 启动时根据配置初始化
-func InitDB(dbType string, dsn string) DBInterface {
+func InitDB(dbType string, dsn string) dbc_interface.DBInterface {
 	switch dbType {
 	case "mongo":
 		mongo, err := mongo_driver.NewMongoDriver(dsn)
@@ -30,7 +31,7 @@ func InitDB(dbType string, dsn string) DBInterface {
 	}
 }
 
-func AutoMigrates(db DBInterface, models ...model_common.DBTableInterface) error {
+func AutoMigrates(db dbc_interface.DBInterface, models ...model_common.DBTableInterface) error {
 	for _, m := range models {
 		err := db.AutoMigrate(m)
 		if err != nil {

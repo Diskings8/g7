@@ -1,6 +1,8 @@
 package mysql_driver
 
 import (
+	"fmt"
+	"g7/common/dbc/dbc_interface"
 	"g7/common/model_common"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -8,6 +10,7 @@ import (
 
 type MySQLDriver struct {
 	db *gorm.DB
+	tx *MySQLTxDriver
 }
 
 func NewMySQLDriver(dsn string) (*MySQLDriver, error) {
@@ -35,4 +38,36 @@ func (m *MySQLDriver) FindOne(table model_common.DBTableInterface, query any) er
 // --------------------
 func (m *MySQLDriver) FindList(result any, query any) error {
 	return m.db.Where(query).Find(result).Error
+}
+
+func (m *MySQLDriver) Begin() dbc_interface.DBTxInterface {
+	m.tx = &MySQLTxDriver{tx: m.db.Begin()}
+	return m.tx
+}
+
+type MySQLTxDriver struct {
+	tx *gorm.DB
+}
+
+func (m *MySQLTxDriver) BatchMQInsert(model []model_common.DBMqInterface) error {
+	if len(model) == 0 {
+		return nil
+	}
+	tableName := model[0].TableName()
+	return m.tx.Table(tableName).CreateInBatches(model, len(model)).Error
+}
+
+func (m *MySQLTxDriver) Commit() error {
+	if m.tx == nil {
+		return fmt.Errorf("no transaction started")
+	}
+
+	return m.tx.Commit().Error
+}
+
+func (m *MySQLTxDriver) Rollback() error {
+	if m.tx == nil {
+		return fmt.Errorf("no transaction started")
+	}
+	return m.tx.Rollback().Error
 }

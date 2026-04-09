@@ -73,6 +73,11 @@ type Env struct {
 	HeatBeatSeconds int `yaml:"heat_beat_seconds"`
 }
 
+type MQ struct {
+	Dsn  string `yaml:"dsn"`
+	Kind string `yaml:"kind"`
+}
+
 type Config struct {
 	MySQLGlobal MySQL     `yaml:"mysql_global"`
 	MySQLGame   MySQL     `yaml:"mysql_game"`
@@ -83,6 +88,7 @@ type Config struct {
 	Etcd        Etcd      `yaml:"etcd"`
 	GateWay     GateWay   `yaml:"gateWay"`
 	Env         Env       `yaml:"env"`
+	MQ          MQ        `yaml:"mq"`
 }
 
 // Load 加载配置文件

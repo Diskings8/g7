@@ -1,47 +1,42 @@
 package main
 
 import (
-	"flag"
+	"fmt"
 	"g7/common/config"
 	"g7/common/globals"
-	"g7/common/logger"
-	"g7/common/pkg/mysqlx"
-	"g7/common/redisx"
-	"g7/common/snowflakes"
-	"g7/common/utils"
-	"go.uber.org/zap"
-	"strconv"
+	"g7/common/model_common"
+	"g7/common/mqc"
+	"g7/common/structs"
+	"os"
+	"time"
 )
 
 func main() {
-	// 1. 解析环境参数
-	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
-	flag.Parse()
+	fmt.Println(os.Getwd())
+	config.Load(globals.ConfDev)
+	url := "127.0.0.1:9092"
+	producer := mqc.InitMQProducer(config.GCfg.MQ.Kind, config.GCfg.MQ.Dsn)
 
-	// 2、获取配置
-	var confStr string
-	if !utils.IsDev() {
-		confStr = globals.ConfPro
-	} else {
-		confStr = globals.ConfDev
+	topic := mqc.MakeGameActionTopicKey()
+	consum := mqc.InitMQConsumer("kafka", topic, url, nil)
+	go consum.RunConsumer()
+
+	ticker := time.NewTicker(10 * time.Second)
+	defer ticker.Stop()
+	// 无限循环监听
+	for {
+		<-ticker.C
+		data := &model_common.ActionLog{
+			PlayerID:     2041413406195585024,
+			Action:       "tst",
+			Reason:       "test kafka",
+			CostItem:     []structs.KInt32VInt64{{K: 1, V: 1}},
+			CostCurrency: []structs.KInt32VInt64{{K: 1001, V: 1}},
+			GainItem:     []structs.KInt32VInt64{{K: 2, V: 1}},
+			GainCurrency: []structs.KInt32VInt64{{K: 1002, V: 10}},
+			Ext:          "",
+		}
+		data.CreateTime = time.Now()
+		producer.ProduceMessage(topic, data)
 	}
-	config.Load(confStr)
-
-	// 3. 初始化日志
-	logger.Init()
-	logger.Log.Info("启动服务", zap.String("env", globals.Env))
-
-	// 4. 初始化 MySQL
-	mysqlx.Init(config.Cfg.MySQL.DSN)
-
-	// 5. 初始化 Redis
-	redisx.Init(config.Cfg.Redis.Addr, config.Cfg.Redis.Password, config.Cfg.Redis.DB)
-
-	// 6. 初始化雪花算法（从YAML读取）
-	snowflakes.Init()
-
-	// 8. 启动
-	port := config.Cfg.Server.Port
-	logger.Log.Info("服务启动成功", zap.Int("port", port))
-	_ = r.Run(":" + strconv.Itoa(port))
 }

@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"g7/common/logger"
+	"g7/common/mqc"
 	"g7/common/protos/pb"
 	"g7/common/utils"
 	"g7/game/const_game"
@@ -56,6 +57,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			if rsp != nil {
 				player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
 			}
+			s.handleGameMQCreate(player)
 		})
 	}
 	StreamCancel()
@@ -65,6 +67,13 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 
 func (s *GameStreamServer) handleGameMessageLogic(msgID pb.MsgID, data []byte, player *model_game.Player) (rsp any) {
 	return handle_stream.HandleLogic(msgID, data, player)
+}
+
+func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
+	valL := player.GetAllActionLogs()
+	for _, v := range valL {
+		global_game.GGlobalMQ.ProduceMessage(mqc.MakeGameActionTopicKey(), v)
+	}
 }
 
 func (s *GameStreamServer) handleStreamDisconnect(p *model_game.Player) {

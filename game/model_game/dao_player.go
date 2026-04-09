@@ -45,6 +45,10 @@ func (dao *PlayerDao) TableName() string {
 	return "player_dao"
 }
 
+func (dao *PlayerDao) GetServerId() int32 {
+	return dao.ServerId
+}
+
 func (this *PlayerDao) TomSimplePlayer() *Player {
 	p := &Player{
 		PlayerId:      this.PlayerId,

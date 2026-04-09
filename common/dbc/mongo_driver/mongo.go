@@ -2,6 +2,9 @@ package mongo_driver
 
 import (
 	"context"
+	"errors"
+	"fmt"
+	"g7/common/dbc/dbc_interface"
 	"g7/common/model_common"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
@@ -14,6 +17,7 @@ const (
 
 type MongoDriver struct {
 	client *mongo.Client
+	db     *mongo.Database
 }
 
 func NewMongoDriver(uri string) (*MongoDriver, error) {
@@ -25,15 +29,15 @@ func NewMongoDriver(uri string) (*MongoDriver, error) {
 		return nil, err
 	}
 
-	return &MongoDriver{client: client}, nil
+	db := client.Database(MongoDBName)
+	return &MongoDriver{client: client, db: db}, nil
 }
 
 func (m *MongoDriver) AutoMigrate(model model_common.DBTableInterface) error {
 	// MongoDB 无需预定义结构，这里只确保集合被创建
-	db := m.client.Database(MongoDBName)
 
 	// 检查集合是否存在
-	collections, err := db.ListCollectionNames(context.Background(), map[string]string{"name": model.TableName()})
+	collections, err := m.db.ListCollectionNames(context.Background(), map[string]string{"name": model.TableName()})
 	if err != nil {
 		return err
 	}
@@ -42,7 +46,7 @@ func (m *MongoDriver) AutoMigrate(model model_common.DBTableInterface) error {
 	}
 
 	// 不存在则创建
-	err = db.CreateCollection(context.Background(), model.TableName())
+	err = m.db.CreateCollection(context.Background(), model.TableName())
 	return err
 }
 
@@ -71,4 +75,52 @@ func (m *MongoDriver) FindList(result any, query any) error {
 		return cur.All(context.Background(), result)
 	}
 	return nil
+}
+
+// Begin 开启MongoDB事务
+func (m *MongoDriver) Begin() dbc_interface.DBTxInterface {
+	session, err := m.client.StartSession()
+	if err != nil {
+		return &MongoTxDriver{tx: nil}
+	}
+	_ = session.StartTransaction()
+	return &MongoTxDriver{tx: session, db: m.db, client: m.client}
+}
+
+type MongoTxDriver struct {
+	client *mongo.Client
+	db     *mongo.Database
+	tx     mongo.Session // 事务会话
+}
+
+func (m *MongoTxDriver) BatchMQInsert(models []model_common.DBMqInterface) error {
+	if m.tx == nil {
+		return errors.New("transaction is nil")
+	}
+	if len(models) == 0 {
+		return nil
+	}
+
+	docs := make([]interface{}, len(models))
+	for i, v := range models {
+		docs[i] = v
+	}
+
+	coll := m.db.Collection(models[0].TableName())
+	_, err := coll.InsertMany(context.Background(), docs)
+	return err
+}
+
+func (m *MongoTxDriver) Commit() error {
+	if m.tx == nil {
+		return fmt.Errorf("no transaction")
+	}
+	return m.tx.CommitTransaction(context.Background())
+}
+
+func (m *MongoTxDriver) Rollback() error {
+	if m.tx == nil {
+		return fmt.Errorf("no transaction")
+	}
+	return m.tx.AbortTransaction(context.Background())
 }

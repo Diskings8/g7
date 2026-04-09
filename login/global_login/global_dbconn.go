@@ -1,5 +1,7 @@
 package global_login
 
-import "g7/common/dbc"
+import (
+	"g7/common/dbc/dbc_interface"
+)
 
-var GLoginDB dbc.DBInterface
+var GLoginDB dbc_interface.DBInterface

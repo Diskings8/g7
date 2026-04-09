@@ -57,3 +57,7 @@ gateWay:
 env:
   reset_hour: 5
   heat_beat_seconds: 30
+
+mq:
+  dsn: "127.0.0.1:9092"
+  kind: "kafka"

@@ -32,8 +32,12 @@ type Player struct {
 	Nickname string
 }
 
-func (p *Player) TableName() string {
-	return "player"
+// GetAllActionLogs 获取当前已执行的操作日志，在主协程执行
+func (this *Player) GetAllActionLogs() []*model_common.ActionLog {
+	var val = make([]*model_common.ActionLog, len(this.ActionLogs))
+	copy(val, this.ActionLogs)
+	this.ActionLogs = this.ActionLogs[:0]
+	return val
 }
 
 func (this *Player) MarkOffLine() {
