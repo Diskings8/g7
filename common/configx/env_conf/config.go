@@ -1,12 +1,8 @@
-package config
+package env_conf
 
 import (
 	"fmt"
-	"gopkg.in/yaml.v3"
-	"os"
 )
-
-var GCfg Config
 
 type MySQL struct {
 	User         string `yaml:"user"`
@@ -89,17 +85,4 @@ type Config struct {
 	GateWay     GateWay   `yaml:"gateWay"`
 	Env         Env       `yaml:"env"`
 	MQ          MQ        `yaml:"mq"`
-}
-
-// Load 加载配置文件
-func Load(path string) {
-	data, err := os.ReadFile(path)
-	if err != nil {
-		panic("load config fail: " + err.Error())
-	}
-
-	err = yaml.Unmarshal(data, &GCfg)
-	if err != nil {
-		panic("parse config fail: " + err.Error())
-	}
 }
