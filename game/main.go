@@ -2,7 +2,7 @@ package main
 
 import (
 	"flag"
-	"g7/common/config"
+	"g7/common/configx"
 	"g7/common/cronx"
 	"g7/common/dbc"
 	"g7/common/etcd"
@@ -38,7 +38,7 @@ func main() {
 	} else {
 		confStr = globals.ConfDev
 	}
-	config.Load(confStr)
+	configx.LoadEnvConf(confStr)
 
 	// 3、初始化日志
 	logger.Init()
@@ -48,19 +48,20 @@ func main() {
 	snowflakes.Init()
 
 	// 5、初始化数据库
-	global_game.GGameDB = dbc.InitDB(globals.DBMysql, config.GCfg.MySQLGame.DsnWithName(globals.ServerId))
-	global_game.GGlobalDB = dbc.InitDB(globals.DBMysql, config.GCfg.MySQLGlobal.Dsn())
+	global_game.GGameDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGame.DsnWithName(globals.ServerId))
+	global_game.GGlobalDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.Dsn())
 	global_game.AutoMigrate(global_game.GGameDB)
 
 	// 初始化redis
-	redisx.Init(config.GCfg.Redis.Addr, config.GCfg.Redis.Password, config.GCfg.Redis.DB)
+	redisx.Init(configx.GEnvCfg.Redis.Addr, configx.GEnvCfg.Redis.Password, configx.GEnvCfg.Redis.DB)
 
 	// 初始化mq
-	global_game.GGlobalMQ = mqc.InitMQProducer(config.GCfg.MQ.Kind, config.GCfg.MQ.Dsn)
+	global_game.GGlobalMQ = mqc.InitMQProducer(configx.GEnvCfg.MQ.Kind, configx.GEnvCfg.MQ.Dsn)
 
 	// 注册etcd
-	etcd.InitETCD(config.GCfg.Etcd.Dsn)
-	etcd.RegisterGameServer(globals.ServerId, config.GCfg.Server.Game)
+	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
+	etcd.GEtcdConfUpdateCenter.LoadAndWatchConfig()
+	etcd.RegisterGameServer(globals.ServerId, configx.GEnvCfg.Server.Game)
 
 	//全局对象初始化 init
 	global_game.GPlayerMaps.Init()
@@ -78,7 +79,7 @@ func main() {
 	pb.RegisterGameStreamServiceServer(s, &rpc_server.GameStreamServer{})
 	pb.RegisterGameNodeServiceServer(s, &rpc_server.GameNodeServer{})
 
-	logger.Log.Info(globals.ServerId + " 游戏服启动绑定：" + config.GCfg.Server.Game)
-	lis, _ := net.Listen("tcp", config.GCfg.Server.Game)
+	logger.Log.Info(globals.ServerId + " 游戏服启动绑定：" + configx.GEnvCfg.Server.Game)
+	lis, _ := net.Listen("tcp", configx.GEnvCfg.Server.Game)
 	_ = s.Serve(lis)
 }

@@ -1,4 +1,4 @@
-package mqc
+package mq_topic
 
 import "fmt"
 

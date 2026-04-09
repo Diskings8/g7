@@ -38,7 +38,7 @@ func NewKafkaProducerDriver(url string) *KafkaProducerDriver {
 
 func (k *KafkaProducerDriver) ProduceMessage(Topic string, Data model_common.DBMqInterface) {
 	bytes, _ := json.Marshal(Data)
-
+	log.Printf("one topic:%s", Topic)
 	// 发送到kafka（异步，无阻塞）
 	k.producerClient.Input() <- &sarama.ProducerMessage{
 		Topic: Topic, // 主题固定

@@ -1,7 +1,7 @@
 package global_game
 
 import (
-	"g7/common/config"
+	"g7/common/configx"
 	"g7/common/utils"
 	"g7/game/model_game"
 	"sync"
@@ -52,7 +52,7 @@ func (this *playerMaps) DelAll() {
 
 func (this *playerMaps) HeartBeatCheck() {
 	curTime := time.Now()
-	checkBeatTime := time.Duration(config.GCfg.Env.HeatBeatSeconds)
+	checkBeatTime := time.Duration(configx.GEnvCfg.Env.HeatBeatSeconds)
 	if checkBeatTime <= 0 {
 		checkBeatTime = 30
 	}

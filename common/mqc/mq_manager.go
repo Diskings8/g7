@@ -1,7 +1,6 @@
 package mqc
 
 import (
-	"g7/common/dbc/dbc_interface"
 	"g7/common/mqc/kfk"
 	"g7/common/mqc/mqc_interface"
 )

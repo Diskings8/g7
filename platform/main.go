@@ -2,7 +2,8 @@ package main
 
 import (
 	"flag"
-	"g7/common/config"
+	"g7/common/configx"
+	"g7/common/configx/env_conf"
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/utils"
@@ -22,7 +23,7 @@ func main() {
 	} else {
 		confStr = globals.ConfDev
 	}
-	config.Load(confStr)
+	env_conf.Load(confStr)
 
 	logger.Init()
 
@@ -33,5 +34,5 @@ func main() {
 		c.JSON(200, gin.H{"servers": []gin.H{{"id": 1, "name": "官方服-1"}}})
 	})
 
-	_ = r.Run(config.GCfg.Server.Platform)
+	_ = r.Run(configx.GEnvCfg.Server.Platform)
 }

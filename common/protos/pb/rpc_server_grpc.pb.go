@@ -231,3 +231,95 @@ var GameNodeService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "src/rpc_server.proto",
 }
+
+const (
+	GatewayNodeService_GetConnCount_FullMethodName = "/game.GatewayNodeService/GetConnCount"
+)
+
+// GatewayNodeServiceClient is the client API for GatewayNodeService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type GatewayNodeServiceClient interface {
+	// 登录服创建玩家
+	GetConnCount(ctx context.Context, in *Req_Node_ConnCount, opts ...grpc.CallOption) (*Rsp_Node_ConnCount, error)
+}
+
+type gatewayNodeServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewGatewayNodeServiceClient(cc grpc.ClientConnInterface) GatewayNodeServiceClient {
+	return &gatewayNodeServiceClient{cc}
+}
+
+func (c *gatewayNodeServiceClient) GetConnCount(ctx context.Context, in *Req_Node_ConnCount, opts ...grpc.CallOption) (*Rsp_Node_ConnCount, error) {
+	out := new(Rsp_Node_ConnCount)
+	err := c.cc.Invoke(ctx, GatewayNodeService_GetConnCount_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// GatewayNodeServiceServer is the server API for GatewayNodeService service.
+// All implementations must embed UnimplementedGatewayNodeServiceServer
+// for forward compatibility
+type GatewayNodeServiceServer interface {
+	// 登录服创建玩家
+	GetConnCount(context.Context, *Req_Node_ConnCount) (*Rsp_Node_ConnCount, error)
+	mustEmbedUnimplementedGatewayNodeServiceServer()
+}
+
+// UnimplementedGatewayNodeServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedGatewayNodeServiceServer struct {
+}
+
+func (UnimplementedGatewayNodeServiceServer) GetConnCount(context.Context, *Req_Node_ConnCount) (*Rsp_Node_ConnCount, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method GetConnCount not implemented")
+}
+func (UnimplementedGatewayNodeServiceServer) mustEmbedUnimplementedGatewayNodeServiceServer() {}
+
+// UnsafeGatewayNodeServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to GatewayNodeServiceServer will
+// result in compilation errors.
+type UnsafeGatewayNodeServiceServer interface {
+	mustEmbedUnimplementedGatewayNodeServiceServer()
+}
+
+func RegisterGatewayNodeServiceServer(s grpc.ServiceRegistrar, srv GatewayNodeServiceServer) {
+	s.RegisterService(&GatewayNodeService_ServiceDesc, srv)
+}
+
+func _GatewayNodeService_GetConnCount_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_ConnCount)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GatewayNodeServiceServer).GetConnCount(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GatewayNodeService_GetConnCount_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GatewayNodeServiceServer).GetConnCount(ctx, req.(*Req_Node_ConnCount))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// GatewayNodeService_ServiceDesc is the grpc.ServiceDesc for GatewayNodeService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var GatewayNodeService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "game.GatewayNodeService",
+	HandlerType: (*GatewayNodeServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "GetConnCount",
+			Handler:    _GatewayNodeService_GetConnCount_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "src/rpc_server.proto",
+}

@@ -3,7 +3,7 @@ package kfk
 import (
 	"encoding/json"
 	"fmt"
-	"g7/common/config"
+	"g7/common/configx"
 	"g7/common/dbc"
 	"g7/common/dbc/dbc_interface"
 	"g7/common/globals"
@@ -23,15 +23,26 @@ type KafkaConsumerDriver struct {
 	batchMap        map[int32][]model_common.DBMqInterface // 按服分batch
 	maxBatchSize    int
 	commonDBConnMap map[int32]dbc_interface.DBInterface
+	modelFunc       func() model_common.DBMqInterface
 }
 
 func NewKafkaConsumerDriver(brokers []string, topic, groupID string) *KafkaConsumerDriver {
-	return &KafkaConsumerDriver{
-		brokers:      brokers,
-		topic:        topic,
-		groupID:      groupID,
-		maxBatchSize: 200,
+	newModelFunc := func() model_common.DBMqInterface {
+		return topiToInstance(topic)
 	}
+	dr := &KafkaConsumerDriver{
+		brokers:         brokers,
+		topic:           topic,
+		groupID:         groupID,
+		maxBatchSize:    200,
+		modelFunc:       newModelFunc,
+		batchMap:        make(map[int32][]model_common.DBMqInterface),
+		commonDBConnMap: make(map[int32]dbc_interface.DBInterface),
+	}
+	if dr.Init() != nil {
+		return nil
+	}
+	return dr
 }
 
 // Init 初始化消费者
@@ -66,7 +77,7 @@ func (cd *KafkaConsumerDriver) RunConsumer() {
 
 // 消费单个分区
 func (cd *KafkaConsumerDriver) consumePartition(partition int32) {
-	log.Printf("Start consuming partition: %d", partition)
+	log.Printf("%s Start consuming partition: %d", cd.topic, partition)
 
 	// 从最新的 offset 开始
 	offset := sarama.OffsetNewest
@@ -83,8 +94,8 @@ func (cd *KafkaConsumerDriver) consumePartition(partition int32) {
 		select {
 		case msg := <-consumer.Messages():
 			// 解析消息
-			var mqLog model_common.DBMqInterface
-			if err := json.Unmarshal(msg.Value, &mqLog); err != nil {
+			mqLog := cd.modelFunc()
+			if err := json.Unmarshal(msg.Value, mqLog); err != nil {
 				logger.Log.Warn(fmt.Sprintf("Unmarshal error: %v, msg: %s", err, string(msg.Value)))
 				continue // 解析失败的消息跳过，或者入死信队列
 			}
@@ -130,29 +141,44 @@ func (m *KafkaConsumerDriver) getConn(serverId int32) dbc_interface.DBInterface 
 	if ok {
 		return v
 	}
-	c := dbc.InitDB(globals.DBMysql, config.GCfg.MySQLGlobal.DsnWithName(utils.Int32ToString(serverId)))
+	c := dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.DsnWithName(utils.Int32ToString(serverId)))
 	m.commonDBConnMap[serverId] = c
 	return c
 }
 
 // saveBatch 批量插入数据库
 func (cd *KafkaConsumerDriver) saveBatch(serverId int32, batch []model_common.DBMqInterface) error {
+	if len(batch) == 0 {
+		return nil
+	}
 	defer func() {
 		if err := recover(); err != nil {
-			logger.Log.Error(fmt.Sprintf("recover err: %v", err))
+			logger.Log.Error(fmt.Sprintf("saveBatch recover err: %v", err))
 		}
 	}()
 	db := cd.getConn(serverId)
+	if !db.IsTableExists(batch[0].TableName()) {
+		if err := db.AutoMigrate(batch[0]); err != nil {
+			return err
+		}
+	}
+
 	// 这里加个事务保护，确保批量插入成功
 	tx := db.Begin()
+	if tx == nil {
+		return fmt.Errorf("failed to begin transaction")
+	}
+
 	defer func() {
 		if r := recover(); r != nil {
+			logger.Log.Error(fmt.Sprintf("tx panic: %v", r))
 			_ = tx.Rollback()
 		}
 	}()
 
 	if err := tx.BatchMQInsert(batch); err != nil {
 		_ = tx.Rollback()
+		return err
 	}
 
 	return tx.Commit()

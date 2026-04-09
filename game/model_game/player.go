@@ -106,6 +106,7 @@ func (p *Player) Kick(reason string) {
 	if p.DisconnectCancelTimer != nil {
 		p.DisconnectCancelTimer()
 	}
+	p.OfflineAt = time.Now()
 	p.saveTicker.Stop()
 	p.SendMessage(pb.MsgID_MSG_HeartBeat, &pb.Notify_Kick{Reason: reason})
 	p.Save()

@@ -6,7 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"g7/common/logger"
-	"g7/common/mqc"
+	"g7/common/mqc/mq_topic"
 	"g7/common/protos/pb"
 	"g7/common/utils"
 	"g7/game/const_game"
@@ -72,7 +72,7 @@ func (s *GameStreamServer) handleGameMessageLogic(msgID pb.MsgID, data []byte, p
 func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
 	valL := player.GetAllActionLogs()
 	for _, v := range valL {
-		global_game.GGlobalMQ.ProduceMessage(mqc.MakeGameActionTopicKey(), v)
+		global_game.GGlobalMQ.ProduceMessage(mq_topic.MakeGameActionTopicKey(), v)
 	}
 }
 

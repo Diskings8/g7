@@ -2,17 +2,13 @@ package etcd
 
 import (
 	"context"
+	"fmt"
 	"g7/common/globals"
 	"log"
-	"sync"
+	"strings"
 	"time"
 
 	clientv3 "go.etcd.io/etcd/client/v3"
-)
-
-var (
-	etcdClient *clientv3.Client
-	once       sync.Once
 )
 
 // InitETCD 初始化
@@ -33,6 +29,10 @@ func getGatewayPrefix() string {
 	return "/" + globals.GateWays + "/"
 }
 
+func getGatewayServerPrefix() string {
+	return "/" + globals.GateWayServer + "/"
+}
+
 func getGameServerPrefix(serverID string) string {
 	return "/" + globals.GameServer + "/" + serverID + "/"
 }
@@ -43,6 +43,11 @@ func getLoginPrefix() string {
 // RegisterGateway 注册网关
 func RegisterGateway(addr string) {
 	key := getGatewayPrefix() + addr
+	registerWithLease(key, addr)
+}
+
+func RegisterGatewayServer(addr string) {
+	key := getGatewayServerPrefix() + addr
 	registerWithLease(key, addr)
 }
 
@@ -81,6 +86,17 @@ func registerWithLease(key, value string) {
 	}()
 }
 
+func GetServiceList(serverName string) (list []string) {
+	resp, err := etcdClient.Get(context.Background(), fmt.Sprintf("/%s/", serverName), clientv3.WithPrefix())
+	if err != nil {
+		return nil
+	}
+	for _, kv := range resp.Kvs {
+		list = append(list, string(kv.Value))
+	}
+	return
+}
+
 // GetAllGateways 获取所有网关
 func GetAllGateways() ([]string, error) {
 	resp, err := etcdClient.Get(context.Background(), getGatewayPrefix(), clientv3.WithPrefix())
@@ -106,4 +122,16 @@ func GetGameServersByServerID(serverID string) ([]string, error) {
 		addrs = append(addrs, string(kv.Value))
 	}
 	return addrs, nil
+}
+
+func UpdateEtcdConf(key, value string) {
+	if !strings.HasPrefix(key, "/config/") {
+		log.Printf("etcd更新配置参数异常: %s:%s", key, value)
+		return
+	}
+	_, err := etcdClient.Put(context.Background(), key, value)
+	if err != nil {
+		log.Printf("etcd更新配置失败: %v", err)
+		return
+	}
 }

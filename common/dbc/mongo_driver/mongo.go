@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"g7/common/dbc/dbc_interface"
 	"g7/common/model_common"
+	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"time"
@@ -75,6 +76,17 @@ func (m *MongoDriver) FindList(result any, query any) error {
 		return cur.All(context.Background(), result)
 	}
 	return nil
+}
+
+func (m *MongoDriver) IsTableExists(tableName string) bool {
+	// 拿到当前数据库
+	// 列出集合名
+	collections, err := m.db.ListCollectionNames(context.Background(), bson.M{"name": tableName})
+	if err != nil {
+		return false
+	}
+	// 长度 > 0 表示存在
+	return len(collections) > 0
 }
 
 // Begin 开启MongoDB事务

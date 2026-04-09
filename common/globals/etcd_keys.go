@@ -1,7 +1,8 @@
 package globals
 
 const (
-	GateWays    = "gateways"
-	GameServer  = "game_server"
-	LoginServer = "login_server"
+	GateWays      = "gateways"
+	GateWayServer = "gateway_server"
+	GameServer    = "game_server"
+	LoginServer   = "login_server"
 )

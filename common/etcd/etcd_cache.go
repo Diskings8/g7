@@ -10,16 +10,6 @@ import (
 	"time"
 )
 
-// 全局服务缓存（生产级）
-var (
-	GameServerCache = &serviceCache{
-		cache: make(map[string]string), // key: serverID, value: addr
-	}
-	GatewayCache = &serviceCache{
-		cache: make(map[string]string),
-	}
-)
-
 // 真正的缓存结构（带锁）
 type serviceCache struct {
 	mu    sync.RWMutex

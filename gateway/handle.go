@@ -9,6 +9,7 @@ import (
 	"g7/common/jwt"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
+	"g7/gateway/global_gateway"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -18,7 +19,13 @@ import (
 // 认证结构体
 
 func HandleClient(conn net.Conn) {
-	defer conn.Close()
+	global_gateway.GCurrentConnection.Add(1)
+	defer func() {
+		_ = conn.Close()
+		fmt.Println("connection closed")
+		global_gateway.GCurrentConnection.Add(-1)
+	}()
+
 	sess := newSession(conn)
 	defer sess.close()
 

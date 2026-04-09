@@ -61,3 +61,18 @@ func NewGameNodeClient(ctx context.Context, addr string) (pb.GameNodeServiceClie
 	client := pb.NewGameNodeServiceClient(conn)
 	return client, nil
 }
+
+func NewGatewayNodeClient(ctx context.Context, addr string) (pb.GatewayNodeServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := grpc.DialContext(ctx,
+		addr,
+		grpc.WithTransportCredentials(insecure.NewCredentials()),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewGatewayNodeServiceClient(conn)
+	return client, nil
+}

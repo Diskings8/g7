@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"g7/common/config"
+	"g7/common/configx"
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/utils"
+	"g7/gateway/rpc_server"
 	"log"
 	"net"
 )
@@ -22,22 +23,31 @@ func main() {
 	} else {
 		confStr = globals.ConfDev
 	}
-	config.Load(confStr)
+	configx.LoadEnvConf(confStr)
 
 	// 3、注册etcd,监听游戏服
-	etcd.InitETCD(config.GCfg.Etcd.Dsn)
+	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
+	etcd.GEtcdConfUpdateCenter.LoadAndWatchConfig()
 	go etcd.WatchGameServers()
-	etcd.RegisterGateway(config.GCfg.GateWay.Dsn())
+	etcd.RegisterGateway(configx.GEnvCfg.GateWay.Dsn())
+	etcd.RegisterGatewayServer(configx.GEnvCfg.GateWay.RpcDsn())
 
-	// 4、开始服务
-	lis, err := net.Listen("tcp", config.GCfg.GateWay.Dsn())
+	//
+	lisGrpc, err := net.Listen("tcp", configx.GEnvCfg.GateWay.RpcDsn())
 	if err != nil {
 		log.Fatal(err)
 	}
-	log.Println("网关启动" + config.GCfg.GateWay.Dsn())
+	go rpc_server.RunGrpcServer(lisGrpc)
+
+	// 4、开始服务
+	lisTcp, err := net.Listen("tcp", configx.GEnvCfg.GateWay.Dsn())
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("网关启动" + configx.GEnvCfg.GateWay.Dsn())
 
 	for {
-		conn, _ := lis.Accept()
+		conn, _ := lisTcp.Accept()
 		go HandleClient(conn)
 		//go handle(conn)
 	}

@@ -6,6 +6,7 @@ import (
 	"g7/common/model_common"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"reflect"
 )
 
 type MySQLDriver struct {
@@ -33,6 +34,17 @@ func (m *MySQLDriver) FindOne(table model_common.DBTableInterface, query any) er
 	return m.db.Table(table.TableName()).Where(query).First(table).Error
 }
 
+func (m *MySQLDriver) IsTableExists(tableName string) bool {
+	var count int64
+	err := m.db.Raw(`
+		SELECT COUNT(*) 
+		FROM information_schema.tables 
+		WHERE table_schema = DATABASE() 
+		AND table_name = ?
+	`, tableName).Scan(&count).Error
+	return err == nil && count > 0
+}
+
 // --------------------
 // FindList 查询列表
 // --------------------
@@ -49,12 +61,18 @@ type MySQLTxDriver struct {
 	tx *gorm.DB
 }
 
-func (m *MySQLTxDriver) BatchMQInsert(model []model_common.DBMqInterface) error {
-	if len(model) == 0 {
+func (m *MySQLTxDriver) BatchMQInsert(models []model_common.DBMqInterface) error {
+	if len(models) == 0 {
 		return nil
 	}
-	tableName := model[0].TableName()
-	return m.tx.Table(tableName).CreateInBatches(model, len(model)).Error
+	// 取第一个元素的真实类型
+	first := models[0]
+	val := reflect.ValueOf(first)
+	slice := reflect.MakeSlice(reflect.SliceOf(val.Type()), len(models), len(models))
+	for i := range models {
+		slice.Index(i).Set(reflect.ValueOf(models[i]))
+	}
+	return m.tx.Table(first.TableName()).CreateInBatches(slice.Interface(), len(models)).Error
 }
 
 func (m *MySQLTxDriver) Commit() error {

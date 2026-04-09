@@ -1,6 +1,7 @@
 package dbc
 
 import (
+	"fmt"
 	"g7/common/dbc/dbc_interface"
 	"g7/common/dbc/mongo_driver"
 	"g7/common/dbc/mysql_driver"
@@ -15,14 +16,14 @@ func InitDB(dbType string, dsn string) dbc_interface.DBInterface {
 	case "mongo":
 		mongo, err := mongo_driver.NewMongoDriver(dsn)
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf("mongo connect:%s"+err.Error(), dsn))
 		}
 		log.Println("使用 MongoDB 存储")
 		return mongo
 	case "mysql":
 		mysql, err := mysql_driver.NewMySQLDriver(dsn)
 		if err != nil {
-			panic(err)
+			panic(fmt.Sprintf("mysql connect:%s"+err.Error(), dsn))
 		}
 		log.Println("使用 MySQL 存储")
 		return mysql

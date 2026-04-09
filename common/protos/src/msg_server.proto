@@ -20,3 +20,10 @@ message Rsp_Node_CreatePlayer{
   string token = 6;
   int32 state = 7;
 }
+
+message Req_Node_ConnCount{
+}
+
+message Rsp_Node_ConnCount{
+  int32 Count = 1;
+}

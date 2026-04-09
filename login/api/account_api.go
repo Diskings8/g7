@@ -1,6 +1,7 @@
 package api
 
 import (
+	"g7/common/configx"
 	"g7/common/jwt"
 	"g7/login/internal/service_login"
 	"github.com/gin-gonic/gin"
@@ -9,6 +10,11 @@ import (
 
 // Register 注册接口
 func Register(c *gin.Context) {
+	if !configx.GEtcdCfg.RegisterOn {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 502, "msg": "已关闭注册"})
+		return
+	}
+
 	type Req struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
@@ -29,6 +35,10 @@ func Register(c *gin.Context) {
 
 // Login 登录接口（返回账号信息+角色列表）
 func Login(c *gin.Context) {
+	if !configx.GEtcdCfg.LoginOn {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 502, "msg": "已暂停登录"})
+		return
+	}
 	type Req struct {
 		Username string `json:"username" binding:"required"`
 		Password string `json:"password" binding:"required"`
