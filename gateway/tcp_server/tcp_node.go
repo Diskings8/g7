@@ -4,6 +4,7 @@ import (
 	"context"
 	"g7/common/etcd"
 	"g7/common/globals"
+	"g7/gateway/tcp_server/limiter"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"log"
 	"strings"
@@ -18,6 +19,11 @@ type GatewayTcpServer struct {
 	etcdClient       *clientv3.Client
 	mu               sync.RWMutex
 	cache            map[string]string // 单服模式：1个serverID只存1个地址
+
+	// 限流
+	ipLimiter         *limiter.IPLimiter         // 单 IP 限流
+	connectionLimiter *limiter.ConnectionLimiter // 连接数限流
+	rateLimiter       *limiter.RateLimiter
 }
 
 func (gts *GatewayTcpServer) Init() {
@@ -25,6 +31,12 @@ func (gts *GatewayTcpServer) Init() {
 	gts.etcdClient = etcd.GetEtcdClient()
 	gts.cache = make(map[string]string)
 
+	//
+	gts.ipLimiter = limiter.NewIPLimiter(100)
+	gts.rateLimiter = limiter.NewRateLimiter(20000)
+	gts.connectionLimiter = limiter.NewConnectionLimiter(5000)
+
+	//
 	gts.loadAllGameServers()
 	gts.watchGameServersWithClient()
 }

@@ -15,6 +15,7 @@ import (
 	"g7/game/handle_stream"
 	"g7/game/manager_game"
 	"g7/game/model_game"
+	"sync/atomic"
 	"time"
 )
 
@@ -29,18 +30,22 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 	var player *model_game.Player
 	_, StreamCancel := context.WithCancel(stream.Context())
 
+	// 申请流id
+	streamId := global_game.NewStreamID()
+
 	// 循环接收网关转发的客户端消息
 	for {
 		pkt, err := stream.Recv()
 		if err != nil {
 			//log.Printf("流断开: %v", err)
 			if player != nil {
-				s.handleStreamDisconnect(player)
+				s.handleStreamDisconnect(player, streamId)
 			}
 			break
 		}
 		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_AUTH {
 			player = s.handleAuth(pkt.GetBody(), stream, StreamCancel)
+			player.StreamID = streamId
 			continue
 		}
 
@@ -53,6 +58,9 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 
 		// 这里写你的游戏逻辑：根据 msg_id 处理 body
 		player.RunInActor(func() {
+			if s.isAllow(player) {
+				return
+			}
 			rsp := s.handleGameMessageLogic(pb.MsgID(pkt.MsgId), pkt.Body, player)
 			if rsp != nil {
 				player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
@@ -76,7 +84,11 @@ func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
 	}
 }
 
-func (s *GameStreamServer) handleStreamDisconnect(p *model_game.Player) {
+func (s *GameStreamServer) handleStreamDisconnect(p *model_game.Player, streamId uint64) {
+	if streamId < p.StreamID {
+		return // 直接忽略，不做任何操作
+	}
+
 	if !p.IsDisconnecting.CompareAndSwap(false, true) {
 		// 已有断线流程执行中 → 本次直接丢弃，不处理
 		return
@@ -158,4 +170,18 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 	manager_game.OnLineRunning(player)
 
 	return
+}
+
+func (s *GameStreamServer) isAllow(p *model_game.Player) bool {
+	now := time.Now().Unix()
+
+	// 如果新的一秒，重置
+	if atomic.LoadInt64(&p.LimitLastReqTime) != now {
+		atomic.StoreInt32(&p.LimitReqCount, 1)
+		atomic.StoreInt64(&p.LimitLastReqTime, now)
+		return true
+	}
+
+	// 计数+1，判断是否超限
+	return atomic.AddInt32(&p.LimitReqCount, 1) <= 30
 }

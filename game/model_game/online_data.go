@@ -9,16 +9,22 @@ import (
 )
 
 type OnlineData struct {
-	StreamConn            pb.GameStreamService_StreamServer `gorm:"-"`
-	IsChanClosed          bool                              `gorm:"-"` // 标记是否关闭
-	saveTicker            *time.Ticker                      // 玩家自己的定时器
-	LastHearBeatTime      time.Time                         // 上次心跳时间
-	IsDisconnecting       *atomic.Bool
-	ActionChan            chan func()   // 独立协程队列（所有逻辑都走这里）
-	QuitChan              chan struct{} // 退出用
-	SaveChan              chan *PlayerDao
+	// 流相关
+	StreamID              uint64
+	StreamConn            pb.GameStreamService_StreamServer
+	StreamCancelFunc      func()          // 断开流
+	IsChanClosed          bool            // 标记是否关闭
+	saveTicker            *time.Ticker    // 玩家自己的定时器
+	LastHearBeatTime      time.Time       // 上次心跳时间
+	IsDisconnecting       *atomic.Bool    // 中断流程唯一性
+	ActionChan            chan func()     // 独立协程队列（所有逻辑都走这里）
+	QuitChan              chan struct{}   // 退出用
+	SaveChan              chan *PlayerDao // 给存储系统用的channel
 	DisconnectCancelTimer func()
-	StreamCancelFunc      func()
+
+	// limit
+	LimitLastReqTime int64
+	LimitReqCount    int32
 }
 
 func (this *OnlineData) SendMessage(msgId pb.MsgID, data any) {

@@ -4,6 +4,8 @@ import (
 	"g7/common/protos/pb"
 	"net"
 	"sync"
+	"sync/atomic"
+	"time"
 )
 
 // Session 会话：网关只存这些！绝对不存业务数据！
@@ -15,6 +17,9 @@ type Session struct {
 	gameStream pb.GameStreamService_StreamClient
 	closed     bool
 	lock       sync.Mutex
+	// 限流
+	pktCount int32
+	pktTime  int64
 }
 
 var (
@@ -61,4 +66,14 @@ func (s *Session) SetStream(Stream pb.GameStreamService_StreamClient) {
 
 func (s *Session) GetPlayerId() int64 {
 	return s.playerID
+}
+
+func (s *Session) AllowPacket() bool {
+	now := time.Now().Unix()
+	if atomic.LoadInt64(&s.pktTime) != now {
+		atomic.StoreInt32(&s.pktCount, 1)
+		atomic.StoreInt64(&s.pktTime, now)
+		return true
+	}
+	return atomic.AddInt32(&s.pktCount, 1) <= 50 // 每秒50包，防止攻击
 }

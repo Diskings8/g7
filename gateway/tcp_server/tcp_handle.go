@@ -15,11 +15,17 @@ import (
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
+	"strings"
 )
 
 // 认证结构体
 
 func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
+	if ok, code, msg := gts.preCheck(conn); !ok {
+		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(code, msg))
+		_ = conn.Close()
+		return
+	}
 	global_gateway.GCurrentConnection.Add(1)
 	defer func() {
 		_ = conn.Close()
@@ -78,6 +84,27 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	// --- 开始双向透传 ---
 	go gatewayToClient(conn, sess, stream)
 	clientToGateway(conn, sess, stream)
+}
+
+func (gts *GatewayTcpServer) preCheck(conn net.Conn) (bool, int, string) {
+	clientIP := conn.RemoteAddr().String()
+	// 截取 IP 部分（如果是IPv6或带端口）
+	if idx := strings.Index(clientIP, ":"); idx != -1 {
+		clientIP = clientIP[:idx]
+	}
+
+	if !gts.connectionLimiter.Allow() {
+		return false, 503, "系统繁忙"
+	}
+
+	if !gts.ipLimiter.Allow(clientIP) {
+		return false, 429, "请求过于频繁"
+	}
+
+	if !gts.rateLimiter.Allow() {
+		return false, 502, "服务器繁忙"
+	}
+	return true, 0, ""
 }
 
 func connectToGameServer(gameAddr string) (pb.GameStreamService_StreamClient, error) {
