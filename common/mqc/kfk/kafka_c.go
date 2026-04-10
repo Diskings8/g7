@@ -80,7 +80,7 @@ func (cd *KafkaConsumerDriver) consumePartition(partition int32) {
 	log.Printf("%s Start consuming partition: %d", cd.topic, partition)
 
 	// 从最新的 offset 开始
-	offset := sarama.OffsetNewest
+	offset := sarama.OffsetOldest
 	consumer, err := cd.consumerConn.ConsumePartition(cd.topic, partition, offset)
 	if err != nil {
 		log.Fatalf("Failed to consume partition %d: %v", partition, err)

@@ -1,4 +1,4 @@
-package main
+package tcp_session
 
 import (
 	"g7/common/protos/pb"
@@ -8,11 +8,10 @@ import (
 
 // Session 会话：网关只存这些！绝对不存业务数据！
 type Session struct {
-	conn     net.Conn
-	userID   int64 // 用户ID
-	playerID int64 // 角色ID
-	serverID int32 // 要连接的游戏服ID
-	//gameConn net.Conn // 与游戏服的连接
+	conn       net.Conn
+	userID     int64 // 用户ID
+	playerID   int64 // 角色ID
+	serverID   int32 // 要连接的游戏服ID
 	gameStream pb.GameStreamService_StreamClient
 	closed     bool
 	lock       sync.Mutex
@@ -23,7 +22,7 @@ var (
 	sessLock   sync.RWMutex
 )
 
-func newSession(conn net.Conn) *Session {
+func NewSession(conn net.Conn) *Session {
 	sess := &Session{conn: conn}
 	sessLock.Lock()
 	sessionMap[conn] = sess
@@ -31,7 +30,7 @@ func newSession(conn net.Conn) *Session {
 	return sess
 }
 
-func (s *Session) close() {
+func (s *Session) Close() {
 	s.lock.Lock()
 	defer s.lock.Unlock()
 
@@ -48,4 +47,18 @@ func (s *Session) close() {
 	sessLock.Lock()
 	delete(sessionMap, s.conn)
 	sessLock.Unlock()
+}
+
+func (s *Session) SetOwner(UerId, PlayerId int64, serverId int32) {
+	s.userID = UerId
+	s.playerID = PlayerId
+	s.serverID = serverId
+}
+
+func (s *Session) SetStream(Stream pb.GameStreamService_StreamClient) {
+	s.gameStream = Stream
+}
+
+func (s *Session) GetPlayerId() int64 {
+	return s.playerID
 }

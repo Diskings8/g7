@@ -1,15 +1,16 @@
-package main
+package tcp_server
 
 import (
 	"context"
 	"encoding/json"
 	"fmt"
 	"g7/common/errcode"
-	"g7/common/etcd"
 	"g7/common/jwt"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
+	"g7/common/utils"
 	"g7/gateway/global_gateway"
+	"g7/gateway/tcp_session"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -18,7 +19,7 @@ import (
 
 // 认证结构体
 
-func HandleClient(conn net.Conn) {
+func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	global_gateway.GCurrentConnection.Add(1)
 	defer func() {
 		_ = conn.Close()
@@ -26,10 +27,10 @@ func HandleClient(conn net.Conn) {
 		global_gateway.GCurrentConnection.Add(-1)
 	}()
 
-	sess := newSession(conn)
-	defer sess.close()
+	sess := tcp_session.NewSession(conn)
+	defer sess.Close()
 
-	log.Println("新连接:", conn.RemoteAddr())
+	//log.Println("新连接:", conn.RemoteAddr())
 
 	// 第一步：必须先认证（第一条消息）
 	msg, err := protocol.ReadMessage(conn)
@@ -53,12 +54,10 @@ func HandleClient(conn net.Conn) {
 	}
 
 	// --- 认证成功！会话赋值 ---
-	sess.userID = req.GetUerID()
-	sess.playerID = req.GetPlayerID()
-	sess.serverID = req.ServerID
+	sess.SetOwner(req.GetUerID(), req.GetPlayerID(), req.GetServerID())
 
 	// --- 获取游戏服地址（从Watch缓存）---
-	gameAddr, ok := etcd.GetGameServerAddr(fmt.Sprintf("%d", req.ServerID))
+	gameAddr, ok := gts.getGameServerAddr(utils.Int32ToString(req.ServerID))
 	if !ok {
 		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(503, "游戏服维护中"))
 		return
@@ -69,12 +68,12 @@ func HandleClient(conn net.Conn) {
 	stream, err := connectToGameServer(gameAddr)
 	if err != nil {
 		log.Printf("连接游戏服失败: %v", err)
-		_ = protocol.WriteMessage(conn, 1002, []byte(`{"code":503,"msg":"连接游戏服失败"}`))
+		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(503, "连接游戏服失败"))
 		return
 	}
-	sess.gameStream = stream
+	sess.SetStream(stream)
 
-	log.Printf("认证成功：uid=%d role=%d serverID=%d", sess.userID, sess.playerID, sess.serverID)
+	//log.Printf("认证成功：uid=%d role=%d serverID=%d", sess.userID, sess.playerID, sess.serverID)
 
 	// --- 开始双向透传 ---
 	go gatewayToClient(conn, sess, stream)
@@ -95,7 +94,7 @@ func connectToGameServer(gameAddr string) (pb.GameStreamService_StreamClient, er
 }
 
 // 客户端 → 网关 → 游戏服
-func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameStreamService_StreamClient) {
+func clientToGateway(conn net.Conn, _sess *tcp_session.Session, gameStream pb.GameStreamService_StreamClient) {
 	makeFirstMessage(_sess, gameStream)
 	for {
 		msg, err := protocol.ReadMessage(conn)
@@ -111,8 +110,8 @@ func clientToGateway(conn net.Conn, _sess *Session, gameStream pb.GameStreamServ
 	}
 }
 
-func makeFirstMessage(sess *Session, gameStream pb.GameStreamService_StreamClient) {
-	msg := pb.Req_AuthClientToGame{PlayerID: sess.playerID}
+func makeFirstMessage(sess *tcp_session.Session, gameStream pb.GameStreamService_StreamClient) {
+	msg := pb.Req_AuthClientToGame{PlayerID: sess.GetPlayerId()}
 	msgBody, _ := json.Marshal(&msg)
 	_ = gameStream.Send(&pb.GameMessage{
 		MsgId: uint32(pb.MsgID_MSG_AUTH),
@@ -121,12 +120,12 @@ func makeFirstMessage(sess *Session, gameStream pb.GameStreamService_StreamClien
 }
 
 // 游戏服 → 网关 → 客户端
-func gatewayToClient(conn net.Conn, sess *Session, gameStream pb.GameStreamService_StreamClient) {
+func gatewayToClient(conn net.Conn, sess *tcp_session.Session, gameStream pb.GameStreamService_StreamClient) {
 	for {
 		pkt, err := gameStream.Recv()
 		if err != nil {
 			log.Printf("游戏服流断开: %v", err)
-			sess.close()
+			sess.Close()
 			return
 		}
 		// 把游戏服的包转发给客户端 TCP

@@ -7,16 +7,17 @@ import (
 	"g7/common/globals"
 	"g7/common/utils"
 	"g7/gateway/rpc_server"
+	"g7/gateway/tcp_server"
 	"log"
 	"net"
 )
 
 func main() {
-	// 1. 解析环境参数
+	// 解析环境参数
 	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
 	flag.Parse()
 
-	// 2、获取配置
+	// 获取环境配置
 	var confStr string
 	if !utils.IsDev() {
 		confStr = globals.ConfPro
@@ -25,21 +26,24 @@ func main() {
 	}
 	configx.LoadEnvConf(confStr)
 
-	// 3、注册etcd,监听游戏服
+	// 注册etcd,监听游戏服
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
 	etcd.GEtcdConfUpdateCenter.LoadAndWatchConfig()
-	go etcd.WatchGameServers()
+
 	etcd.RegisterGateway(configx.GEnvCfg.GateWay.Dsn())
 	etcd.RegisterGatewayServer(configx.GEnvCfg.GateWay.RpcDsn())
 
-	//
+	//初始化tcp服务
+	tcp_server.GTServer.Init()
+
+	//监听grpc服务
 	lisGrpc, err := net.Listen("tcp", configx.GEnvCfg.GateWay.RpcDsn())
 	if err != nil {
 		log.Fatal(err)
 	}
 	go rpc_server.RunGrpcServer(lisGrpc)
 
-	// 4、开始服务
+	// 开始tcp服务
 	lisTcp, err := net.Listen("tcp", configx.GEnvCfg.GateWay.Dsn())
 	if err != nil {
 		log.Fatal(err)
@@ -48,14 +52,16 @@ func main() {
 
 	for {
 		conn, _ := lisTcp.Accept()
-		go HandleClient(conn)
+		go tcp_server.GTServer.HandleClient(conn)
 		//go handle(conn)
 	}
 }
 
 // 测试用
-func handle(conn net.Conn) {
-	defer conn.Close()
+func _handle(conn net.Conn) {
+	defer func() {
+		_ = conn.Close()
+	}()
 	buf := make([]byte, 4096)
 	n, _ := conn.Read(buf)
 	log.Println("客户端消息:", string(buf[:n]))

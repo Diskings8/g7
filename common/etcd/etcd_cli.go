@@ -25,6 +25,10 @@ func InitETCD(Addr string) {
 	})
 }
 
+func GetEtcdClient() *clientv3.Client {
+	return etcdClient
+}
+
 func getGatewayPrefix() string {
 	return "/" + globals.GateWays + "/"
 }
