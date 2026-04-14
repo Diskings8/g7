@@ -63,7 +63,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	sess.SetOwner(req.GetUerID(), req.GetPlayerID(), req.GetServerID())
 
 	// --- 获取游戏服地址（从Watch缓存）---
-	gameAddr, ok := gts.getGameServerAddr(utils.Int32ToString(req.ServerID))
+	gameAddr, ok := gts.gameMonitor.GetGameServerAddr(utils.Int32ToString(req.ServerID))
 	if !ok {
 		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(503, "游戏服维护中"))
 		return

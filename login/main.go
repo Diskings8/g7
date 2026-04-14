@@ -10,30 +10,28 @@ import (
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/snowflakes"
-	"g7/common/utils"
 	"g7/login/global_login"
+	"g7/login/internal/service_login"
 	"g7/login/model_login"
 	"g7/login/mq_login"
 	"g7/login/routers"
+	"os"
 )
 
 func main() {
 
 	// 1. 解析环境参数
-	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
+	flag.StringVar(&globals.Env, "env", "prod", "运行环境: test/prod")
+	flag.StringVar(&globals.Platform, "platform", "91", "平台id")
+	flag.StringVar(&globals.Container, "container", "docker", "容器类型：local/docker")
 	flag.Parse()
 
 	// 2、获取配置
-	var confStr string
-	if !utils.IsDev() {
-		confStr = globals.ConfPro
-	} else {
-		confStr = globals.ConfDev
-	}
+	var confStr = globals.GetEnvConfPath()
 	configx.LoadEnvConf(confStr)
 
 	logger.Init()
-	logger.Log.Info("登录服启动中...")
+	logger.Log.Info(fmt.Sprintf("本登录服启动：%s", configx.GEnvCfg.Server.Login))
 
 	// 3、注册etcd,监听游戏服
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
@@ -42,13 +40,32 @@ func main() {
 		fmt.Println("Hello")
 	})
 
-	etcd.RegisterLogin(configx.GEnvCfg.Server.Login)
+	var etcdAddr string
+	if globals.IsContainerDocker() {
+		podIP := os.Getenv("POD_IP")
+		//rpcPort := os.Getenv("RPC_PORT")
+		Port := configx.GEnvCfg.Server.Login
+		globals.InstanceId = os.Getenv("POD_NAME")
+		etcdAddr = fmt.Sprintf("%s%s", podIP, Port)
+		logger.Log.Info(fmt.Sprintf("本登录服%s 启动访问etcd：%s", etcdAddr))
+	} else {
+		globals.InstanceId = "1"
+		Port := configx.GEnvCfg.Server.Login
+		etcdAddr = fmt.Sprintf("%s%s", "", Port)
+		etcdAddr = fmt.Sprintf("%s", configx.GEnvCfg.Server.Login)
+	}
+	etcd.RegisterLoginRpc(globals.InstanceId, etcdAddr)
 
 	//
 	snowflakes.Init()
 
 	//
-	mq_login.GMQCustomInstance.Init()
+	if globals.IsContainerDocker() {
+		mq_login.GMQCustomInstance.Init()
+	}
+
+	//
+	service_login.LTServer.Init()
 
 	// 4、使用数据库
 	global_login.GLoginDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.Dsn())
@@ -58,6 +75,9 @@ func main() {
 	r := routers.GetDefaultGin()
 	routers.Register(r)
 
-	logger.Log.Info("登录服启动绑定：" + configx.GEnvCfg.Server.Login)
-	_ = r.Run(configx.GEnvCfg.Server.Login)
+	var serverAddr string
+	serverAddr = configx.GEnvCfg.Server.Login
+	logger.Log.Info(fmt.Sprintf("登录服启动绑定%s：%s", globals.Container, serverAddr))
+
+	_ = r.Run(serverAddr)
 }

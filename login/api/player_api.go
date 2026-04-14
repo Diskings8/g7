@@ -6,7 +6,7 @@ import (
 	"g7/common/jwt"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
-	"g7/login/internal/dao_login"
+	"g7/common/utils"
 	"g7/login/internal/service_login"
 	"github.com/gin-gonic/gin"
 	"net/http"
@@ -24,7 +24,7 @@ func PlayerList(c *gin.Context) {
 		return
 	}
 
-	players, err := service_login.ListPlayersByUserID(req.UserID)
+	players, err := service_login.LTServer.ListPlayersByUserID(req.UserID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "获取角色列表失败"})
 		return
@@ -35,7 +35,6 @@ func PlayerList(c *gin.Context) {
 
 // CreatePlayer 创建角色
 func CreatePlayer(c *gin.Context) {
-
 	var req pb.Req_Http_CreatePlayer
 	if err := c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "参数错误"})
@@ -43,8 +42,8 @@ func CreatePlayer(c *gin.Context) {
 	}
 
 	// 1. 获取区服地址
-	server, err := dao_login.GetServerByID(req.GetServerID())
-	if err != nil {
+	serverAddr, ok := service_login.LTServer.GameMonitor.GetGameServerAddr(utils.Int32ToString(req.GetServerID()))
+	if !ok {
 		c.JSON(400, gin.H{"code": 400, "msg": "区服不存在"})
 		return
 	}
@@ -52,7 +51,7 @@ func CreatePlayer(c *gin.Context) {
 	// 2. 转发请求到游戏服内部接口
 	ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancelConn()
-	client, err := protocol.NewGameNodeClient(ctxConn, server.Addr)
+	client, err := protocol.NewGameNodeClient(ctxConn, serverAddr)
 	if err != nil {
 		c.JSON(400, gin.H{"code": 400, "msg": "注册服务暂不可用"})
 		return
@@ -93,13 +92,13 @@ func SelectPlayer(c *gin.Context) {
 	}
 
 	//动态查询游戏服地址
-	_, err := service_login.GetServerByID(reqs.ServerID)
-	if err != nil {
-		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "区服不存在或维护中"})
+	_, ok := service_login.LTServer.GameMonitor.GetGameServerAddr(utils.Int32ToString(reqs.GetServerID()))
+	if !ok {
+		c.JSON(400, gin.H{"code": 400, "msg": "区服不存在或维护中"})
 		return
 	}
 
-	_, err = service_login.SelectPlayer(reqs.GetUID(), reqs.GetPlayerID())
+	_, err := service_login.LTServer.SelectPlayer(reqs.GetUID(), reqs.GetPlayerID())
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return

@@ -2,8 +2,8 @@ package global_game
 
 import (
 	"g7/common/dbc/dbc_interface"
+	"g7/common/globals"
 	"g7/common/mqc/mqc_interface"
-	"g7/common/utils"
 	"g7/game/model_game"
 	"sync/atomic"
 )
@@ -15,7 +15,7 @@ var GGlobalDB dbc_interface.DBInterface
 var gGlobalStreamID uint64 = 0
 
 func AutoMigrate(dbc dbc_interface.DBInterface) {
-	if utils.IsDev() {
+	if globals.IsDev() {
 		_ = dbc.AutoMigrate(&model_game.PlayerDao{})
 	}
 }

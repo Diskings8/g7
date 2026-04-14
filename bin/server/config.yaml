@@ -1,14 +1,14 @@
 # 三服端口配置
 server:
-  platform: ":10080"   # 平台服端口
-  login:    ":10081"   # 登录服端口
-  game:     ":10082"   # 游戏服端口
+  platform: ":8080" # 平台服端口
+  login:    ":8081"   # 登录服端口
+  game:     ":8082"   # 游戏服端口
 
 # 公共数据库（账号、渠道、区服）
 mysql_global:
   user: "root"
   pass: "123456"
-  addr: "127.1.27.3"
+  addr: "mysql"
   port: "3306"
   db_name_prefix: "global_db_91"
   params: "charset=utf8mb4&parseTime=True&loc=Local"
@@ -18,7 +18,7 @@ mysql_global:
 mysql_game:
   user: "root"
   pass: "123456"
-  addr: "127.1.27.3"
+  addr: "mysql"
   port: "3306"
   db_name_prefix: "game_db_91"
   params: "charset=utf8mb4&parseTime=True&loc=Local"
@@ -33,7 +33,7 @@ mongodb_game:
 
 # Redis 公共缓存
 redis:
-  addr: "123.207.11.230:30379"
+  addr: "redis:6379"
   password: "123456"
   db: 0
 
@@ -48,17 +48,17 @@ jwt:
   expire_hours: 24
 
 etcd:
-  dsn: "127.0.0.1:2379"
+  dsn: "etcd:2379"
 
 gateWay:
-  addr: "127.0.0.1"
-  port: "10001"
-  rpc_port: "10002"
+  addr: "0.0.0.0"
+  port: "9001"
+  rpc_port: "9002"
 
 env:
   reset_hour: 5
   heat_beat_seconds: 30
 
 mq:
-  dsn: "127.1.27.4:9092"
+  dsn: "kafka:9092"
   kind: "kafka"

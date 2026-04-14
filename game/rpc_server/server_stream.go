@@ -61,10 +61,14 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			if s.isAllow(player) {
 				return
 			}
+			// 更新心跳
+			player.LastHearBeatTime = time.Now()
+			// 处理逻辑
 			rsp := s.handleGameMessageLogic(pb.MsgID(pkt.MsgId), pkt.Body, player)
 			if rsp != nil {
 				player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
 			}
+			//处理mq日志
 			s.handleGameMQCreate(player)
 		})
 	}

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"g7/common/configx"
 	"g7/common/cronx"
 	"g7/common/dbc"
@@ -12,11 +13,11 @@ import (
 	"g7/common/protos/pb"
 	"g7/common/redisx"
 	"g7/common/snowflakes"
-	"g7/common/utils"
 	"g7/game/global_game"
 	"g7/game/manager_game"
 	"g7/game/rpc_server"
 	"net"
+	"os"
 
 	_ "g7/game/activity_system_game"
 	_ "g7/game/cultivation_system_game"
@@ -29,24 +30,22 @@ func main() {
 	// 1. 解析环境参数
 	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
 	flag.StringVar(&globals.ServerId, "server", "1001", "游戏服id")
+	flag.StringVar(&globals.Platform, "platform", "91", "平台id")
+	flag.StringVar(&globals.Container, "container", "docker", "容器类型：local/docker")
+
 	flag.Parse()
 
 	// 2、获取配置
-	var confStr string
-	if !utils.IsDev() {
-		confStr = globals.ConfPro
-	} else {
-		confStr = globals.ConfDev
-	}
+	var confStr = globals.GetEnvConfPath()
 	configx.LoadEnvConf(confStr)
 
 	// 3、初始化日志
 	logger.Init()
-	logger.Log.Info("游戏服启动中...")
+	logger.Log.Info(fmt.Sprintf("游戏服%s 启动中...", globals.ServerId))
 
 	// 4、初始化雪花
 	snowflakes.Init()
-
+	//logger.Log.Info(fmt.Sprintf("数据库%s", configx.GEnvCfg.MySQLGame.DsnWithName(globals.ServerId)))
 	// 5、初始化数据库
 	global_game.GGameDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGame.DsnWithName(globals.ServerId))
 	global_game.GGlobalDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.Dsn())
@@ -61,7 +60,20 @@ func main() {
 	// 注册etcd
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
 	etcd.GEtcdConfUpdateCenter.LoadAndWatchConfig()
-	etcd.RegisterGameServer(globals.ServerId, configx.GEnvCfg.Server.Game)
+	var etcdAddr string
+	if globals.IsContainerDocker() {
+		podIP := os.Getenv("POD_IP")
+		Port := configx.GEnvCfg.Server.Game
+		globals.InstanceId = os.Getenv("POD_NAME")
+		etcdAddr = fmt.Sprintf("%s%s", podIP, Port)
+		logger.Log.Info(fmt.Sprintf("本登录服%s 启动访问etcd：%s", globals.InstanceId, etcdAddr))
+	} else {
+		globals.InstanceId = "1"
+		Port := configx.GEnvCfg.Server.Game
+		etcdAddr = fmt.Sprintf("%s%s", "", Port)
+		etcdAddr = fmt.Sprintf("%s", configx.GEnvCfg.Server.Game)
+	}
+	etcd.RegisterGameRpc(globals.ServerId, globals.InstanceId, etcdAddr)
 
 	//全局对象初始化 init
 	global_game.GPlayerMaps.Init()
@@ -79,7 +91,10 @@ func main() {
 	pb.RegisterGameStreamServiceServer(s, &rpc_server.GameStreamServer{})
 	pb.RegisterGameNodeServiceServer(s, &rpc_server.GameNodeServer{})
 
-	logger.Log.Info(globals.ServerId + " 游戏服启动绑定：" + configx.GEnvCfg.Server.Game)
-	lis, _ := net.Listen("tcp", configx.GEnvCfg.Server.Game)
+	var serverAddr string
+	serverAddr = configx.GEnvCfg.Server.Game
+	logger.Log.Info(fmt.Sprintf("游戏%s服启动绑定%s：%s", globals.ServerId, globals.Container, serverAddr))
+
+	lis, _ := net.Listen("tcp", serverAddr)
 	_ = s.Serve(lis)
 }

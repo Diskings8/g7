@@ -1,0 +1,1 @@
+docker build -t g7server:latest .

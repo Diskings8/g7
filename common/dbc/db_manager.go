@@ -25,7 +25,7 @@ func InitDB(dbType string, dsn string) dbc_interface.DBInterface {
 		if err != nil {
 			panic(fmt.Sprintf("mysql connect:%s"+err.Error(), dsn))
 		}
-		log.Println("使用 MySQL 存储")
+		log.Println("使用 MySQL 存储", dsn)
 		return mysql
 	default:
 		panic("不支持的数据库类型")

@@ -63,7 +63,7 @@ func (cd *KafkaConsumerDriver) RunConsumer() {
 	// 1. 获取该 Topic 的所有分区（修复点：不再写死 0）
 	partitions, err := cd.consumerConn.Partitions(cd.topic)
 	if err != nil {
-		log.Fatalf("Failed to get partitions: %v", err)
+		logger.Log.Warn("Failed to get partitions: %v" + err.Error())
 	}
 
 	// 2. 遍历所有分区启动消费

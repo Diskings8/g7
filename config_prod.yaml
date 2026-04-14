@@ -8,8 +8,8 @@ server:
 mysql_global:
   user: "root"
   pass: "123456"
-  addr: "127.1.27.3"
-  port: "3306"
+  addr: "123.207.11.230"
+  port: "30306"
   db_name_prefix: "global_db_91"
   params: "charset=utf8mb4&parseTime=True&loc=Local"
   dsn: "root:@tcp(127.0.0.1:3306)/global_db?charset=utf8mb4&parseTime=True&loc=Local"
@@ -18,8 +18,8 @@ mysql_global:
 mysql_game:
   user: "root"
   pass: "123456"
-  addr: "127.1.27.3"
-  port: "3306"
+  addr: "123.207.11.230"
+  port: "30306"
   db_name_prefix: "game_db_91"
   params: "charset=utf8mb4&parseTime=True&loc=Local"
   dsn: "root:@tcp(127.0.0.1:3306)/game_db?charset=utf8mb4&parseTime=True&loc=Local"
@@ -48,7 +48,7 @@ jwt:
   expire_hours: 24
 
 etcd:
-  dsn: "127.0.0.1:2379"
+  dsn: "123.207.11.230:32379"
 
 gateWay:
   addr: "127.0.0.1"

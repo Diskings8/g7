@@ -1,8 +1,8 @@
 package globals
 
 const (
-	GateWays      = "gateways"
-	GateWayServer = "gateway_server"
-	GameServer    = "game_server"
-	LoginServer   = "login_server"
+	GatewayTcp = "gateway_tcp"
+	GatewayRpc = "gateway_rpc"
+	GameRpc    = "game_rpc"
+	LoginRpc   = "login_rpc"
 )

@@ -59,6 +59,13 @@ func (m *MongoDriver) Insert(model model_common.DBTableInterface) error {
 	return err
 }
 
+func (m *MongoDriver) Exec(sql string) error {
+	// collection = 集合名
+	// conf_data = 任意结构体
+	panic("implement MongoDriver not Exec function")
+	return nil
+}
+
 func (m *MongoDriver) FindOne(model model_common.DBTableInterface, query any) error {
 	coll := m.client.Database(MongoDBName).Collection(model.TableName())
 	return coll.FindOne(context.Background(), query).Decode(model)

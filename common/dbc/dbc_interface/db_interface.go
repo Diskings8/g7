@@ -11,6 +11,7 @@ type DBInterface interface {
 	FindOne(table model_common.DBTableInterface, query any) error // 查询单条，结果存入 table
 	FindList(table any, query any) error                          // 查询列表，结果存入 table
 	IsTableExists(tableName string) bool
+	Exec(sql string) error
 	Begin() DBTxInterface // 或者用 interface{} 做泛型，这里用具体类型更简单
 
 }

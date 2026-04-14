@@ -12,9 +12,12 @@ import (
 
 var gConn net.Conn
 
+var RemoteAddr = "123.207.11.230:31001"
+var LocalAddr = "127.0.0.1:9001"
+
 func main() {
 	// 1. 连接网关
-	conn, err := net.Dial("tcp", "127.0.0.1:9001")
+	conn, err := net.Dial("tcp", RemoteAddr)
 	gConn = conn
 	if err != nil {
 		fmt.Println("连接网关失败：", err)

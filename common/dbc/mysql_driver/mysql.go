@@ -15,13 +15,16 @@ type MySQLDriver struct {
 }
 
 func NewMySQLDriver(dsn string) (*MySQLDriver, error) {
-	orm, _ := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	orm, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	if err != nil {
+		return nil, err
+	}
 	driver := &MySQLDriver{db: orm}
 	return driver, nil
 }
 
 func (g *MySQLDriver) AutoMigrate(model model_common.DBTableInterface) error {
-	return g.db.Table(model.TableName()).AutoMigrate(model)
+	return g.db.AutoMigrate(model)
 }
 
 func (m *MySQLDriver) Insert(model model_common.DBTableInterface) error {
@@ -43,6 +46,10 @@ func (m *MySQLDriver) IsTableExists(tableName string) bool {
 		AND table_name = ?
 	`, tableName).Scan(&count).Error
 	return err == nil && count > 0
+}
+
+func (m *MySQLDriver) Exec(sql string) error {
+	return m.db.Exec(sql).Error
 }
 
 // --------------------

@@ -29,46 +29,55 @@ func GetEtcdClient() *clientv3.Client {
 	return etcdClient
 }
 
-func getGatewayPrefix() string {
-	return "/" + globals.GateWays + "/"
+func getGatewayTcpPrefix() string {
+	return "/" + globals.GatewayTcp + "/"
 }
 
-func getGatewayServerPrefix() string {
-	return "/" + globals.GateWayServer + "/"
+func getGatewayRpcPrefix() string {
+	return "/" + globals.GatewayRpc + "/"
 }
 
-func getGameServerPrefix(serverID string) string {
-	return "/" + globals.GameServer + "/" + serverID + "/"
-}
-func getLoginPrefix() string {
-	return "/" + globals.LoginServer + "/"
+func GetAllGameRpcPrefix() string {
+	return "/" + globals.GameRpc + "/"
 }
 
-// RegisterGateway 注册网关
-func RegisterGateway(addr string) {
-	key := getGatewayPrefix() + addr
+func getOneKindGameRpcPrefix(serverID string) string {
+	return "/" + globals.GameRpc + "/" + serverID
+}
+
+func getLoginRpcPrefix() string {
+	return "/" + globals.LoginRpc + "/"
+}
+
+// RegisterGatewayTcp 注册网关
+func RegisterGatewayTcp(instance, addr string) {
+	key := getGatewayTcpPrefix() + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
-func RegisterGatewayServer(addr string) {
-	key := getGatewayServerPrefix() + addr
+func RegisterGatewayRpc(instance, addr string) {
+	key := getGatewayRpcPrefix() + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
-// RegisterGameServer 注册游戏服
-func RegisterGameServer(serverID string, addr string) {
-	key := getGameServerPrefix(serverID) + addr
+/*
+RegisterGameRpc 注册游戏服
+eg: /game_rpc/91001_0/172.0.0.4:8080
+*/
+func RegisterGameRpc(serverID, instance string, addr string) {
+	key := getOneKindGameRpcPrefix(serverID) + "_" + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
-// RegisterLogin 注册登录服
-func RegisterLogin(addr string) {
-	key := getLoginPrefix() + addr
+// RegisterLoginRpc 注册登录服
+func RegisterLoginRpc(instance, addr string) {
+	key := getLoginRpcPrefix() + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
 // 内部通用：带租约注册
 func registerWithLease(key, value string) {
+	fmt.Println(key, value)
 	resp, err := etcdClient.Grant(context.Background(), 10)
 	if err != nil {
 		log.Printf("etcd租约失败: %v", err)
@@ -90,20 +99,21 @@ func registerWithLease(key, value string) {
 	}()
 }
 
+// GetServiceList 制作展示用途
 func GetServiceList(serverName string) (list []string) {
 	resp, err := etcdClient.Get(context.Background(), fmt.Sprintf("/%s/", serverName), clientv3.WithPrefix())
 	if err != nil {
 		return nil
 	}
 	for _, kv := range resp.Kvs {
-		list = append(list, string(kv.Value))
+		list = append(list, fmt.Sprintf("{%s # %s}", string(kv.Key), string(kv.Value)))
 	}
 	return
 }
 
 // GetAllGateways 获取所有网关
 func GetAllGateways() ([]string, error) {
-	resp, err := etcdClient.Get(context.Background(), getGatewayPrefix(), clientv3.WithPrefix())
+	resp, err := etcdClient.Get(context.Background(), getGatewayTcpPrefix(), clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
@@ -116,7 +126,7 @@ func GetAllGateways() ([]string, error) {
 
 // GetGameServersByServerID 获取指定区服的游戏服
 func GetGameServersByServerID(serverID string) ([]string, error) {
-	key := getGameServerPrefix(serverID)
+	key := getOneKindGameRpcPrefix(serverID)
 	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err

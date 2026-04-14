@@ -9,7 +9,7 @@ import (
 )
 
 // Register 账号注册
-func Register(username, password string) error {
+func (hts *loginHttpServer) Register(username, password string) error {
 	// 检查用户名是否存在
 	existUser, err := dao_login.GetUserByUsername(username)
 	if err == nil && existUser != nil {
@@ -32,7 +32,7 @@ func Register(username, password string) error {
 }
 
 // Login 账号登录（校验封禁）
-func Login(username, password string) (*model_login.User, error) {
+func (hts *loginHttpServer) Login(username, password string) (*model_login.User, error) {
 	user, err := dao_login.GetUserByUsername(username)
 	if err != nil {
 		return nil, errors.New("用户名或密码错误")

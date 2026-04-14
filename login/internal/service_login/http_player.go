@@ -7,7 +7,7 @@ import (
 )
 
 // SelectPlayer 选角（校验权限）
-func SelectPlayer(userID int64, playerID int64) (*model_common.GlobalPlayerIndex, error) {
+func (hts *loginHttpServer) SelectPlayer(userID int64, playerID int64) (*model_common.GlobalPlayerIndex, error) {
 	player, err := dao_login.GetPlayerByUID(playerID)
 	if err != nil {
 		return nil, errors.New("角色不存在")
@@ -21,7 +21,7 @@ func SelectPlayer(userID int64, playerID int64) (*model_common.GlobalPlayerIndex
 	return player, nil
 }
 
-func ListPlayersByUserID(userID int64) ([]*model_common.GlobalPlayerIndex, error) {
+func (hts *loginHttpServer) ListPlayersByUserID(userID int64) ([]*model_common.GlobalPlayerIndex, error) {
 	playerList, err := dao_login.ListPlayersByUserID(userID)
 	return playerList, err
 }

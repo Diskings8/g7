@@ -25,7 +25,7 @@ func Register(c *gin.Context) {
 		return
 	}
 
-	if err := service_login.Register(req.Username, req.Password); err != nil {
+	if err := service_login.LTServer.Register(req.Username, req.Password); err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
@@ -49,14 +49,14 @@ func Login(c *gin.Context) {
 		return
 	}
 
-	user, err := service_login.Login(req.Username, req.Password)
+	user, err := service_login.LTServer.Login(req.Username, req.Password)
 	if err != nil {
 		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": err.Error()})
 		return
 	}
 
 	// 获取该账号下角色列表
-	players, err := service_login.ListPlayersByUserID(user.ID)
+	players, err := service_login.LTServer.ListPlayersByUserID(user.ID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, gin.H{"code": 500, "msg": "获取角色列表失败"})
 		return

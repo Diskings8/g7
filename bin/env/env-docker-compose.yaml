@@ -1,0 +1,105 @@
+version: '3'
+
+services:
+  kafka:
+    image: docker.1ms.run/apache/kafka:4.1.2
+    container_name: g7-kafka
+    ports:
+      - "9092:9092"
+    environment:
+      - KAFKA_NODE_ID=1
+      - KAFKA_PROCESS_ROLES=controller,broker
+      - KAFKA_CONTROLLER_QUORUM_VOTERS=1@g7-kafka:9093
+      - KAFKA_LISTENERS=PLAINTEXT://0.0.0.0:9092,CONTROLLER://0.0.0.0:9093
+      - KAFKA_ADVERTISED_LISTENERS=PLAINTEXT://g7-kafka:9092
+      - KAFKA_CONTROLLER_LISTENER_NAMES=CONTROLLER
+      - KAFKA_INTER_BROKER_LISTENER_NAME=PLAINTEXT
+      - KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR=1
+      - KAFKA_TRANSACTION_STATE_LOG_MIN_ISR=1
+      - CLUSTER_ID=KafkaDemoCluster123456789
+    networks:
+      - app-net
+    restart: always
+
+  etcd:
+    image: quay.io/coreos/etcd:v3.5.12
+    container_name: g7-etcd
+    restart: always
+    networks:
+      - app-net
+    ports:
+      - "2379:2379"
+      - "2380:2380"
+    volumes:
+      - ./etcd-data:/etcd-data  # 持久化，删除容器数据不丢
+    command:
+      - /usr/local/bin/etcd
+      - --name=etcd-node-1
+      - --data-dir=/etcd-data
+      - --listen-client-urls=http://0.0.0.0:2379
+      - --advertise-client-urls=http://0.0.0.0:2379
+      - --listen-peer-urls=http://0.0.0.0:2380
+      - --initial-advertise-peer-urls=http://0.0.0.0:2380
+      - --initial-cluster=etcd-node-1=http://0.0.0.0:2380
+      - --initial-cluster-state=new
+      - --initial-cluster-token=etcd-cluster-1
+
+  mysql:
+    image: docker.1ms.run/library/mysql:8.0-debian  # 你用的 Debian 版镜像
+    container_name: g7-mysql8-debian
+    restart: always
+    networks:
+      - app-net
+    ports:
+      - "3306:3306"
+    environment:
+      # root 初始密码（必须设置，否则容器启动失败）
+      MYSQL_ROOT_PASSWORD: 123456
+      # 全局字符集配置
+      MYSQL_CHARSET: utf8mb4
+      MYSQL_COLLATION: utf8mb4_unicode_ci
+      # 时区设置为中国标准时间
+      TZ: Asia/Shanghai
+    volumes:
+      # 数据持久化：容器内数据挂载到本地，删容器不丢数据
+      - ./mysql_data/data:/var/lib/mysql
+      # 自定义配置文件挂载（可放 my.cnf）
+      - ./mysql_data/conf:/etc/mysql/conf.d
+      # 初始化SQL脚本挂载（容器启动时自动执行）
+      - ./mysql_data/init:/docker-entrypoint-initdb.d
+    command:
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --default-time_zone=+8:00
+
+  redis:
+    image: docker.1ms.run/bitnami/redis:latest
+    container_name: g7-redis
+    restart: unless-stopped
+    networks:
+      - app-net
+    ports:
+      # 宿主机端口:容器端口，按需调整，默认6379
+      - "6379:6379"
+    environment:
+      - ALLOW_EMPTY_PASSWORD=yes
+      # 🔐 必设：Redis 密码（生产环境必须修改为强密码）
+      # - REDIS_PASSWORD=your_strong_redis_password_here
+      # 可选：允许远程访问（默认bitnami镜像绑定0.0.0.0，无需额外配置）
+      # - REDIS_BIND=0.0.0.0
+      # 可选：开启持久化（避免容器重启数据丢失）
+      - REDIS_AOF_ENABLED=yes
+    volumes:
+      # 数据持久化目录，宿主机路径可自定义
+      - ./redis_data:/bitnami/redis/data
+    healthcheck:
+      test: [ "CMD", "redis-cli", "ping" ]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+networks:
+  app-net:
+    driver: bridge
+    external: true

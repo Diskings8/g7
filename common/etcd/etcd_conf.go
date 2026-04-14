@@ -27,7 +27,10 @@ func (rb *etcdConfUpdateCenter) LoadAndWatchConfig() {
 }
 
 func (rb *etcdConfUpdateCenter) loadAllConfig() {
-	resp, _ := etcdClient.Get(context.Background(), "/config/", clientv3.WithPrefix())
+	resp, err := etcdClient.Get(context.Background(), "/config/", clientv3.WithPrefix())
+	if err != nil {
+		panic("wait watch error: " + err.Error())
+	}
 
 	for _, kv := range resp.Kvs {
 		key := string(kv.Key)
