@@ -16,7 +16,7 @@ import (
 
 func main() {
 
-	flag.StringVar(&globals.Env, "env", "pre", "运行环境: test/prod/pre")
+	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod/pre")
 	flag.StringVar(&globals.InstanceId, "instance", "0", "实例id")
 	flag.StringVar(&globals.Container, "container", "local", "容器类型：local/docker")
 	flag.Parse()

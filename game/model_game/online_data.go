@@ -3,24 +3,19 @@ package model_game
 import (
 	"encoding/json"
 	"g7/common/protos/pb"
-	"g7/game/const_game"
-	"sync/atomic"
 	"time"
 )
 
 type OnlineData struct {
 	// 流相关
-	StreamID              uint64
-	StreamConn            pb.GameStreamService_StreamServer
-	StreamCancelFunc      func()          // 断开流
-	IsChanClosed          bool            // 标记是否关闭
-	saveTicker            *time.Ticker    // 玩家自己的定时器
-	LastHearBeatTime      time.Time       // 上次心跳时间
-	IsDisconnecting       *atomic.Bool    // 中断流程唯一性
-	ActionChan            chan func()     // 独立协程队列（所有逻辑都走这里）
-	QuitChan              chan struct{}   // 退出用
-	SaveChan              chan *PlayerDao // 给存储系统用的channel
-	DisconnectCancelTimer func()
+	StreamConn       pb.GameStreamService_StreamServer
+	StreamCancelFunc func()         // 断开流
+	IsChanClosed     bool           // 标记是否关闭
+	LastHearBeatTime time.Time      // 上次心跳时间
+	ActionChan       chan func()    // 独立协程队列（所有逻辑都走这里）
+	QuitChan         chan struct{}  // 退出用
+	SaveChan         chan *SaveDaoD // 给存储系统用的channel
+	CurRedisLockKey  string         //当前redis锁key
 
 	// limit
 	LimitLastReqTime int64
@@ -36,14 +31,11 @@ func (this *OnlineData) GetLastHearBeatTime() time.Time {
 	return this.LastHearBeatTime
 }
 
-func (this *OnlineData) Init(StreamConn pb.GameStreamService_StreamServer, c chan *PlayerDao) {
+func (this *OnlineData) Init(StreamConn pb.GameStreamService_StreamServer, systemSaveChannel chan *SaveDaoD) {
 	this.StreamConn = StreamConn
 	this.IsChanClosed = false
-	this.saveTicker = time.NewTicker(const_game.SaveDaoTimeTick)
-	this.IsDisconnecting = &atomic.Bool{}
-	this.DisconnectCancelTimer = nil
 	this.ActionChan = make(chan func(), 1000)
 	this.QuitChan = make(chan struct{}, 1)
-	this.SaveChan = c
+	this.SaveChan = systemSaveChannel
 	this.LastHearBeatTime = time.Now()
 }

@@ -138,7 +138,7 @@ func clientToGateway(conn net.Conn, _sess *tcp_session.Session, gameStream pb.Ga
 }
 
 func makeFirstMessage(sess *tcp_session.Session, gameStream pb.GameStreamService_StreamClient) {
-	msg := pb.Req_AuthClientToGame{PlayerID: sess.GetPlayerId()}
+	msg := pb.Req_AuthClientToGame{PlayerID: sess.GetPlayerId(), ServerID: sess.GetServerId()}
 	msgBody, _ := json.Marshal(&msg)
 	_ = gameStream.Send(&pb.GameMessage{
 		MsgId: uint32(pb.MsgID_MSG_AUTH),

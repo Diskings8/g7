@@ -100,7 +100,7 @@ func (this *bagSystem) GainAndConsumption(GainItemKV, CostItemKV []structs.KInt3
 		GainCurrency: gainCurrency,
 		Ext:          "",
 	}
-	actionLog.CreateTime = time.Now()
+	actionLog.CreateTime = time.Now().Unix()
 	Player.ActionLogs = append(Player.ActionLogs, &actionLog)
 
 	return true, nil

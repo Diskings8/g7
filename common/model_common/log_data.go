@@ -2,7 +2,6 @@ package model_common
 
 import (
 	"g7/common/structs"
-	"time"
 )
 
 type DBTableInterface interface {
@@ -16,11 +15,11 @@ type DBMqInterface interface {
 }
 
 type BaseLog struct {
-	ID         int64     `gorm:"column:id;primaryKey;autoIncrement"`
-	ServerId   int32     `gorm:"column:server_id"`
-	EventType  int32     `gorm:"column:event_type"`
-	CreateTime time.Time `gorm:"column:create_time;default:CURRENT_TIMESTAMP"`
-	SaveTime   time.Time `gorm:"column:save_time;default:CURRENT_TIMESTAMP"`
+	ID         int64 `gorm:"column:id;primaryKey;autoIncrement"`
+	ServerId   int32 `gorm:"column:server_id"`
+	EventType  int32 `gorm:"column:event_type"`
+	CreateTime int64 `gorm:"column:create_time;"`
+	SaveTime   int64 `gorm:"column:save_time;" json:"-"`
 }
 
 func (l BaseLog) GetServerId() int32 {

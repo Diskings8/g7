@@ -27,8 +27,8 @@ func (pc *PlayerCache) Init() {
 // 1. 从 Redis 取
 // 2. 反序列化为 PlayerDao
 // 3. 不存在/失败 → 返回 error
-func (pc *PlayerCache) GetPlayerCache(playerId int64) (*model_game.PlayerDao, error) {
-	key := redisx.MakePlayerCacheKey(playerId)
+func (pc *PlayerCache) GetPlayerCache(serverId int32, playerId int64) (*model_game.PlayerDao, error) {
+	key := redisx.MakePlayerCacheKey(serverId, playerId)
 
 	// 从 Redis 读取
 	strData, err := redisx.GetKey(key)
@@ -58,7 +58,7 @@ func (pc *PlayerCache) SetPlayerCache(dao *model_game.PlayerDao) error {
 		return err
 	}
 
-	key := redisx.MakePlayerCacheKey(dao.PlayerId)
+	key := redisx.MakePlayerCacheKey(dao.ServerId, dao.PlayerId)
 	// 保存 Redis + 设置过期
 	return redisx.SetKey(key, data, cacheExpire)
 }

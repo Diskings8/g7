@@ -13,11 +13,11 @@ import (
 var gConn net.Conn
 
 var RemoteAddr = "123.207.11.230:31001"
-var LocalAddr = "127.0.0.1:9001"
+var LocalAddr = "127.0.0.1:10001"
 
 func main() {
 	// 1. 连接网关
-	conn, err := net.Dial("tcp", RemoteAddr)
+	conn, err := net.Dial("tcp", LocalAddr)
 	gConn = conn
 	if err != nil {
 		fmt.Println("连接网关失败：", err)
@@ -53,10 +53,10 @@ func main() {
 
 func MyData() pb.Req_AuthClientToGateWay {
 	return pb.Req_AuthClientToGateWay{
-		UerID:    2041160605846605824,
-		PlayerID: 2041413406195585024,
+		UerID:    2044258565992091648,
+		PlayerID: 2044315259879165952,
 		ServerID: 91001,
-		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDQxMTYwNjA1ODQ2NjA1ODI0LCJ1aWQiOjIwNDE0MTM0MDYxOTU1ODUwMjQsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc3NTgwMjU5MywiaWF0IjoxNzc1NzE2MTkzfQ.ItyKtwMBzgSkfsWMzQM6wUH3cThqY2h6PMloHIXorMg",
+		Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDQ0MjU4NTY1OTkyMDkxNjQ4LCJ1aWQiOjIwNDQzMTUyNTk4NzkxNjU5NTIsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc3NjMyNDExNCwiaWF0IjoxNzc2MjM3NzE0fQ.FkAh1ktHZe5sUAZhkihKFRQ-xTLpfVhjBtaUhk0gG0g",
 	}
 }
 

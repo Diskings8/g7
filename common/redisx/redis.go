@@ -25,6 +25,10 @@ func Init(addr, password string, db int) {
 	}
 }
 
+func GetClient() *redis.Client {
+	return rDB
+}
+
 func GetKey(key string) (string, error) {
 	return rDB.Get(context.Background(), key).Result()
 }

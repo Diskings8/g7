@@ -21,6 +21,7 @@ func NewKafkaProducerDriver(url string) *KafkaProducerDriver {
 	config.Producer.Flush.Frequency = 500 * time.Millisecond // 批量发送
 	config.Producer.Return.Successes = false
 	config.Producer.Return.Errors = true
+	//logger.Log.Info(fmt.Sprintf("Create new Kafka Producer Driver:%s", url))
 	producer, err := sarama.NewAsyncProducer([]string{url}, config)
 	if err != nil {
 		log.Fatalf("kafka启动失败: %v", err)
@@ -38,7 +39,7 @@ func NewKafkaProducerDriver(url string) *KafkaProducerDriver {
 
 func (k *KafkaProducerDriver) ProduceMessage(Topic string, Data model_common.DBMqInterface) {
 	bytes, _ := json.Marshal(Data)
-	log.Printf("one topic:%s", Topic)
+	//log.Printf("one topic:%s", Topic)
 	// 发送到kafka（异步，无阻塞）
 	k.producerClient.Input() <- &sarama.ProducerMessage{
 		Topic: Topic, // 主题固定

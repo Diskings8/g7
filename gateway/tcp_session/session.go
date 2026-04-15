@@ -68,6 +68,10 @@ func (s *Session) GetPlayerId() int64 {
 	return s.playerID
 }
 
+func (s *Session) GetServerId() int32 {
+	return s.serverID
+}
+
 func (s *Session) AllowPacket() bool {
 	now := time.Now().Unix()
 	if atomic.LoadInt64(&s.pktTime) != now {

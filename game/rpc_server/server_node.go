@@ -2,6 +2,7 @@ package rpc_server
 
 import (
 	"context"
+	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
 	"g7/common/protos/pb"
@@ -9,7 +10,6 @@ import (
 	"g7/game/global_game"
 	"g7/game/manager_game"
 	"g7/game/model_game"
-	"time"
 )
 
 type GameNodeServer struct {
@@ -19,15 +19,14 @@ type GameNodeServer struct {
 func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req_Node_CreatePlayer) (*pb.Rsp_Node_CreatePlayer, error) {
 	//logger.Log.Info("pb.Req_Node_CreatePlayer")
 	player := &model_game.Player{
-		UserId:           req.GetUserID(),
-		PlayerId:         snowflakes.GenUID(),
-		ServerId:         req.GetServerID(),
-		Nickname:         req.GetNickname(),
-		LastDailyResetAt: time.Now(),
+		UserId:   req.GetUserID(),
+		PlayerId: snowflakes.GenUID(),
+		ServerId: req.GetServerID(),
+		Nickname: req.GetNickname(),
 	}
-	dao := player.ToDao()
+	daoD := player.ToDao(globals.SaveDataKindCornDb)
 	// 初始化各个系统的数据
-	manager_game.GISystemManager.LoadData(dao, player)
+	manager_game.GISystemManager.LoadData(daoD.SaveData, player)
 
 	rsp := &pb.Rsp_Node_CreatePlayer{
 		PlayerID: player.PlayerId,
@@ -35,7 +34,7 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 		Nickname: player.Nickname,
 		UserID:   player.UserId,
 	}
-	err := global_game.GGameDB.Insert(dao)
+	err := global_game.GGameDB.Insert(daoD.SaveData)
 	if err != nil {
 		logger.Log.Error(err.Error())
 		rsp = &pb.Rsp_Node_CreatePlayer{}

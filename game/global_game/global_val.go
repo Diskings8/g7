@@ -1,18 +1,16 @@
 package global_game
 
 import (
+	"fmt"
 	"g7/common/dbc/dbc_interface"
 	"g7/common/globals"
 	"g7/common/mqc/mqc_interface"
+	"g7/common/redisx"
 	"g7/game/model_game"
-	"sync/atomic"
 )
 
 var GGameDB dbc_interface.DBInterface
 var GGlobalDB dbc_interface.DBInterface
-
-// gGlobalStreamID 新链接id
-var gGlobalStreamID uint64 = 0
 
 func AutoMigrate(dbc dbc_interface.DBInterface) {
 	if globals.IsDev() {
@@ -22,6 +20,6 @@ func AutoMigrate(dbc dbc_interface.DBInterface) {
 
 var GGlobalMQ mqc_interface.MQProducerInterface
 
-func NewStreamID() uint64 {
-	return atomic.AddUint64(&gGlobalStreamID, 1)
+func MakePlayerRedisLockKey(serverId int32, playerId int64) string {
+	return fmt.Sprintf(redisx.PlayerLockKeyPrefix, serverId, playerId)
 }

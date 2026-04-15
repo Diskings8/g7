@@ -9,7 +9,6 @@ import (
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
-	"g7/common/utils"
 	"github.com/IBM/sarama"
 	"log"
 	"time"
@@ -141,7 +140,7 @@ func (m *KafkaConsumerDriver) getConn(serverId int32) dbc_interface.DBInterface 
 	if ok {
 		return v
 	}
-	c := dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.DsnWithName(utils.Int32ToString(serverId)))
+	c := dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.Dsn())
 	m.commonDBConnMap[serverId] = c
 	return c
 }

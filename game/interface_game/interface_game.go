@@ -10,7 +10,7 @@ type ISystem interface {
 }
 
 type SaveSystem interface {
-	SavePlayerDao(PlayerDao *model_game.PlayerDao)
+	SavePlayerDao(PlayerDao *model_game.SaveDaoD)
 	GetName() string
 }
 

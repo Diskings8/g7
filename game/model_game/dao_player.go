@@ -2,7 +2,7 @@ package model_game
 
 import (
 	"encoding/json"
-	"time"
+	"g7/common/utils"
 )
 
 type PlayerDao struct {
@@ -11,12 +11,12 @@ type PlayerDao struct {
 	ServerId         int32           `gorm:"column:server_id"`
 	Nickname         string          `gorm:"column:nickname"`
 	IsOnline         bool            `gorm:"column:is_online"`          // 是否在线
-	OfflineAt        time.Time       `gorm:"column:offline_at"`         // 离线时间
-	OnlineAt         time.Time       `gorm:"column:online_at"`          // 当前上线时间
-	LastOfflineAt    time.Time       `gorm:"column:last_offline_at"`    // 上次离线时间
-	LastDailyResetAt time.Time       `gorm:"column:last_dailyreset_at"` // 上次每日重置的时间
-	LastWeekResetAt  time.Time       `gorm:"column:last_weekreset_at"`  // 每周重置时间
-	LastMonthResetAt time.Time       `gorm:"column:last_monthreset_at"` // 每月重置时间
+	OfflineAt        int64           `gorm:"column:offline_at"`         // 离线时间
+	OnlineAt         int64           `gorm:"column:online_at"`          // 当前上线时间
+	LastOfflineAt    int64           `gorm:"column:last_offline_at"`    // 上次离线时间
+	LastDailyResetAt int64           `gorm:"column:last_dailyreset_at"` // 上次每日重置的时间
+	LastWeekResetAt  int64           `gorm:"column:last_weekreset_at"`  // 每周重置时间
+	LastMonthResetAt int64           `gorm:"column:last_monthreset_at"` // 每月重置时间
 	GeneralD         generalData     `gorm:"-"`
 	generalData      []byte          `gorm:"column:general_data"`
 	CultivationD     cultivationData `gorm:"-"`
@@ -56,9 +56,15 @@ func (this *PlayerDao) TomSimplePlayer() *Player {
 		ServerId:      this.ServerId,
 		Nickname:      this.Nickname,
 		IsOnline:      this.IsOnline,
-		OfflineAt:     this.OfflineAt,
-		OnlineAt:      this.OnlineAt,
-		LastOfflineAt: this.LastOfflineAt,
+		OfflineAt:     utils.FormatTimestamp(this.OfflineAt),
+		OnlineAt:      utils.FormatTimestamp(this.OnlineAt),
+		LastOfflineAt: utils.FormatTimestamp(this.LastOfflineAt),
 	}
 	return p
+}
+
+type SaveDaoD struct {
+	SaveType int
+	SaveKey  string
+	SaveData *PlayerDao
 }

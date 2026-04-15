@@ -18,7 +18,7 @@ var GISystemManager = &iSystemManager{
 
 var GSaveSystemManager = &saveSystemManager{
 	SaveSystems:    make(map[int32]interface_game.SaveSystem, 0),
-	AsyncSaveQueue: make(chan *model_game.PlayerDao, 10000),
+	AsyncSaveQueue: make(chan *model_game.SaveDaoD, 10000),
 }
 
 var GResetSystemManager = &resetSystemManager{
@@ -68,14 +68,14 @@ func (m *iSystemManager) OnEnterGame(Player *model_game.Player) {
 
 type saveSystemManager struct {
 	SaveSystems    map[int32]interface_game.SaveSystem // 所有注册的系统
-	AsyncSaveQueue chan *model_game.PlayerDao
+	AsyncSaveQueue chan *model_game.SaveDaoD
 }
 
 func (m *saveSystemManager) Init() {
 	go func() {
 		for dao := range m.AsyncSaveQueue {
 			// 单协程写库
-			m.SavePlayerDao(dao)
+			m.SavePlayerDaoD(dao)
 		}
 	}()
 }
@@ -88,7 +88,7 @@ func (m *saveSystemManager) Register(systemId int32, sys interface_game.SaveSyst
 	m.SaveSystems[systemId] = sys
 }
 
-func (m *saveSystemManager) SavePlayerDao(dao *model_game.PlayerDao) {
+func (m *saveSystemManager) SavePlayerDaoD(dao *model_game.SaveDaoD) {
 	for _, sys := range m.SaveSystems {
 		sys.SavePlayerDao(dao)
 	}
@@ -117,51 +117,48 @@ func (m *resetSystemManager) Register(systemId int32, sys interface_game.ResetSy
 
 func (m *resetSystemManager) AllReset(Player *model_game.Player) {
 	// 判断是否是同一天
-	if utils.CheckTwoTimeIsSameDay(Player.LastDailyResetAt, time.Now()) {
-		return
-	}
-	// 先让其他系统处理每日刷新数据
-	for id, sys := range m.ResetSystems {
-		if id == const_game.General_PlayerSystem {
-			continue
+	//logger.Log.Warn(fmt.Sprintf("%s,%s,%v", Player.LastDailyResetAt, time.Now(), utils.CheckTwoTimeIsSameDay(*Player.LastDailyResetAt, time.Now())))
+	if !utils.CheckTwoTimeIsSameDay(Player.LastDailyResetAt, time.Now()) {
+		// 先让其他系统处理每日刷新数据
+		for id, sys := range m.ResetSystems {
+			if id == const_game.General_PlayerSystem {
+				continue
+			}
+			sys.DailyReset(Player)
 		}
-		sys.DailyReset(Player)
+		// 更新玩家系统的每日数据
+		if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
+			sys.DailyReset(Player)
+		}
 	}
-	// 更新玩家系统的每日数据
-	if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
-		sys.DailyReset(Player)
-	}
-
 	// 判断是否同一周
-	if utils.CheckTwoTimeIsSameWeek(Player.LastWeekResetAt, time.Now()) {
-		return
-	}
-	// 先让其他系统处理每日刷新数据
-	for id, sys := range m.ResetSystems {
-		if id == const_game.General_PlayerSystem {
-			continue
+	if !utils.CheckTwoTimeIsSameWeek(Player.LastWeekResetAt, time.Now()) {
+		// 先让其他系统处理每日刷新数据
+		for id, sys := range m.ResetSystems {
+			if id == const_game.General_PlayerSystem {
+				continue
+			}
+			sys.WeekReset(Player)
 		}
-		sys.WeekReset(Player)
-	}
-	// 更新玩家系统的每日数据
-	if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
-		sys.WeekReset(Player)
+		// 更新玩家系统的每日数据
+		if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
+			sys.WeekReset(Player)
+		}
 	}
 
 	// 判断是否同一月
-	if utils.CheckTwoTimeIsSameMonth(Player.LastMonthResetAt, time.Now()) {
-		return
-	}
-	// 先让其他系统处理每日刷新数据
-	for id, sys := range m.ResetSystems {
-		if id == const_game.General_PlayerSystem {
-			continue
+	if !utils.CheckTwoTimeIsSameMonth(Player.LastMonthResetAt, time.Now()) {
+		// 先让其他系统处理每日刷新数据
+		for id, sys := range m.ResetSystems {
+			if id == const_game.General_PlayerSystem {
+				continue
+			}
+			sys.MonthReset(Player)
 		}
-		sys.MonthReset(Player)
-	}
-	// 更新玩家系统的每日数据
-	if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
-		sys.MonthReset(Player)
+		// 更新玩家系统的每日数据
+		if sys, ok := m.ResetSystems[const_game.General_PlayerSystem].(interface_game.ResetSystem); ok {
+			sys.MonthReset(Player)
+		}
 	}
 
 	return

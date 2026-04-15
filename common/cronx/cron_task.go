@@ -20,7 +20,10 @@ func InitCron() {
 const (
 	EveryDay0Hour = "0 0 0 * * ?"
 	EveryDay5Hour = "0 0 5 * * ?"
+	Per1Second    = "0/1 * * * * ?"
 	Per5Second    = "0/5 * * * * ?"
+	Per10Second   = "0/10 * * * * ?"
+	Per12Second   = "0/12 * * * * ?"
 	Per30Second   = "0/30 * * * * ?"
 	Per1Minute    = "0 0/1 * * * ?"
 )
@@ -37,8 +40,20 @@ func AddDaily0HourTask(task func()) {
 	_, _ = addCronTask(EveryDay0Hour, task)
 }
 
+func AddPer1SecondTask(task func()) {
+	_, _ = addCronTask(Per1Second, task)
+}
+
 func AddPer5SecondTask(task func()) {
 	_, _ = addCronTask(Per5Second, task)
+}
+
+func AddPer10SecondTask(task func()) {
+	_, _ = addCronTask(Per10Second, task)
+}
+
+func AddPer12SecondTask(task func()) {
+	_, _ = addCronTask(Per12Second, task)
 }
 
 func AddPer30SecondTask(task func()) {

@@ -28,7 +28,7 @@ import (
 
 func main() {
 	// 1. 解析环境参数
-	flag.StringVar(&globals.Env, "env", "test", "运行环境: test/prod")
+	flag.StringVar(&globals.Env, "env", "prod", "运行环境: test/prod")
 	flag.StringVar(&globals.ServerId, "server", "1001", "游戏服id")
 	flag.StringVar(&globals.Platform, "platform", "91", "平台id")
 	flag.StringVar(&globals.Container, "container", "docker", "容器类型：local/docker")
@@ -76,7 +76,7 @@ func main() {
 	etcd.RegisterGameRpc(globals.ServerId, globals.InstanceId, etcdAddr)
 
 	//全局对象初始化 init
-	global_game.GPlayerMaps.Init()
+	global_game.GPlayerMaps.Init(redisx.GetClient())
 	global_game.GPlayerCache.Init()
 
 	//初始化定时器

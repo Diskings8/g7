@@ -17,15 +17,17 @@ import (
 
 func main() {
 	//fmt.Println(os.Getwd())
-	globals.Env = globals.EnvPre
+	globals.Env = globals.EnvTest
 	configx.LoadEnvConf(globals.GetEnvConfPath())
 	//test := string("123.207.11.230:32379")
 	//etcd.InitETCD(test)
-	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
+	//etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
 
-	checkEtcdGateway()
-	checkEtcdLogin()
-	checkEtcdGame()
+	//checkEtcdGateway()
+	//checkEtcdLogin()
+	//checkEtcdGame()
+
+	checkRedis()
 }
 
 func checkEtcdGateway() {

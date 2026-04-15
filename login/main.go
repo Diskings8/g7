@@ -60,9 +60,7 @@ func main() {
 	snowflakes.Init()
 
 	//
-	if globals.IsContainerDocker() {
-		mq_login.GMQCustomInstance.Init()
-	}
+	mq_login.GMQCustomInstance.Init()
 
 	//
 	service_login.LTServer.Init()

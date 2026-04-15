@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"strconv"
+	"time"
 )
 
 func Int64ToString(i int64) string {
@@ -20,4 +21,12 @@ func Int32ToUint8(i int32) (uint8, error) {
 		return 0, errors.New(fmt.Sprintf("%d too big to change", i))
 	}
 	return uint8(i), nil
+}
+
+func FormatTimestamp(t int64) time.Time {
+	return time.Unix(t, 0).UTC()
+}
+
+func TimeToTimestamp(t time.Time) int64 {
+	return t.Unix()
 }
