@@ -28,4 +28,8 @@ func Register(r *gin.Engine) {
 		playerGroup.POST("/select", api.SelectPlayer)
 	}
 
+	orderGroup := r.Group("/api/order")
+	{
+		orderGroup.POST("/91/callback", api.GCallBack91.OrderCallBack)
+	}
 }

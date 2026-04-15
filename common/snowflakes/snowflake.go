@@ -43,3 +43,7 @@ func GenUID() int64 {
 func GenUUID() uint64 {
 	return uint64(GenUID())
 }
+
+func GenStringID() string {
+	return node.Generate().String()
+}

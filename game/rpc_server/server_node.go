@@ -7,6 +7,7 @@ import (
 	"g7/common/model_common"
 	"g7/common/protos/pb"
 	"g7/common/snowflakes"
+	"g7/game/general_system_game"
 	"g7/game/global_game"
 	"g7/game/manager_game"
 	"g7/game/model_game"
@@ -50,4 +51,36 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 		_ = global_game.GGlobalDB.Insert(&indexPlayer)
 	}
 	return rsp, nil
+}
+
+func (s *GameNodeServer) LoginNodeOrderPaid(_ctx context.Context, req *pb.Req_Node_OrderPaid) (*pb.Rsp_Node_OrderPaid, error) {
+	req.GetOrderId()
+	order := &model_common.GameOrder{}
+	_ = global_game.GGlobalDB.FindOne(order, map[string]interface{}{"order_no": req.OrderId})
+	if order.Status != globals.OrderStatusPaid {
+		return &pb.Rsp_Node_OrderPaid{
+			State: 0,
+		}, nil
+	}
+	order.Status = globals.OrderStatusProcessing
+	_ = global_game.GGlobalDB.Insert(order)
+
+	reward := s.GenOrderItems()
+	player := global_game.GPlayerMaps.GetPlayer(req.GetPlayerID())
+	if player == nil {
+		return &pb.Rsp_Node_OrderPaid{
+			State: 0,
+		}, nil
+	}
+
+	player.RunInActor(func() {
+		general_system_game.GOrderSystem.GrantRewards(reward, player)
+	})
+	order.Status = globals.OrderStatusCompleted
+	_ = global_game.GGlobalDB.Insert(order)
+	return &pb.Rsp_Node_OrderPaid{State: 1}, nil
+}
+
+func (s *GameNodeServer) GenOrderItems() map[int32]int64 {
+	return make(map[int32]int64)
 }

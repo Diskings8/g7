@@ -22,5 +22,8 @@ enum MsgID {
   //
   MSG_Req_BagData = 21001;
   MSG_Rsp_BagData = 21002;
+  //
+  MSG_Req_CreateOrder = 21101;
+  MSG_Rsp_CreateOrder = 21102;
   // 进入游戏
 }

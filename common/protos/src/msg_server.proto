@@ -27,3 +27,14 @@ message Req_Node_ConnCount{
 message Rsp_Node_ConnCount{
   int32 Count = 1;
 }
+
+message Req_Node_OrderPaid{
+  int64 playerID = 1;
+  int32 serverID = 2;
+  string orderId = 3;
+}
+
+message Rsp_Node_OrderPaid{
+  string orderId = 1;
+  int32  state = 2;
+}

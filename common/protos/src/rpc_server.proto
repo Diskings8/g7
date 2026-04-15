@@ -15,6 +15,7 @@ service GameStreamService {
 service GameNodeService {
   // 登录服创建玩家
   rpc LoginNodeCreatePlayer(Req_Node_CreatePlayer) returns (Rsp_Node_CreatePlayer);
+  rpc LoginNodeOrderPaid(Req_Node_OrderPaid) returns (Rsp_Node_OrderPaid);
 }
 
 service GatewayNodeService {

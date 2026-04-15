@@ -1,0 +1,15 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+
+message Req_CreateOrder {
+  int32 productId = 1;  // 商品id号
+}
+
+message Rsp_CreateOrder {
+  string orderId = 1;  // 订单号
+  string errReason = 2;//
+}
