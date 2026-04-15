@@ -28,7 +28,7 @@ func main() {
 	fmt.Println("✅ 成功连接到 Gateway！")
 	cronx.InitCron()
 	firstMsg()
-	//cronx.AddPer5SecondTask(heartbeat)
+	cronx.AddPer5SecondTask(heartbeat)
 
 	MakeMsgToSend(pb.MsgID_MSG_Req_EnterGame, pb.Req_LoginGame{})
 
@@ -37,12 +37,13 @@ func main() {
 	for {
 		msg, errx := protocol.ReadMessage(gConn)
 		if errx == io.EOF {
+			fmt.Println("网络断开")
 			break
 		}
 		if msg == nil {
 			continue
 		}
-		fmt.Printf("网关返回：MsgId:%d, %s", msg.MsgID, string(msg.Body))
+		fmt.Printf("网关返回：MsgId:%d, %s\n", msg.MsgID, string(msg.Body))
 		switch msg.MsgID {
 		case pb.MsgID_MSG_Kick:
 			_ = gConn.Close()

@@ -32,6 +32,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 	for {
 		pkt, err := stream.Recv()
 		if err != nil {
+			//logger.Log.Warn(fmt.Sprintf("Recv ： %s", err))
 			break
 		}
 		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_AUTH {
@@ -40,19 +41,20 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 		}
 
 		if player == nil {
-			//logger.Log.Warn(fmt.Sprintf("%s,not have auth player", pkt.MsgId))
+			logger.Log.Warn(fmt.Sprintf("%s,not have auth player", pkt.MsgId))
 			err = errors.New("not have auth player")
 			break
 		}
 		if !global_game.GPlayerMaps.CheckLockValid(player.ServerId, player.PlayerId) {
 			global_game.GPlayerMaps.DelOnePlayerById(player.PlayerId)
+			logger.Log.Warn(fmt.Sprintf("%d,CheckLockValid false", player.PlayerId))
 			break
 		}
-		logger.Log.Info(fmt.Sprintf("%s", pb.MsgID(pkt.MsgId)))
+		//logger.Log.Info(fmt.Sprintf("%s", pb.MsgID(pkt.MsgId)))
 		// 这里写你的游戏逻辑：根据 msg_id 处理 body
 		player.RunInActor(func() {
 			if !s.isAllow(player) {
-				logger.Log.Info(fmt.Sprintf("not allow"))
+				logger.Log.Info(fmt.Sprintf("%d not allow", player.PlayerId))
 				return
 			}
 			// 更新心跳

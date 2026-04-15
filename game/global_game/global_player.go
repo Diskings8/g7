@@ -2,6 +2,7 @@ package global_game
 
 import (
 	"context"
+	"errors"
 	"g7/common/configx"
 	"g7/common/globals"
 	"g7/game/model_game"
@@ -185,7 +186,7 @@ func (this *playerMaps) StartLockReNewer(curSlot int32) {
 		capLen = 16
 	} // 兜底初始容量
 	players := make([]*model_game.Player, 0, capLen)
-
+	//logger.Log.Info(fmt.Sprintf("%d", curSlot))
 	for _, v := range this.Data {
 		if int32(v.PlayerId%5) != curSlot {
 			continue
@@ -196,9 +197,11 @@ func (this *playerMaps) StartLockReNewer(curSlot int32) {
 
 	playerLoseLockL := make([]*model_game.Player, 0, 10)
 	for _, v := range players {
-		if ok, _ := this.CheckLockBelongsToMe(v.ServerId, v.PlayerId); ok {
-			this.renewLock(v.ServerId, v.PlayerId)
+		if ok := this.CheckLockValid(v.ServerId, v.PlayerId); ok {
+			_ = this.renewLock(v.ServerId, v.PlayerId)
+			//logger.Log.Info(fmt.Sprintf("renewLock: %d,%d,%v", v.PlayerId, curSlot, b))
 		} else {
+			//logger.Log.Warn(fmt.Sprintf("%d,CheckLockBelongsToMe", v.PlayerId))
 			// 锁不属于我 → 玩家已被顶号/转移 → 主动下线
 			playerLoseLockL = append(playerLoseLockL)
 		}
@@ -221,13 +224,19 @@ func (this *playerMaps) renewLock(serverId int32, playerId int64) bool {
 	if err != nil || val != globals.InstanceId {
 		return false
 	}
-	this.cli.Expire(context.Background(), key, this.renewInterval)
-	return true
+	b := this.cli.Expire(context.Background(), key, this.renewInterval)
+	return b.Val()
 }
 
 // 收包前必校验锁（核心！）
 func (this *playerMaps) CheckLockValid(serverId int32, playerId int64) bool {
 	key := MakePlayerRedisLockKey(serverId, playerId)
 	val, err := this.cli.Get(context.Background(), key).Result()
-	return err == nil && val == globals.InstanceId
+	if errors.Is(err, redis.Nil) {
+		return false // 锁不存在
+	}
+	if err != nil {
+		return false
+	}
+	return val == globals.InstanceId
 }
