@@ -9,6 +9,7 @@ option go_package = "./pb";
 // ==========================
 enum MsgID {
   MSG_INVALID = 0; // 必须从0开始
+  MSG_GM_Cmd = 1; // 测试用gm
 
   // 网关 ↔ 游戏服
   MSG_AUTH      = 10001;          // 鉴权

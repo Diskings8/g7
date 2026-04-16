@@ -39,6 +39,7 @@ func (m *iSystemManager) Register(systemId int32, sys interface_game.ISystem) {
 		return
 	}
 	m.ISystems[systemId] = sys
+	sys.Init()
 }
 
 func (m *iSystemManager) LoadData(dao *model_game.PlayerDao, Player *model_game.Player) {

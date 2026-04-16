@@ -4,6 +4,7 @@ import (
 	"context"
 	"fmt"
 	"g7/common/globals"
+	"g7/common/structs"
 	"log"
 	"strings"
 	"time"
@@ -125,15 +126,15 @@ func GetAllGateways() ([]string, error) {
 }
 
 // GetGameServersByServerID 获取指定区服的游戏服
-func GetGameServersByServerID(serverID string) ([]string, error) {
+func GetGameServersByServerID(serverID string) ([]structs.KVString, error) {
 	key := getOneKindGameRpcPrefix(serverID)
 	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err
 	}
-	var addrs []string
+	var addrs []structs.KVString
 	for _, kv := range resp.Kvs {
-		addrs = append(addrs, string(kv.Value))
+		addrs = append(addrs, structs.KVString{string(kv.Key), string(kv.Value)})
 	}
 	return addrs, nil
 }

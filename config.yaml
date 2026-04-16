@@ -45,7 +45,7 @@ snowflake:
 # JWT 密钥
 jwt:
   secret: "g7-game-service_login-secret-key-2025"
-  expire_hours: 24
+  expire_hours: 72
 
 etcd:
   dsn: "127.0.0.1:2379"
@@ -62,3 +62,6 @@ env:
 mq:
   dsn: "127.0.0.1:9092"
   kind: "kafka"
+
+json_path:
+  path: "../common/conf_data"

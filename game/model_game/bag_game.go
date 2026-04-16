@@ -14,6 +14,7 @@ func (ab *AllBagData) Init() {
 
 func (ab *AllBagData) NewBag(bagType uint8) {
 	ab.Bags[bagType] = new(Bag)
+	ab.Bags[bagType].Init()
 }
 
 func (ab *AllBagData) GetBag(bagType uint8) *Bag {
@@ -27,6 +28,10 @@ func (ab *AllBagData) ReplaceBag(bagType uint8, bag *Bag) {
 type Bag struct {
 	BagItems map[uint64]*ItemData `json:"bag_items"` // uuid
 	BagSize  int                  `json:"bag_size"`
+}
+
+func (this *Bag) Init() {
+	this.BagItems = make(map[uint64]*ItemData)
 }
 
 func (b *Bag) FindOneByCfgID(CfgId int32) *ItemData {

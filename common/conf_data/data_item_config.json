@@ -1,0 +1,123 @@
+[
+    {
+        "id": 1010001,
+        "name": "金币",
+        "ResourceType": 10,
+        "ResourceSubType": 1,
+        "price": 0,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1010002,
+        "name": "钻石",
+        "ResourceType": 10,
+        "ResourceSubType": 1,
+        "price": 0,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1010003,
+        "name": "代币",
+        "ResourceType": 10,
+        "ResourceSubType": 1,
+        "price": 0,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1110001,
+        "name": "新手回血药",
+        "ResourceType": 11,
+        "ResourceSubType": 1,
+        "price": 1,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1110002,
+        "name": "新手回蓝药",
+        "ResourceType": 11,
+        "ResourceSubType": 1,
+        "price": 1,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1120001,
+        "name": "随机宝箱",
+        "ResourceType": 11,
+        "ResourceSubType": 2,
+        "price": 1,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1210001,
+        "name": "铁块",
+        "ResourceType": 12,
+        "ResourceSubType": 1,
+        "price": 2,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1210002,
+        "name": "木材",
+        "ResourceType": 12,
+        "ResourceSubType": 1,
+        "price": 1,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1210003,
+        "name": "布料",
+        "ResourceType": 12,
+        "ResourceSubType": 1,
+        "price": 3,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1210004,
+        "name": "皮革",
+        "ResourceType": 12,
+        "ResourceSubType": 1,
+        "price": 5,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    },
+    {
+        "id": 1210005,
+        "name": "水晶",
+        "ResourceType": 12,
+        "ResourceSubType": 1,
+        "price": 10,
+        "IsBind": 0,
+        "IsUnique": 0,
+        "ExpireType": 0,
+        "LimitTime": 0
+    }
+]

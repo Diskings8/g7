@@ -1,0 +1,13 @@
+syntax = "proto3";
+package game;
+option go_package = "./pb";
+
+
+message Req_RunGm{
+  string cmd = 1;
+}
+
+message Rsp_RunGm{
+  int32 state = 1;
+  string ext = 2;
+}

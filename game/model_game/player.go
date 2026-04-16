@@ -1,12 +1,12 @@
 package model_game
 
 import (
-	"encoding/json"
 	"fmt"
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
 	"g7/common/protos/pb"
+	"g7/common/utils"
 	"time"
 )
 
@@ -97,22 +97,22 @@ func (p *Player) ToDao(kind int) *SaveDaoD {
 	// 通用数据
 	var generalD = dao.GeneralD
 	{
-		generalD.BagData, _ = json.Marshal(p.Bags)
+		generalD.BagData = p.Bags
 	}
-	dao.generalData, _ = json.Marshal(generalD)
+	dao.GeneralData = utils.MarshalAndCompress(generalD)
 
 	// 养成数据
 	var cultivationD = dao.CultivationD
 	{
 
 	}
-	dao.cultivationData, _ = json.Marshal(cultivationD)
+	dao.CultivationData = utils.MarshalAndCompress(cultivationD)
 	// 活动数据
 	var activityD = dao.ActivityD
 	{
 
 	}
-	dao.activityData, _ = json.Marshal(activityD)
+	dao.ActivityData = utils.MarshalAndCompress(activityD)
 	//
 	daoD := &SaveDaoD{
 		SaveType: kind,

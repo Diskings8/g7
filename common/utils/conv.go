@@ -15,6 +15,16 @@ func Int32ToString(i int32) string {
 	return strconv.FormatInt(int64(i), 10)
 }
 
+func StringToInit64(i string) int64 {
+	num, _ := strconv.ParseInt(i, 10, 64)
+	return num
+}
+
+func StringToInit32(i string) int32 {
+	num, _ := strconv.ParseInt(i, 10, 32)
+	return int32(num)
+}
+
 func Int32ToUint8(i int32) (uint8, error) {
 	// 必须判断范围！
 	if i < 0 || i > 255 {

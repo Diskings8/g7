@@ -50,3 +50,7 @@ func IsContainerLocal() bool {
 func IsContainerDocker() bool {
 	return Container == ContainerDocker
 }
+
+func GetServerInstance() string {
+	return ServerId + "_" + InstanceId
+}

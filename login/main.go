@@ -9,11 +9,10 @@ import (
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
-	"g7/common/model_common"
+	"g7/common/redisx"
 	"g7/common/snowflakes"
 	"g7/login/global_login"
 	"g7/login/internal/service_login"
-	"g7/login/model_login"
 	"g7/login/mq_login"
 	"g7/login/routers"
 	"os"
@@ -61,6 +60,10 @@ func main() {
 	snowflakes.Init()
 
 	//
+	// 初始化redis
+	redisx.Init(configx.GEnvCfg.Redis.Addr, configx.GEnvCfg.Redis.Password, configx.GEnvCfg.Redis.DB)
+
+	//
 	mq_login.GMQCustomInstance.Init()
 
 	//
@@ -68,7 +71,7 @@ func main() {
 
 	// 4、使用数据库
 	global_login.GLoginDB = dbc.InitDB(globals.DBMysql, configx.GEnvCfg.MySQLGlobal.Dsn())
-	_ = dbc.AutoMigrates(global_login.GLoginDB, &model_login.User{}, &model_common.GameOrder{}, &model_common.PaymentRecord{})
+	global_login.AutoMigrate(global_login.GLoginDB)
 
 	// 5、初始化路由
 	r := routers.GetDefaultGin()

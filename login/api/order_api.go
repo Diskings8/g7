@@ -3,16 +3,19 @@ package api
 import (
 	"context"
 	"fmt"
+	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
 	"g7/common/redisx"
+	"g7/common/utils"
 	"g7/login/global_login"
 	"g7/login/model_login"
 	"github.com/gin-gonic/gin"
 	"net/http"
+	"strings"
 	"time"
 )
 
@@ -29,7 +32,7 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 		Code: 400,
 	}
 	if err := c.ShouldBindJSON(&req); err != nil {
-		rsp.Msg = "参数错误"
+		rsp.Msg = "参数错误:" + err.Error()
 		c.JSON(http.StatusBadRequest, rsp)
 		return
 	}
@@ -39,8 +42,8 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 	_ = global_login.GLoginDB.FindOne(order, map[string]interface{}{"order_no": req.OrderId})
 
 	// 存储回调信息，确认回调已到达
-	orderPayment := model_common.PaymentRecord{}
-	_ = global_login.GLoginDB.Insert(&orderPayment)
+	//orderPayment := model_common.PaymentRecord{}
+	//_ = global_login.GLoginDB.Insert(&orderPayment)
 
 	// 校验合法性
 	if !this.verifySign(req) {
@@ -51,7 +54,7 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 	}
 
 	// 避免重复处理
-	if order.Status == globals.OrderStatusPending {
+	if order.Status == globals.OrderStatusPending || order.Status == globals.OrderStatusPaid {
 		order.Status = globals.OrderStatusPaid
 		order.PayAmount = req.PayAmount
 		order.PayTime = req.PayTime
@@ -71,30 +74,59 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 		rsp.Msg = "订单发货中"
 		c.JSON(http.StatusBadRequest, rsp)
 		return
+	} else {
+		ok, addr := this.getAddrFromEtcd(order.ServerID, val)
+		if !ok {
+			rsp.Msg = "服务暂不可用"
+			c.JSON(http.StatusBadRequest, rsp)
+			return
+		}
+		ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancelConn()
+		client, err := protocol.NewGameNodeClient(ctxConn, addr)
+		if err != nil {
+			rsp.Msg = "服务暂不可用"
+			c.JSON(http.StatusBadRequest, rsp)
+			return
+		}
+		nodeReq := pb.Req_Node_OrderPaid{
+			PlayerID: order.PlayerID,
+			ServerID: order.ServerID,
+			OrderId:  order.OrderNo,
+		}
+		ctxReq, cancelReq := context.WithTimeout(context.Background(), 3*time.Second)
+		defer cancelReq()
+		nodeRsp, err := client.LoginNodeOrderPaid(ctxReq, &nodeReq)
+		if err != nil {
+			rsp.Msg = "服务暂不可用"
+			c.JSON(http.StatusBadRequest, rsp)
+			return
+		} else if nodeRsp.State == 1 {
+			rsp.Msg = "订单已完成"
+			c.JSON(http.StatusBadRequest, rsp)
+			return
+		}
 	}
-
-	ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancelConn()
-	client, err := protocol.NewGameNodeClient(ctxConn, val)
-	if err != nil {
-		rsp.Msg = "服务暂不可用"
-		c.JSON(http.StatusBadRequest, rsp)
-		return
-	}
-	nodeReq := pb.Req_Node_OrderPaid{
-		PlayerID: order.PlayerID,
-		ServerID: order.ServerID,
-		OrderId:  order.OrderNo,
-	}
-	ctxReq, cancelReq := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancelReq()
-	_, err = client.LoginNodeOrderPaid(ctxReq, &nodeReq)
-	if err != nil {
-		c.JSON(500, gin.H{"code": 500, "msg": "游戏服连接失败:" + err.Error()})
-		return
-	}
-	rsp.Msg = "服务暂不可用"
+	rsp.Msg = "订单已完成"
 	c.JSON(http.StatusBadRequest, rsp)
+}
+
+func (this *callBack_91) getAddrFromEtcd(serverId int32, serverInstance string) (bool, string) {
+	l, err := etcd.GetGameServersByServerID(utils.Int32ToString(serverId))
+	if err != nil {
+		logger.Log.Info(err.Error())
+		return false, ""
+	}
+	for _, v := range l {
+		sl := strings.Split(v.K, "/")
+		if len(sl) < 3 {
+			continue
+		}
+		if sl[2] == serverInstance {
+			return true, v.V
+		}
+	}
+	return false, ""
 }
 
 func (this *callBack_91) verifySign(req model_login.PaymentCallBackReq) bool {

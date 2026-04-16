@@ -79,6 +79,10 @@ type MQ struct {
 	Kind string `yaml:"kind"`
 }
 
+type JsonPath struct {
+	Path string `yaml:"path"`
+}
+
 type Config struct {
 	MySQLGlobal MySQL     `yaml:"mysql_global"`
 	MySQLGame   MySQL     `yaml:"mysql_game"`
@@ -90,4 +94,5 @@ type Config struct {
 	GateWay     GateWay   `yaml:"gateWay"`
 	Env         Env       `yaml:"env"`
 	MQ          MQ        `yaml:"mq"`
+	JsonPath    JsonPath  `yaml:"json_path"`
 }

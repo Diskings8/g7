@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"g7/common/configx"
+	"g7/common/confs"
 	"g7/common/cronx"
 	"g7/common/dbc"
 	"g7/common/etcd"
@@ -42,6 +43,9 @@ func main() {
 	// 3、初始化日志
 	logger.Init()
 	logger.Log.Info(fmt.Sprintf("游戏服%s 启动中...", globals.ServerId))
+
+	//
+	_ = confs.ReloadAllConfig()
 
 	// 4、初始化雪花
 	snowflakes.Init()

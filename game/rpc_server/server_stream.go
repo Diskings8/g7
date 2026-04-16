@@ -95,7 +95,7 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		if err != nil {
 			logger.Log.Info(fmt.Sprintf("player %d not belong to me,err:%s", req.GetPlayerID(), err.Error()))
 		} else {
-			logger.Log.Info(fmt.Sprintf("player %d not belong to me"))
+			logger.Log.Info(fmt.Sprintf("player %d not belong to me", req.GetPlayerID()))
 		}
 		return nil
 	}

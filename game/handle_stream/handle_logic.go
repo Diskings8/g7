@@ -13,6 +13,8 @@ func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp an
 		rsp = handleMsgEnterGame(data, player)
 	case pb.MsgID_MSG_Req_CreateOrder:
 		rsp = handleMsgCreateOrder(data, player)
+	case pb.MsgID_MSG_GM_Cmd:
+		rsp = handleGmCmd(data, player)
 	}
 	return
 }

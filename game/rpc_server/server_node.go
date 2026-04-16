@@ -82,5 +82,7 @@ func (s *GameNodeServer) LoginNodeOrderPaid(_ctx context.Context, req *pb.Req_No
 }
 
 func (s *GameNodeServer) GenOrderItems() map[int32]int64 {
-	return make(map[int32]int64)
+	reward := make(map[int32]int64)
+	reward[1120001] = 1
+	return reward
 }

@@ -1,7 +1,6 @@
 package model_game
 
 import (
-	"encoding/json"
 	"g7/common/utils"
 )
 
@@ -17,16 +16,16 @@ type PlayerDao struct {
 	LastDailyResetAt int64           `gorm:"column:last_dailyreset_at"` // 上次每日重置的时间
 	LastWeekResetAt  int64           `gorm:"column:last_weekreset_at"`  // 每周重置时间
 	LastMonthResetAt int64           `gorm:"column:last_monthreset_at"` // 每月重置时间
-	GeneralD         generalData     `gorm:"-"`
-	generalData      []byte          `gorm:"column:general_data"`
-	CultivationD     cultivationData `gorm:"-"`
-	cultivationData  []byte          `gorm:"column:cultivation_data"`
-	ActivityD        activityData    `gorm:"-"`
-	activityData     []byte          `gorm:"column:activity_data"`
+	GeneralD         generalData     `gorm:"-" json:"-"`
+	GeneralData      []byte          `gorm:"column:general_data"`
+	CultivationD     cultivationData `gorm:"-" json:"-"`
+	CultivationData  []byte          `gorm:"column:cultivation_data"`
+	ActivityD        activityData    `gorm:"-" json:"-"`
+	ActivityData     []byte          `gorm:"column:activity_data"`
 }
 
 type generalData struct {
-	BagData []byte `json:"bag_data"`
+	BagData map[uint8]*Bag `json:"bags"`
 }
 
 type cultivationData struct {
@@ -36,9 +35,9 @@ type activityData struct {
 }
 
 func (dao *PlayerDao) Unmarshal() {
-	_ = json.Unmarshal(dao.generalData, &dao.GeneralD)
-	_ = json.Unmarshal(dao.cultivationData, &dao.CultivationD)
-	_ = json.Unmarshal(dao.activityData, &dao.ActivityD)
+	utils.UnCompressAndUnmarshal(dao.GeneralData, &dao.GeneralD)
+	utils.UnCompressAndUnmarshal(dao.CultivationData, &dao.CultivationD)
+	utils.UnCompressAndUnmarshal(dao.ActivityData, &dao.ActivityD)
 }
 
 func (dao *PlayerDao) TableName() string {
@@ -60,6 +59,7 @@ func (this *PlayerDao) TomSimplePlayer() *Player {
 		OnlineAt:      utils.FormatTimestamp(this.OnlineAt),
 		LastOfflineAt: utils.FormatTimestamp(this.LastOfflineAt),
 	}
+	this.Unmarshal()
 	return p
 }
 

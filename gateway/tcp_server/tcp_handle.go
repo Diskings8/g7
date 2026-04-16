@@ -11,6 +11,7 @@ import (
 	"g7/common/utils"
 	"g7/gateway/global_gateway"
 	"g7/gateway/tcp_session"
+	"github.com/golang/protobuf/proto"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"log"
@@ -41,6 +42,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	// 第一步：必须先认证（第一条消息）
 	msg, err := protocol.ReadMessage(conn)
 	if err != nil {
+		log.Println(err.Error())
 		return
 	}
 
@@ -51,7 +53,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 
 	// 解析认证
 	var req pb.Req_AuthClientToGateWay
-	_ = json.Unmarshal(msg.Body, &req)
+	_ = proto.Unmarshal(msg.Body, &req)
 
 	// 验证 Token（真实环境：调用登录服RPC/HTTP）
 	if _, ok := checkToken(req.Token, req.GetUerID()); !ok {

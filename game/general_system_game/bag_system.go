@@ -1,11 +1,10 @@
 package general_system_game
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
-	"g7/common/conf_data"
 	"g7/common/confs"
+	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
 	"g7/common/snowflakes"
@@ -18,14 +17,14 @@ import (
 	"time"
 )
 
-var GBagSystem bagSystem
+var GBagSystem = &bagSystem{}
 
 type bagSystem struct {
 	bagTypeList []uint8
 }
 
 func init() {
-	manager_game.GISystemManager.Register(const_game.General_BagSystem, &bagSystem{})
+	manager_game.GISystemManager.Register(const_game.General_BagSystem, GBagSystem)
 }
 
 func (this *bagSystem) Init() {
@@ -41,9 +40,8 @@ func (this *bagSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Pl
 	for _, bagType := range this.bagTypeList {
 		Player.AllBagData.NewBag(bagType)
 	}
-	val := model_game.AllBagData{}
-	_ = json.Unmarshal(dao.GeneralD.BagData, &val)
-	for k, v := range val.Bags {
+	val := dao.GeneralD.BagData
+	for k, v := range val {
 		Player.AllBagData.ReplaceBag(k, v)
 	}
 	// 检查过期道具
@@ -63,7 +61,8 @@ func (this *bagSystem) GainAndConsumption(GainItemKV, CostItemKV []structs.KInt3
 		bag := Player.AllBagData.GetBag(k)
 		for _, vv := range v {
 			if !bag.CheckCfgIdEnough(vv.K, vv.V) {
-				return false, errors.New(fmt.Sprintf("%s not enough", conf_data.GetItemByID(vv.K).Name))
+				iteem, _ := confs.GConfigDataItem.Find(vv.K)
+				return false, errors.New(fmt.Sprintf("%s not enough", iteem))
 			}
 		}
 	}
@@ -81,7 +80,7 @@ func (this *bagSystem) GainAndConsumption(GainItemKV, CostItemKV []structs.KInt3
 	for k, v := range gainMap {
 		bag := Player.AllBagData.GetBag(k)
 		for _, vv := range v {
-			confData := conf_data.GetItemByID(vv.K)
+			confData, _ := confs.GConfigDataItem.Find(vv.K)
 			item := this.newItem(confData, vv.V, Player.PlayerId)
 			bag.AddItem(item)
 		}
@@ -101,27 +100,29 @@ func (this *bagSystem) GainAndConsumption(GainItemKV, CostItemKV []structs.KInt3
 		Ext:          "",
 	}
 	actionLog.CreateTime = time.Now().Unix()
+	actionLog.ServerId = Player.ServerId
+	actionLog.EventType = globals.ActionEventGainCost
 	Player.ActionLogs = append(Player.ActionLogs, &actionLog)
 
 	return true, nil
 }
 
-func (this *bagSystem) newItem(cfg confs.Item, num int64, PlayerId int64) model_game.ItemData {
+func (this *bagSystem) newItem(cfg *confs.DataItemConfig, num int64, PlayerId int64) model_game.ItemData {
 	val := model_game.ItemData{
 		UniqueID:   snowflakes.GenUUID(),
-		CfgID:      cfg.CfgID,
-		IsBind:     cfg.IsBind,
-		IsUnique:   cfg.IsUnique,
-		ExpireType: cfg.ExpireType,
+		CfgID:      cfg.Id,
+		IsBind:     cfg.Isbind,
+		IsUnique:   cfg.Isunique,
+		ExpireType: cfg.Expiretype,
 		Num:        num,
 		OwnerID:    PlayerId,
 		CreateID:   PlayerId,
 		CreateTime: time.Time{},
 	}
-	if cfg.ExpireType == utils.TimeSpecified {
-		val.ExpireTime = time.Unix(cfg.LimitTime, 0)
-	} else if cfg.ExpireType == utils.TimeLimit {
-		val.ExpireTime = time.Now().Add(time.Duration(cfg.LimitTime))
+	if cfg.Expiretype == utils.TimeSpecified {
+		val.ExpireTime = time.Unix(cfg.Limittime, 0)
+	} else if cfg.Expiretype == utils.TimeLimit {
+		val.ExpireTime = time.Now().Add(time.Duration(cfg.Limittime))
 	}
 	return val
 }
@@ -130,11 +131,18 @@ func (this *bagSystem) newItem(cfg confs.Item, num int64, PlayerId int64) model_
 func (this *bagSystem) splitByResourceType(rewards []structs.KInt32VInt64) map[uint8][]structs.KInt32VInt64 {
 	bagMaps := make(map[uint8][]structs.KInt32VInt64)
 	for _, rew := range rewards {
-		cfg := conf_data.GetItemByID(rew.K)
-		bagT, err := utils.Int32ToUint8(cfg.ResourceType)
+		cfg, _ := confs.GConfigDataItem.Find(rew.K)
+		ResourceT, err := utils.Int32ToUint8(cfg.Resourcetype)
 		if err != nil {
 			logger.Log.Warn("splitByResourceType fail", zap.Error(err))
 			continue
+		}
+		var bagT uint8
+		switch ResourceT {
+		case globals.ItemTypeCurrency:
+			bagT = const_game.BagType_Currency
+		default:
+			bagT = const_game.BagType_Default
 		}
 		bagMaps[bagT] = append(bagMaps[bagT], rew)
 	}

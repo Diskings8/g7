@@ -5,6 +5,7 @@ import (
 	"errors"
 	"g7/common/configx"
 	"g7/common/globals"
+	"g7/common/logger"
 	"g7/game/model_game"
 	"github.com/go-redis/redis/v8"
 	"sync"
@@ -26,8 +27,16 @@ type playerMaps struct {
 func (this *playerMaps) Init(redisCli *redis.Client) {
 	this.Data = make(map[int64]*model_game.Player)
 	this.cli = redisCli
-	this.lockExpire = 10 * time.Second
-	this.renewInterval = 10 * time.Second
+	if globals.IsDev() {
+		this.lockExpire = 10 * time.Minute
+	} else {
+		this.lockExpire = 10 * time.Second
+	}
+	if globals.IsDev() {
+		this.renewInterval = 10 * time.Minute
+	} else {
+		this.renewInterval = 10 * time.Second
+	}
 	this.offlineLockExt = 10 * time.Minute
 }
 
@@ -212,8 +221,13 @@ func (this *playerMaps) StartLockReNewer(curSlot int32) {
 
 func (this *playerMaps) CheckLockBelongsToMe(serverId int32, playerId int64) (bool, error) {
 	key := MakePlayerRedisLockKey(serverId, playerId)
+	// 先校验锁归属，再续约
+	_, err := this.cli.Get(context.Background(), key).Result()
+	if err != nil && !errors.Is(err, redis.Nil) || err == nil {
+		return true, nil
+	}
 	// SETNX 原子加锁
-	return this.cli.SetNX(context.Background(), key, globals.InstanceId, this.lockExpire).Result()
+	return this.cli.SetNX(context.Background(), key, globals.GetServerInstance(), this.lockExpire).Result()
 }
 
 // renewLock 续约锁
@@ -221,7 +235,7 @@ func (this *playerMaps) renewLock(serverId int32, playerId int64) bool {
 	key := MakePlayerRedisLockKey(serverId, playerId)
 	// 先校验锁归属，再续约
 	val, err := this.cli.Get(context.Background(), key).Result()
-	if err != nil || val != globals.InstanceId {
+	if err != nil || val != globals.GetServerInstance() {
 		return false
 	}
 	b := this.cli.Expire(context.Background(), key, this.renewInterval)
@@ -230,13 +244,18 @@ func (this *playerMaps) renewLock(serverId int32, playerId int64) bool {
 
 // 收包前必校验锁（核心！）
 func (this *playerMaps) CheckLockValid(serverId int32, playerId int64) bool {
+	if globals.IsDev() {
+		return true
+	}
 	key := MakePlayerRedisLockKey(serverId, playerId)
 	val, err := this.cli.Get(context.Background(), key).Result()
 	if errors.Is(err, redis.Nil) {
+		logger.Log.Warn("lock empty")
 		return false // 锁不存在
 	}
 	if err != nil {
+		logger.Log.Warn(err.Error())
 		return false
 	}
-	return val == globals.InstanceId
+	return val == globals.GetServerInstance()
 }
