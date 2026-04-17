@@ -25,7 +25,8 @@ type PlayerDao struct {
 }
 
 type generalData struct {
-	BagData map[uint8]*Bag `json:"bags"`
+	BagData  AllBagData  `json:"bagData"`
+	MailData AllMailData `json:"mailData"`
 }
 
 type cultivationData struct {

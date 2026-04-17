@@ -31,14 +31,14 @@ func (l BaseLog) GetEventType() int32 {
 
 type ActionLog struct {
 	BaseLog
-	PlayerID     int64                  `gorm:"column:player_id"`
-	Action       string                 `gorm:"column:action"`
-	Reason       string                 `gorm:"column:reason"`
-	CostItem     []structs.KInt32VInt64 `gorm:"column:cost_item;serializer:json"`
-	CostCurrency []structs.KInt32VInt64 `gorm:"column:cost_currency;serializer:json"`
-	GainItem     []structs.KInt32VInt64 `gorm:"column:gain_item;serializer:json"`
-	GainCurrency []structs.KInt32VInt64 `gorm:"column:gain_currency;serializer:json"`
-	Ext          string                 `gorm:"column:ext"`
+	PlayerID     int64                      `gorm:"column:player_id"`
+	Action       string                     `gorm:"column:action"`
+	Reason       string                     `gorm:"column:reason"`
+	CostItem     []structs.KInt32VInt64Bind `gorm:"column:cost_item;serializer:json"`
+	CostCurrency []structs.KInt32VInt64Bind `gorm:"column:cost_currency;serializer:json"`
+	GainItem     []structs.KInt32VInt64Bind `gorm:"column:gain_item;serializer:json"`
+	GainCurrency []structs.KInt32VInt64Bind `gorm:"column:gain_currency;serializer:json"`
+	Ext          string                     `gorm:"column:ext"`
 }
 
 func (ActionLog) TableName() string {

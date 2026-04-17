@@ -143,6 +143,7 @@ var GameStreamService_ServiceDesc = grpc.ServiceDesc{
 const (
 	GameNodeService_LoginNodeCreatePlayer_FullMethodName = "/game.GameNodeService/LoginNodeCreatePlayer"
 	GameNodeService_LoginNodeOrderPaid_FullMethodName    = "/game.GameNodeService/LoginNodeOrderPaid"
+	GameNodeService_NotifyNewBaseMail_FullMethodName     = "/game.GameNodeService/NotifyNewBaseMail"
 )
 
 // GameNodeServiceClient is the client API for GameNodeService service.
@@ -152,6 +153,7 @@ type GameNodeServiceClient interface {
 	// 登录服创建玩家
 	LoginNodeCreatePlayer(ctx context.Context, in *Req_Node_CreatePlayer, opts ...grpc.CallOption) (*Rsp_Node_CreatePlayer, error)
 	LoginNodeOrderPaid(ctx context.Context, in *Req_Node_OrderPaid, opts ...grpc.CallOption) (*Rsp_Node_OrderPaid, error)
+	NotifyNewBaseMail(ctx context.Context, in *Req_Node_NewBaseMail, opts ...grpc.CallOption) (*Rsp_Node_NewBaseMail, error)
 }
 
 type gameNodeServiceClient struct {
@@ -180,6 +182,15 @@ func (c *gameNodeServiceClient) LoginNodeOrderPaid(ctx context.Context, in *Req_
 	return out, nil
 }
 
+func (c *gameNodeServiceClient) NotifyNewBaseMail(ctx context.Context, in *Req_Node_NewBaseMail, opts ...grpc.CallOption) (*Rsp_Node_NewBaseMail, error) {
+	out := new(Rsp_Node_NewBaseMail)
+	err := c.cc.Invoke(ctx, GameNodeService_NotifyNewBaseMail_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // GameNodeServiceServer is the server API for GameNodeService service.
 // All implementations must embed UnimplementedGameNodeServiceServer
 // for forward compatibility
@@ -187,6 +198,7 @@ type GameNodeServiceServer interface {
 	// 登录服创建玩家
 	LoginNodeCreatePlayer(context.Context, *Req_Node_CreatePlayer) (*Rsp_Node_CreatePlayer, error)
 	LoginNodeOrderPaid(context.Context, *Req_Node_OrderPaid) (*Rsp_Node_OrderPaid, error)
+	NotifyNewBaseMail(context.Context, *Req_Node_NewBaseMail) (*Rsp_Node_NewBaseMail, error)
 	mustEmbedUnimplementedGameNodeServiceServer()
 }
 
@@ -199,6 +211,9 @@ func (UnimplementedGameNodeServiceServer) LoginNodeCreatePlayer(context.Context,
 }
 func (UnimplementedGameNodeServiceServer) LoginNodeOrderPaid(context.Context, *Req_Node_OrderPaid) (*Rsp_Node_OrderPaid, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method LoginNodeOrderPaid not implemented")
+}
+func (UnimplementedGameNodeServiceServer) NotifyNewBaseMail(context.Context, *Req_Node_NewBaseMail) (*Rsp_Node_NewBaseMail, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method NotifyNewBaseMail not implemented")
 }
 func (UnimplementedGameNodeServiceServer) mustEmbedUnimplementedGameNodeServiceServer() {}
 
@@ -249,6 +264,24 @@ func _GameNodeService_LoginNodeOrderPaid_Handler(srv interface{}, ctx context.Co
 	return interceptor(ctx, in, info, handler)
 }
 
+func _GameNodeService_NotifyNewBaseMail_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_NewBaseMail)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(GameNodeServiceServer).NotifyNewBaseMail(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: GameNodeService_NotifyNewBaseMail_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(GameNodeServiceServer).NotifyNewBaseMail(ctx, req.(*Req_Node_NewBaseMail))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // GameNodeService_ServiceDesc is the grpc.ServiceDesc for GameNodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -263,6 +296,10 @@ var GameNodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "LoginNodeOrderPaid",
 			Handler:    _GameNodeService_LoginNodeOrderPaid_Handler,
+		},
+		{
+			MethodName: "NotifyNewBaseMail",
+			Handler:    _GameNodeService_NotifyNewBaseMail_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

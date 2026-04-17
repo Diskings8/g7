@@ -163,7 +163,7 @@ func (cd *KafkaConsumerDriver) saveBatch(serverId int32, batch []model_common.DB
 	}
 
 	// 这里加个事务保护，确保批量插入成功
-	tx := db.Begin()
+	tx := db.TxBegin()
 	if tx == nil {
 		return fmt.Errorf("failed to begin transaction")
 	}
@@ -171,14 +171,14 @@ func (cd *KafkaConsumerDriver) saveBatch(serverId int32, batch []model_common.DB
 	defer func() {
 		if r := recover(); r != nil {
 			logger.Log.Error(fmt.Sprintf("tx panic: %v", r))
-			_ = tx.Rollback()
+			_ = tx.TxRollback()
 		}
 	}()
 
-	if err := tx.BatchMQInsert(batch); err != nil {
-		_ = tx.Rollback()
+	if err := tx.TxBatchMQInsert(batch); err != nil {
+		_ = tx.TxRollback()
 		return err
 	}
 
-	return tx.Commit()
+	return tx.TxCommit()
 }

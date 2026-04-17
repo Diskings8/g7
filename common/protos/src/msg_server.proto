@@ -38,3 +38,10 @@ message Rsp_Node_OrderPaid{
   string orderId = 1;
   int32  state = 2;
 }
+
+message Req_Node_NewBaseMail{
+  int64 mailId = 1;
+}
+
+message Rsp_Node_NewBaseMail{
+}

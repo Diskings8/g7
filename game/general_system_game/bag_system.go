@@ -40,7 +40,7 @@ func (this *bagSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Pl
 	for _, bagType := range this.bagTypeList {
 		Player.AllBagData.NewBag(bagType)
 	}
-	val := dao.GeneralD.BagData
+	val := dao.GeneralD.BagData.Bags
 	for k, v := range val {
 		Player.AllBagData.ReplaceBag(k, v)
 	}
@@ -53,7 +53,10 @@ func (this *bagSystem) OnEnterGame(Player *model_game.Player) {
 
 }
 
-func (this *bagSystem) GainAndConsumption(GainItemKV, CostItemKV []structs.KInt32VInt64, reason string, Player *model_game.Player) (bool, error) {
+func (this *bagSystem) GainAndConsumption(srcGainItemKV, srcCostItemKV []structs.KInt32VInt64Bind, reason string, Player *model_game.Player) (bool, error) {
+
+	GainItemKV := structs.MergeKInt32VInt64Bind(srcGainItemKV)
+	CostItemKV := structs.MergeKInt32VInt64Bind(srcCostItemKV)
 
 	costMap := this.splitByResourceType(CostItemKV)
 	// 检查消耗
@@ -128,8 +131,8 @@ func (this *bagSystem) newItem(cfg *confs.DataItemConfig, num int64, PlayerId in
 }
 
 // 根据配置表自动切割：货币 / 道具
-func (this *bagSystem) splitByResourceType(rewards []structs.KInt32VInt64) map[uint8][]structs.KInt32VInt64 {
-	bagMaps := make(map[uint8][]structs.KInt32VInt64)
+func (this *bagSystem) splitByResourceType(rewards []structs.KInt32VInt64Bind) map[uint8][]structs.KInt32VInt64Bind {
+	bagMaps := make(map[uint8][]structs.KInt32VInt64Bind)
 	for _, rew := range rewards {
 		cfg, _ := confs.GConfigDataItem.Find(rew.K)
 		ResourceT, err := utils.Int32ToUint8(cfg.Resourcetype)
@@ -149,9 +152,9 @@ func (this *bagSystem) splitByResourceType(rewards []structs.KInt32VInt64) map[u
 	return bagMaps
 }
 
-func (this *bagSystem) splitCurrencyBag(src map[uint8][]structs.KInt32VInt64) ([]structs.KInt32VInt64, []structs.KInt32VInt64) {
-	currencyBags := make([]structs.KInt32VInt64, 0)
-	otherBags := make([]structs.KInt32VInt64, 0)
+func (this *bagSystem) splitCurrencyBag(src map[uint8][]structs.KInt32VInt64Bind) ([]structs.KInt32VInt64Bind, []structs.KInt32VInt64Bind) {
+	currencyBags := make([]structs.KInt32VInt64Bind, 0)
+	otherBags := make([]structs.KInt32VInt64Bind, 0)
 	for k, v := range src {
 		if k == const_game.BagType_Currency {
 			currencyBags = append(currencyBags, v...)

@@ -11,8 +11,9 @@ import (
 )
 
 type Player struct {
-	OnlineData // 存活数据
-	AllBagData // 背包
+	OnlineData  // 存活数据
+	AllBagData  // 背包
+	AllMailData // 邮件
 
 	// 行为日志
 	ActionLogs []*model_common.ActionLog
@@ -97,7 +98,8 @@ func (p *Player) ToDao(kind int) *SaveDaoD {
 	// 通用数据
 	var generalD = dao.GeneralD
 	{
-		generalD.BagData = p.Bags
+		generalD.BagData = p.AllBagData
+		generalD.MailData = p.AllMailData
 	}
 	dao.GeneralData = utils.MarshalAndCompress(generalD)
 

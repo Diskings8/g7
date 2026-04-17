@@ -7,17 +7,16 @@ import "g7/common/model_common"
 // DBInterface 上层业务只认这个接口
 type DBInterface interface {
 	Insert(model model_common.DBTableInterface) error
+	BatchInsert(models []model_common.DBTableInterface) error
 	AutoMigrate(model model_common.DBTableInterface) error
 	FindOne(table model_common.DBTableInterface, query any) error // 查询单条，结果存入 table
-	FindList(table any, query any) error                          // 查询列表，结果存入 table
+	Update(model model_common.DBTableInterface, query any, updates any) error
+	FindList(table any, query any, params ...any) error // 查询列表，结果存入 table
+	FindListPro(table any, query any, order string, size, page int) error
 	IsTableExists(tableName string) bool
 	Exec(sql string) error
-	Begin() DBTxInterface // 或者用 interface{} 做泛型，这里用具体类型更简单
-
-}
-
-type DBTxInterface interface {
-	Commit() error
-	Rollback() error
-	BatchMQInsert(model []model_common.DBMqInterface) error
+	TxBegin() DBInterface // 或者用 interface{} 做泛型，这里用具体类型更简单
+	TxCommit() error
+	TxRollback() error
+	TxBatchMQInsert(model []model_common.DBMqInterface) error
 }

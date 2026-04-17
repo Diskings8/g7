@@ -4,4 +4,5 @@ const (
 	General_PlayerSystem int32 = iota
 	General_BagSystem
 	General_OrderSystem
+	General_MailSystem
 )

@@ -50,7 +50,21 @@ func (this *playerMaps) GetPlayer(playerId int64) *model_game.Player {
 	return nil
 }
 
+func (this *playerMaps) GetAllPlayerIds() []int64 {
+	var result = make([]int64, 0, len(this.Data))
+	this.rwLock.RLock()
+	defer this.rwLock.RUnlock()
+	for k := range this.Data {
+		result = append(result, k)
+	}
+	return result
+}
+
 func (this *playerMaps) SetPlayer(playerId int64, h *model_game.Player) {
+	if playerId <= 0 {
+		logger.Log.Warn("has emptyPlayerId")
+		return
+	}
 	this.rwLock.Lock()
 	defer this.rwLock.Unlock()
 	this.Data[playerId] = h

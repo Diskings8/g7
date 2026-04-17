@@ -100,8 +100,8 @@ func registerWithLease(key, value string) {
 	}()
 }
 
-// GetServiceList 制作展示用途
-func GetServiceList(serverName string) (list []string) {
+// ShowServiceList 制作展示用途
+func ShowServiceList(serverName string) (list []string) {
 	resp, err := etcdClient.Get(context.Background(), fmt.Sprintf("/%s/", serverName), clientv3.WithPrefix())
 	if err != nil {
 		return nil

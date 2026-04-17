@@ -36,7 +36,7 @@ func checkEtcd() {
 
 func checkEtcdGateway() {
 	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
-	for _, v := range etcd.GetServiceList(globals.GatewayRpc) {
+	for _, v := range etcd.ShowServiceList(globals.GatewayRpc) {
 
 		c, _ := protocol.NewGatewayNodeClient(context.Background(), v)
 		rps, _ := c.GetConnCount(context.Background(), &pb.Req_Node_ConnCount{})
@@ -46,7 +46,7 @@ func checkEtcdGateway() {
 
 func checkEtcdGame() {
 	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
-	for _, v := range etcd.GetServiceList(globals.GameRpc) {
+	for _, v := range etcd.ShowServiceList(globals.GameRpc) {
 
 		fmt.Println(v)
 	}
@@ -54,7 +54,7 @@ func checkEtcdGame() {
 
 func checkEtcdLogin() {
 	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
-	for _, v := range etcd.GetServiceList(globals.LoginRpc) {
+	for _, v := range etcd.ShowServiceList(globals.LoginRpc) {
 
 		fmt.Println(v)
 	}

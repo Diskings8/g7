@@ -19,6 +19,12 @@ const (
 type MongoDriver struct {
 	client *mongo.Client
 	db     *mongo.Database
+	tx     mongo.Session // 事务会话
+}
+
+func (m *MongoDriver) BatchInsert(models []model_common.DBTableInterface) error {
+	//TODO implement me
+	panic("implement me")
 }
 
 func NewMongoDriver(uri string) (*MongoDriver, error) {
@@ -59,6 +65,11 @@ func (m *MongoDriver) Insert(model model_common.DBTableInterface) error {
 	return err
 }
 
+func (m *MongoDriver) Update(model model_common.DBTableInterface, query any, updates any) error {
+	panic("implement MongoDriver not Exec function")
+	return nil
+}
+
 func (m *MongoDriver) Exec(sql string) error {
 	// collection = 集合名
 	// conf_data = 任意结构体
@@ -71,7 +82,7 @@ func (m *MongoDriver) FindOne(model model_common.DBTableInterface, query any) er
 	return coll.FindOne(context.Background(), query).Decode(model)
 }
 
-func (m *MongoDriver) FindList(result any, query any) error {
+func (m *MongoDriver) FindList(result any, query any, params ...any) error {
 	// 注意：这里需要表名，所以传参必须是 DBTables 类型
 	// 你可以传一个空模型进去
 	if tbl, ok := result.(model_common.DBTableInterface); ok {
@@ -85,6 +96,10 @@ func (m *MongoDriver) FindList(result any, query any) error {
 	return nil
 }
 
+func (m *MongoDriver) FindListPro(table any, query any, order string, size, page int) error {
+	panic("implement MongoDriver not FindListPro function")
+}
+
 func (m *MongoDriver) IsTableExists(tableName string) bool {
 	// 拿到当前数据库
 	// 列出集合名
@@ -96,23 +111,17 @@ func (m *MongoDriver) IsTableExists(tableName string) bool {
 	return len(collections) > 0
 }
 
-// Begin 开启MongoDB事务
-func (m *MongoDriver) Begin() dbc_interface.DBTxInterface {
+// TxBegin 开启MongoDB事务
+func (m *MongoDriver) TxBegin() dbc_interface.DBInterface {
 	session, err := m.client.StartSession()
 	if err != nil {
-		return &MongoTxDriver{tx: nil}
+		return &MongoDriver{tx: nil}
 	}
 	_ = session.StartTransaction()
-	return &MongoTxDriver{tx: session, db: m.db, client: m.client}
+	return &MongoDriver{tx: session, db: m.db, client: m.client}
 }
 
-type MongoTxDriver struct {
-	client *mongo.Client
-	db     *mongo.Database
-	tx     mongo.Session // 事务会话
-}
-
-func (m *MongoTxDriver) BatchMQInsert(models []model_common.DBMqInterface) error {
+func (m *MongoDriver) TxBatchMQInsert(models []model_common.DBMqInterface) error {
 	if m.tx == nil {
 		return errors.New("transaction is nil")
 	}
@@ -130,14 +139,14 @@ func (m *MongoTxDriver) BatchMQInsert(models []model_common.DBMqInterface) error
 	return err
 }
 
-func (m *MongoTxDriver) Commit() error {
+func (m *MongoDriver) TxCommit() error {
 	if m.tx == nil {
 		return fmt.Errorf("no transaction")
 	}
 	return m.tx.CommitTransaction(context.Background())
 }
 
-func (m *MongoTxDriver) Rollback() error {
+func (m *MongoDriver) TxRollback() error {
 	if m.tx == nil {
 		return fmt.Errorf("no transaction")
 	}

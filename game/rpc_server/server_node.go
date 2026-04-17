@@ -86,3 +86,8 @@ func (s *GameNodeServer) GenOrderItems() map[int32]int64 {
 	reward[1120001] = 1
 	return reward
 }
+
+func (s *GameNodeServer) NotifyNewBaseMail(_ctx context.Context, req *pb.Req_Node_NewBaseMail) (*pb.Rsp_Node_NewBaseMail, error) {
+	general_system_game.GMailSystem.RecvNode_NewBaseMail(req)
+	return &pb.Rsp_Node_NewBaseMail{}, nil
+}

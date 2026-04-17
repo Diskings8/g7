@@ -10,17 +10,18 @@ import (
 
 // PlayerMail 玩家邮件表
 type PlayerMail struct {
-	gorm.Model         // 自带 ID, CreatedAt, UpdatedAt, DeletedAt (软删除)
-	PlayerID    uint64 `gorm:"column:player_id;index;not null;comment:玩家ID"`
-	ServerID    uint64 `gorm:"column:server_id;not null;comment:服务器ID"`
-	Title       string `gorm:"column:title;size:128;not null;comment:邮件标题"`
-	Content     string `gorm:"column:content;type:text;comment:邮件内容"`
-	MailType    int32  `gorm:"column:mail_type;default:0;comment:邮件类型 0=普通 1=系统 2=活动 3=奖励"`
-	Status      int32  `gorm:"column:status;default:0;index;comment:0未读 1已读 2已删除"`
-	HasAttach   int32  `gorm:"column:has_attach;default:0;comment:0无附件 1有附件"`
-	AttachItems string `gorm:"column:attach_items;type:text;comment:附件道具JSON"`
-	ExpireAt    int64  `gorm:"column:expire_at;index;comment:过期时间"`
-	SendFrom    string `gorm:"column:send_from;size:64;default:system;comment:发送方"`
+	gorm.Model              // 自带 ID, CreatedAt, UpdatedAt, DeletedAt (软删除)
+	PlayerID    int64       `gorm:"column:player_id;index;not null;comment:玩家ID"`
+	ServerID    int32       `gorm:"column:server_id;not null;comment:服务器ID"`
+	Title       string      `gorm:"column:title;size:128;not null;comment:邮件标题"`
+	Content     string      `gorm:"column:content;type:text;comment:邮件内容"`
+	MailType    int32       `gorm:"column:mail_type;default:0;comment:邮件类型 0=普通 1=系统 2=活动 3=奖励"`
+	Status      int32       `gorm:"column:status;default:0;index;comment:0未读 1已读 2已删除"`
+	HasAttach   int32       `gorm:"column:has_attach;default:0;comment:0无附件 1有附件"`
+	Attachments Attachments `gorm:"column:attachments;type:json;comment:附件列表" json:"attachments"`
+	ExpireAt    int64       `gorm:"column:expire_at;index;comment:过期时间"`
+	BindBaseId  *int64      `gorm:"column:bind_base_id;comment:基础邮件"`
+	SendFrom    string      `gorm:"column:send_from;size:64;default:system;comment:发送方"`
 }
 
 // TableName 自定义表名
@@ -30,8 +31,9 @@ func (PlayerMail) TableName() string {
 
 // Attachment 附件结构
 type Attachment struct {
-	ItemID int64 `json:"item_id"`
-	Count  int32 `json:"count"`
+	ItemID int32 `json:"item_id"`
+	Count  int64 `json:"count"`
+	Bind   int32 `json:"bind"`
 }
 
 // Attachments 附件列表，实现 Scanner/Valuer 接口
@@ -63,6 +65,7 @@ type BaseMail struct {
 	Title       string      `gorm:"column:title;type:varchar(128);not null;comment:邮件标题" json:"title"`
 	Content     string      `gorm:"column:content;type:text;not null;comment:邮件内容" json:"content"`
 	Attachments Attachments `gorm:"column:attachments;type:json;comment:附件列表" json:"attachments"`
+	HasAttach   int32       `gorm:"column:has_attach;default:0" json:"has_attach"`
 
 	// 发送范围
 	TargetServerID *int64 `gorm:"column:target_server_id;type:bigint;default:null;comment:目标服务器ID(全服邮件可为NULL)" json:"target_server_id,omitempty"`
@@ -76,8 +79,7 @@ type BaseMail struct {
 	Status int8 `gorm:"column:status;type:tinyint;not null;default:1;comment:1=待发送 2=发送中 3=已完成 4=已取消" json:"status"`
 
 	// 统计
-	TotalTargetCount int32 `gorm:"column:total_target_count;type:int;not null;default:0;comment:目标玩家总数" json:"total_target_count"`
-	SentCount        int32 `gorm:"column:sent_count;type:int;not null;default:0;comment:已发送数量" json:"sent_count"`
+	SentCount int32 `gorm:"column:sent_count;type:int;not null;default:0;comment:已发送数量" json:"sent_count"`
 
 	// 创建信息
 	CreatedAt time.Time `gorm:"column:created_at;type:datetime;not null;default:CURRENT_TIMESTAMP;comment:创建时间" json:"created_at"`

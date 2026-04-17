@@ -381,6 +381,91 @@ func (x *Rsp_Node_OrderPaid) GetState() int32 {
 	return 0
 }
 
+type Req_Node_NewBaseMail struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	MailId int64 `protobuf:"varint,1,opt,name=mailId,proto3" json:"mailId,omitempty"`
+}
+
+func (x *Req_Node_NewBaseMail) Reset() {
+	*x = Req_Node_NewBaseMail{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_Node_NewBaseMail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_Node_NewBaseMail) ProtoMessage() {}
+
+func (x *Req_Node_NewBaseMail) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_Node_NewBaseMail.ProtoReflect.Descriptor instead.
+func (*Req_Node_NewBaseMail) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Req_Node_NewBaseMail) GetMailId() int64 {
+	if x != nil {
+		return x.MailId
+	}
+	return 0
+}
+
+type Rsp_Node_NewBaseMail struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Rsp_Node_NewBaseMail) Reset() {
+	*x = Rsp_Node_NewBaseMail{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_Node_NewBaseMail) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_Node_NewBaseMail) ProtoMessage() {}
+
+func (x *Rsp_Node_NewBaseMail) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_Node_NewBaseMail.ProtoReflect.Descriptor instead.
+func (*Rsp_Node_NewBaseMail) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{7}
+}
+
 var File_src_msg_server_proto protoreflect.FileDescriptor
 
 var file_src_msg_server_proto_rawDesc = []byte{
@@ -419,8 +504,12 @@ var file_src_msg_server_proto_rawDesc = []byte{
 	0x64, 0x65, 0x72, 0x50, 0x61, 0x69, 0x64, 0x12, 0x18, 0x0a, 0x07, 0x6f, 0x72, 0x64, 0x65, 0x72,
 	0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x07, 0x6f, 0x72, 0x64, 0x65, 0x72, 0x49,
 	0x64, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
-	0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62,
-	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x22, 0x2e, 0x0a, 0x14, 0x52, 0x65, 0x71, 0x5f, 0x4e,
+	0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x42, 0x61, 0x73, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x12,
+	0x16, 0x0a, 0x06, 0x6d, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x06, 0x6d, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x22, 0x16, 0x0a, 0x14, 0x52, 0x73, 0x70, 0x5f, 0x4e,
+	0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x42, 0x61, 0x73, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x42,
+	0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -435,7 +524,7 @@ func file_src_msg_server_proto_rawDescGZIP() []byte {
 	return file_src_msg_server_proto_rawDescData
 }
 
-var file_src_msg_server_proto_msgTypes = make([]protoimpl.MessageInfo, 6)
+var file_src_msg_server_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
 var file_src_msg_server_proto_goTypes = []interface{}{
 	(*Req_Node_CreatePlayer)(nil), // 0: game.Req_Node_CreatePlayer
 	(*Rsp_Node_CreatePlayer)(nil), // 1: game.Rsp_Node_CreatePlayer
@@ -443,6 +532,8 @@ var file_src_msg_server_proto_goTypes = []interface{}{
 	(*Rsp_Node_ConnCount)(nil),    // 3: game.Rsp_Node_ConnCount
 	(*Req_Node_OrderPaid)(nil),    // 4: game.Req_Node_OrderPaid
 	(*Rsp_Node_OrderPaid)(nil),    // 5: game.Rsp_Node_OrderPaid
+	(*Req_Node_NewBaseMail)(nil),  // 6: game.Req_Node_NewBaseMail
+	(*Rsp_Node_NewBaseMail)(nil),  // 7: game.Rsp_Node_NewBaseMail
 }
 var file_src_msg_server_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -530,6 +621,30 @@ func file_src_msg_server_proto_init() {
 				return nil
 			}
 		}
+		file_src_msg_server_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_Node_NewBaseMail); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_Node_NewBaseMail); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -537,7 +652,7 @@ func file_src_msg_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_src_msg_server_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   6,
+			NumMessages:   8,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

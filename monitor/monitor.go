@@ -50,9 +50,9 @@ func WatchServiceHealth() {
 	)
 
 	for range ticker.C {
-		gameList := etcd.GetServiceList(globals.GameServer)
-		gatewayList := etcd.GetServiceList(globals.GateWayServer)
-		loginList := etcd.GetServiceList(globals.LoginServer)
+		gameList := etcd.ShowServiceList(globals.GameRpc)
+		gatewayList := etcd.ShowServiceList(globals.GatewayRpc)
+		loginList := etcd.ShowServiceList(globals.LoginRpc)
 
 		now := time.Now()
 		if len(gameList) == 0 && now.Sub(lastGameAlarmTime) > alarmInterval {
@@ -103,7 +103,7 @@ func WatchConnectionCount() {
 // GetCurrentConnCount获取当前网关连接数
 func GetCurrentConnCount() int32 {
 	var sum int32
-	for _, v := range etcd.GetServiceList(globals.GateWayServer) {
+	for _, v := range etcd.ShowServiceList(globals.GatewayTcp) {
 
 		c, _ := protocol.NewGatewayNodeClient(context.Background(), v)
 		rps, _ := c.GetConnCount(context.Background(), &pb.Req_Node_ConnCount{})
@@ -148,7 +148,7 @@ func SendAlarm(msg string) {
 }
 
 func main() {
-	confStr := globals.ConfDev
+	confStr := globals.EnvTest
 	configx.LoadEnvConf(confStr)
 	//
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
