@@ -10,7 +10,7 @@ type DBInterface interface {
 	BatchInsert(models []model_common.DBTableInterface) error
 	AutoMigrate(model model_common.DBTableInterface) error
 	FindOne(table model_common.DBTableInterface, query any) error // 查询单条，结果存入 table
-	Update(model model_common.DBTableInterface, query any, updates any) error
+	Update(model model_common.DBTableInterface, updates any, query any, args ...any) error
 	FindList(table any, query any, params ...any) error // 查询列表，结果存入 table
 	FindListPro(table any, query any, order string, size, page int) error
 	IsTableExists(tableName string) bool

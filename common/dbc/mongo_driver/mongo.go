@@ -65,7 +65,7 @@ func (m *MongoDriver) Insert(model model_common.DBTableInterface) error {
 	return err
 }
 
-func (m *MongoDriver) Update(model model_common.DBTableInterface, query any, updates any) error {
+func (m *MongoDriver) Update(model model_common.DBTableInterface, updates any, query any, args ...any) error {
 	panic("implement MongoDriver not Exec function")
 	return nil
 }

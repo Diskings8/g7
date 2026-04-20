@@ -47,7 +47,7 @@ func main() {
 		Port := configx.GEnvCfg.Server.Login
 		globals.InstanceId = os.Getenv("POD_NAME")
 		etcdAddr = fmt.Sprintf("%s%s", podIP, Port)
-		logger.Log.Info(fmt.Sprintf("本登录服%s 启动访问etcd：%s", etcdAddr))
+		logger.Log.Info(fmt.Sprintf("本登录服%s 启动访问etcd", etcdAddr))
 	} else {
 		globals.InstanceId = "1"
 		Port := configx.GEnvCfg.Server.Login

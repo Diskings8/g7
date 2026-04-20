@@ -123,7 +123,7 @@ func (this *mailSystem) DeleteMail(mailIds []int64, Player *model_game.Player) e
 	if len(mailIds) == 0 {
 		return nil
 	}
-	err := global_game.GGameDB.Update(&model_common.PlayerMail{}, map[string]any{"player_id": Player.PlayerId, "id IN (?)": mailIds}, map[string]any{"status": 2})
+	err := global_game.GGameDB.Update(&model_common.PlayerMail{}, map[string]any{"status": 2}, "player_id = ? AND id IN (?)", Player.PlayerId, mailIds)
 	if err != nil {
 		log.Println(err)
 	}
@@ -168,10 +168,7 @@ func (this *mailSystem) BatchReceiveAttach(mailIDs []int64, Player *model_game.P
 	GBagSystem.GainAndConsumption(rewards, nil, "领取邮件", Player)
 
 	updateData := map[string]any{"has_attach": 0}
-	err = tx.Update(&model_common.PlayerMail{}, map[string]interface{}{
-		"player_id": Player.PlayerId,
-		"id":        mailIDs,
-	}, updateData)
+	err = tx.Update(&model_common.PlayerMail{}, updateData, "player_id = ? AND id IN (?)", Player.PlayerId, mailIDs)
 	if err != nil {
 		tx.TxRollback()
 		return err

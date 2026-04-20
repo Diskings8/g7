@@ -51,8 +51,8 @@ func (m *MySQLDriver) BatchInsert(models []model_common.DBTableInterface) error 
 	return m.getDb().Table(first.TableName()).CreateInBatches(slice.Interface(), len(models)).Error
 }
 
-func (m *MySQLDriver) Update(model model_common.DBTableInterface, query any, updates any) error {
-	return m.getDb().Model(model.TableName()).Where(query).Updates(updates).Error
+func (m *MySQLDriver) Update(model model_common.DBTableInterface, updates any, query any, args ...any) error {
+	return m.getDb().Model(model.TableName()).Where(query, args...).Updates(updates).Error
 }
 
 func (m *MySQLDriver) FindOne(table model_common.DBTableInterface, query any) error {

@@ -20,3 +20,11 @@ type ResetSystem interface {
 	MonthReset(Player *model_game.Player)
 	GetName() string
 }
+
+type ActivitySystem interface {
+	GetName() string
+	Init()
+	OnActivityOpen(cofId int32, activityId int64)
+	OnActivityFinish(cofId int32, activityId int64)
+	OnActivityClose(cofId int32, activityId int64)
+}

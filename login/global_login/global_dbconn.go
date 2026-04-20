@@ -10,5 +10,7 @@ import (
 var GLoginDB dbc_interface.DBInterface
 
 func AutoMigrate(dbi dbc_interface.DBInterface) {
-	_ = dbc.AutoMigrates(dbi, &model_login.User{}, &model_common.GameOrder{}, &model_common.PaymentRecord{}, &model_common.BaseMail{})
+	_ = dbc.AutoMigrates(dbi, &model_login.User{}, &model_common.GameOrder{},
+		&model_common.PaymentRecord{}, &model_common.BaseMail{},
+		&model_common.BaseActivity{})
 }
