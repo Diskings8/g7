@@ -5,4 +5,5 @@ const (
 	General_BagSystem
 	General_OrderSystem
 	General_MailSystem
+	General_RankSystem
 )

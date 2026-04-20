@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+message RankItemInfo  {
+  string contentKey = 1;
+  double score = 2;
+  int64 rank = 3;
+  string head_shot = 4;
+}
+
+message Req_RankList {
+  int32 rankType = 1;  // 排行榜类型
+}
+
+message Rsp_RankList {
+  repeated  RankItemInfo rank_list = 1;  // 排行榜类型
+  double my_score = 2;
+  int64 my_rank = 3;
+}

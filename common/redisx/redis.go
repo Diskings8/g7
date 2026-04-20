@@ -37,6 +37,29 @@ func SetKey(key string, value []byte, cacheExpire time.Duration) error {
 	return rDB.Set(context.Background(), key, value, cacheExpire+time.Duration(rand.Intn(120))*time.Minute).Err()
 }
 
+func TryLock(key string, expire time.Duration) bool {
+	ok, _ := rDB.SetNX(context.Background(), key, "true", expire).Result()
+	return ok
+}
+
+func Unlock(key string) {
+	rDB.Del(context.Background(), key)
+}
+
+func Clear(key string) {
+	rDB.Del(context.Background(), key)
+}
+
+func ZRevRangeWithScores(rankKey string, from, to int64) ([]redis.Z, error) {
+	return rDB.ZRevRangeWithScores(context.Background(), rankKey, from, to).Result()
+}
+
+// zSet
+
+func ZIncrBy(key string, score float64, value string) {
+	rDB.ZIncrBy(context.Background(), key, score, value)
+}
+
 func GetUsedMemoryMB() int {
 	// 执行 INFO memory 命令
 	info, err := rDB.Info(context.Background(), "memory").Result()
