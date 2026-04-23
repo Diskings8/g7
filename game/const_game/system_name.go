@@ -6,4 +6,5 @@ const (
 	General_OrderSystem
 	General_MailSystem
 	General_RankSystem
+	General_MatchSystem
 )

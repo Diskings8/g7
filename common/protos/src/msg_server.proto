@@ -45,3 +45,33 @@ message Req_Node_NewBaseMail{
 
 message Rsp_Node_NewBaseMail{
 }
+
+message Req_Node_NewMatch{
+  int64 playerId = 1;
+  int32 serverId = 2;
+  double Score = 3;
+}
+
+message Rsp_Node_NewMatch{
+  int32 state = 1;
+}
+
+message Req_Node_CancelMatch{
+  int64 playerId = 1;
+  int32 serverId = 2;
+}
+
+message Rsp_Node_CancelMatch{
+  int32 state = 1;
+}
+
+message Req_Node_CreateRoom{
+  int32 roomType = 1;
+  int32 serverId = 2;
+  int32 confId = 3;
+}
+
+message Rsp_Node_CreateRoom{
+  int32 state = 1;
+  int64 roomId = 2;
+}

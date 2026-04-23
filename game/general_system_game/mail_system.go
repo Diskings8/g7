@@ -199,7 +199,7 @@ func (this *mailSystem) SendDefaultSystemTypeMail(title, content string, attache
 	}
 	req := pb.Req_Node_NewBaseMail{MailId: baseMail.ID}
 	for _, serverKV := range serverList {
-		client, err := protocol.NewGameNodeClient(context.Background(), serverKV.V)
+		client, err := protocol.NewGameNodeClient(serverKV.V)
 		if err != nil {
 			log.Printf("%s send mail fail", serverKV.K)
 			continue

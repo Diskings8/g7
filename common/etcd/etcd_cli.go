@@ -34,9 +34,7 @@ func getGatewayTcpPrefix() string {
 	return "/" + globals.GatewayTcp + "/"
 }
 
-func getGatewayRpcPrefix() string {
-	return "/" + globals.GatewayRpc + "/"
-}
+func getGatewayRpcPrefix() string { return "/" + globals.GatewayRpc + "/" }
 
 func GetAllGameRpcPrefix() string {
 	return "/" + globals.GameRpc + "/"
@@ -50,6 +48,10 @@ func getLoginRpcPrefix() string {
 	return "/" + globals.LoginRpc + "/"
 }
 
+func getMatchNodeRpcPrefix() string { return "/" + globals.MatchNodeRpc + "/" }
+
+func getRoomManagerRpcPrefix() string { return "/" + globals.RoomManagerRpc + "/" }
+
 // RegisterGatewayTcp 注册网关
 func RegisterGatewayTcp(instance, addr string) {
 	key := getGatewayTcpPrefix() + instance + "/" + addr
@@ -58,6 +60,16 @@ func RegisterGatewayTcp(instance, addr string) {
 
 func RegisterGatewayRpc(instance, addr string) {
 	key := getGatewayRpcPrefix() + instance + "/" + addr
+	registerWithLease(key, addr)
+}
+
+func RegisterMatchNodeRpc(instance, addr string) {
+	key := getMatchNodeRpcPrefix() + instance + "/" + addr
+	registerWithLease(key, addr)
+}
+
+func RegisterRoomManagerNodeRpc(instance, addr string) {
+	key := getRoomManagerRpcPrefix() + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
@@ -104,6 +116,7 @@ func registerWithLease(key, value string) {
 func ShowServiceList(serverName string) (list []string) {
 	resp, err := etcdClient.Get(context.Background(), fmt.Sprintf("/%s/", serverName), clientv3.WithPrefix())
 	if err != nil {
+		log.Printf("ShowServiceList失败: %v", err)
 		return nil
 	}
 	for _, kv := range resp.Kvs {
@@ -128,6 +141,19 @@ func GetAllGateways() ([]string, error) {
 // GetGameServersByServerID 获取指定区服的游戏服
 func GetGameServersByServerID(serverID string) ([]structs.KVString, error) {
 	key := getOneKindGameRpcPrefix(serverID)
+	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+	var addrs []structs.KVString
+	for _, kv := range resp.Kvs {
+		addrs = append(addrs, structs.KVString{string(kv.Key), string(kv.Value)})
+	}
+	return addrs, nil
+}
+
+func GetMatchServersList() ([]structs.KVString, error) {
+	key := getMatchNodeRpcPrefix()
 	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err

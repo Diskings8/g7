@@ -49,9 +49,7 @@ func CreatePlayer(c *gin.Context) {
 	}
 
 	// 2. 转发请求到游戏服内部接口
-	ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
-	defer cancelConn()
-	client, err := protocol.NewGameNodeClient(ctxConn, serverAddr)
+	client, err := protocol.NewGameNodeClient(serverAddr)
 	if err != nil {
 		c.JSON(400, gin.H{"code": 400, "msg": "注册服务暂不可用"})
 		return

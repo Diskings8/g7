@@ -81,9 +81,7 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 			c.JSON(http.StatusBadRequest, rsp)
 			return
 		}
-		ctxConn, cancelConn := context.WithTimeout(context.Background(), 3*time.Second)
-		defer cancelConn()
-		client, err := protocol.NewGameNodeClient(ctxConn, addr)
+		client, err := protocol.NewGameNodeClient(addr)
 		if err != nil {
 			rsp.Msg = "服务暂不可用"
 			c.JSON(http.StatusBadRequest, rsp)

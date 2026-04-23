@@ -397,3 +397,225 @@ var GatewayNodeService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "src/rpc_server.proto",
 }
+
+const (
+	MatchNodeService_StartMatch_FullMethodName  = "/game.MatchNodeService/StartMatch"
+	MatchNodeService_CancelMatch_FullMethodName = "/game.MatchNodeService/CancelMatch"
+)
+
+// MatchNodeServiceClient is the client API for MatchNodeService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type MatchNodeServiceClient interface {
+	// 登录服创建玩家
+	StartMatch(ctx context.Context, in *Req_Node_NewMatch, opts ...grpc.CallOption) (*Rsp_Node_NewMatch, error)
+	CancelMatch(ctx context.Context, in *Req_Node_CancelMatch, opts ...grpc.CallOption) (*Rsp_Node_CancelMatch, error)
+}
+
+type matchNodeServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewMatchNodeServiceClient(cc grpc.ClientConnInterface) MatchNodeServiceClient {
+	return &matchNodeServiceClient{cc}
+}
+
+func (c *matchNodeServiceClient) StartMatch(ctx context.Context, in *Req_Node_NewMatch, opts ...grpc.CallOption) (*Rsp_Node_NewMatch, error) {
+	out := new(Rsp_Node_NewMatch)
+	err := c.cc.Invoke(ctx, MatchNodeService_StartMatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *matchNodeServiceClient) CancelMatch(ctx context.Context, in *Req_Node_CancelMatch, opts ...grpc.CallOption) (*Rsp_Node_CancelMatch, error) {
+	out := new(Rsp_Node_CancelMatch)
+	err := c.cc.Invoke(ctx, MatchNodeService_CancelMatch_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// MatchNodeServiceServer is the server API for MatchNodeService service.
+// All implementations must embed UnimplementedMatchNodeServiceServer
+// for forward compatibility
+type MatchNodeServiceServer interface {
+	// 登录服创建玩家
+	StartMatch(context.Context, *Req_Node_NewMatch) (*Rsp_Node_NewMatch, error)
+	CancelMatch(context.Context, *Req_Node_CancelMatch) (*Rsp_Node_CancelMatch, error)
+	mustEmbedUnimplementedMatchNodeServiceServer()
+}
+
+// UnimplementedMatchNodeServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedMatchNodeServiceServer struct {
+}
+
+func (UnimplementedMatchNodeServiceServer) StartMatch(context.Context, *Req_Node_NewMatch) (*Rsp_Node_NewMatch, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method StartMatch not implemented")
+}
+func (UnimplementedMatchNodeServiceServer) CancelMatch(context.Context, *Req_Node_CancelMatch) (*Rsp_Node_CancelMatch, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CancelMatch not implemented")
+}
+func (UnimplementedMatchNodeServiceServer) mustEmbedUnimplementedMatchNodeServiceServer() {}
+
+// UnsafeMatchNodeServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to MatchNodeServiceServer will
+// result in compilation errors.
+type UnsafeMatchNodeServiceServer interface {
+	mustEmbedUnimplementedMatchNodeServiceServer()
+}
+
+func RegisterMatchNodeServiceServer(s grpc.ServiceRegistrar, srv MatchNodeServiceServer) {
+	s.RegisterService(&MatchNodeService_ServiceDesc, srv)
+}
+
+func _MatchNodeService_StartMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_NewMatch)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MatchNodeServiceServer).StartMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MatchNodeService_StartMatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MatchNodeServiceServer).StartMatch(ctx, req.(*Req_Node_NewMatch))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _MatchNodeService_CancelMatch_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_CancelMatch)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(MatchNodeServiceServer).CancelMatch(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: MatchNodeService_CancelMatch_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(MatchNodeServiceServer).CancelMatch(ctx, req.(*Req_Node_CancelMatch))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// MatchNodeService_ServiceDesc is the grpc.ServiceDesc for MatchNodeService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var MatchNodeService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "game.MatchNodeService",
+	HandlerType: (*MatchNodeServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "StartMatch",
+			Handler:    _MatchNodeService_StartMatch_Handler,
+		},
+		{
+			MethodName: "CancelMatch",
+			Handler:    _MatchNodeService_CancelMatch_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "src/rpc_server.proto",
+}
+
+const (
+	RoomManagerNodeService_CreateRoom_FullMethodName = "/game.RoomManagerNodeService/CreateRoom"
+)
+
+// RoomManagerNodeServiceClient is the client API for RoomManagerNodeService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type RoomManagerNodeServiceClient interface {
+	// 登录服创建玩家
+	CreateRoom(ctx context.Context, in *Req_Node_CreateRoom, opts ...grpc.CallOption) (*Rsp_Node_CreateRoom, error)
+}
+
+type roomManagerNodeServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewRoomManagerNodeServiceClient(cc grpc.ClientConnInterface) RoomManagerNodeServiceClient {
+	return &roomManagerNodeServiceClient{cc}
+}
+
+func (c *roomManagerNodeServiceClient) CreateRoom(ctx context.Context, in *Req_Node_CreateRoom, opts ...grpc.CallOption) (*Rsp_Node_CreateRoom, error) {
+	out := new(Rsp_Node_CreateRoom)
+	err := c.cc.Invoke(ctx, RoomManagerNodeService_CreateRoom_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// RoomManagerNodeServiceServer is the server API for RoomManagerNodeService service.
+// All implementations must embed UnimplementedRoomManagerNodeServiceServer
+// for forward compatibility
+type RoomManagerNodeServiceServer interface {
+	// 登录服创建玩家
+	CreateRoom(context.Context, *Req_Node_CreateRoom) (*Rsp_Node_CreateRoom, error)
+	mustEmbedUnimplementedRoomManagerNodeServiceServer()
+}
+
+// UnimplementedRoomManagerNodeServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedRoomManagerNodeServiceServer struct {
+}
+
+func (UnimplementedRoomManagerNodeServiceServer) CreateRoom(context.Context, *Req_Node_CreateRoom) (*Rsp_Node_CreateRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method CreateRoom not implemented")
+}
+func (UnimplementedRoomManagerNodeServiceServer) mustEmbedUnimplementedRoomManagerNodeServiceServer() {
+}
+
+// UnsafeRoomManagerNodeServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to RoomManagerNodeServiceServer will
+// result in compilation errors.
+type UnsafeRoomManagerNodeServiceServer interface {
+	mustEmbedUnimplementedRoomManagerNodeServiceServer()
+}
+
+func RegisterRoomManagerNodeServiceServer(s grpc.ServiceRegistrar, srv RoomManagerNodeServiceServer) {
+	s.RegisterService(&RoomManagerNodeService_ServiceDesc, srv)
+}
+
+func _RoomManagerNodeService_CreateRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_CreateRoom)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoomManagerNodeServiceServer).CreateRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoomManagerNodeService_CreateRoom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoomManagerNodeServiceServer).CreateRoom(ctx, req.(*Req_Node_CreateRoom))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// RoomManagerNodeService_ServiceDesc is the grpc.ServiceDesc for RoomManagerNodeService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var RoomManagerNodeService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "game.RoomManagerNodeService",
+	HandlerType: (*RoomManagerNodeServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "CreateRoom",
+			Handler:    _RoomManagerNodeService_CreateRoom_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "src/rpc_server.proto",
+}

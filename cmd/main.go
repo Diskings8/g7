@@ -22,6 +22,7 @@ func main() {
 
 	//checkRedis()
 	checkEtcd()
+
 }
 
 func checkEtcd() {
@@ -31,16 +32,23 @@ func checkEtcd() {
 
 	//checkEtcdGateway()
 	//checkEtcdLogin()
-	checkEtcdGame()
+	checkEtcdMatch()
 }
 
 func checkEtcdGateway() {
 	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
 	for _, v := range etcd.ShowServiceList(globals.GatewayRpc) {
 
-		c, _ := protocol.NewGatewayNodeClient(context.Background(), v)
+		c, _ := protocol.NewGatewayNodeClient(v)
 		rps, _ := c.GetConnCount(context.Background(), &pb.Req_Node_ConnCount{})
 		fmt.Println(v, rps.GetCount())
+	}
+}
+
+func checkEtcdMatch() {
+	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
+	for _, v := range etcd.ShowServiceList(globals.MatchNodeRpc) {
+		fmt.Println(v)
 	}
 }
 

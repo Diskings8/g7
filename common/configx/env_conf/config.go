@@ -83,16 +83,22 @@ type JsonPath struct {
 	Path string `yaml:"path"`
 }
 
+type Comprehensive struct {
+	Match       string `yaml:"match"`
+	RoomManager string `yaml:"room_manager"`
+}
+
 type Config struct {
-	MySQLGlobal MySQL     `yaml:"mysql_global"`
-	MySQLGame   MySQL     `yaml:"mysql_game"`
-	Redis       Redis     `yaml:"redis"`
-	Snowflake   Snowflake `yaml:"snowflake"`
-	Server      Server    `yaml:"server"`
-	JWT         JWT       `yaml:"jwt"`
-	Etcd        Etcd      `yaml:"etcd"`
-	GateWay     GateWay   `yaml:"gateWay"`
-	Env         Env       `yaml:"env"`
-	MQ          MQ        `yaml:"mq"`
-	JsonPath    JsonPath  `yaml:"json_path"`
+	MySQLGlobal   MySQL         `yaml:"mysql_global"`
+	MySQLGame     MySQL         `yaml:"mysql_game"`
+	Redis         Redis         `yaml:"redis"`
+	Snowflake     Snowflake     `yaml:"snowflake"`
+	Server        Server        `yaml:"server"`
+	JWT           JWT           `yaml:"jwt"`
+	Etcd          Etcd          `yaml:"etcd"`
+	GateWay       GateWay       `yaml:"gateWay"`
+	Env           Env           `yaml:"env"`
+	MQ            MQ            `yaml:"mq"`
+	JsonPath      JsonPath      `yaml:"json_path"`
+	Comprehensive Comprehensive `yaml:"comprehensive"`
 }

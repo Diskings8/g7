@@ -105,7 +105,7 @@ func GetCurrentConnCount() int32 {
 	var sum int32
 	for _, v := range etcd.ShowServiceList(globals.GatewayTcp) {
 
-		c, _ := protocol.NewGatewayNodeClient(context.Background(), v)
+		c, _ := protocol.NewGatewayNodeClient(v)
 		rps, _ := c.GetConnCount(context.Background(), &pb.Req_Node_ConnCount{})
 		sum += rps.GetCount()
 	}

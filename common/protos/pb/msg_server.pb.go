@@ -466,6 +466,336 @@ func (*Rsp_Node_NewBaseMail) Descriptor() ([]byte, []int) {
 	return file_src_msg_server_proto_rawDescGZIP(), []int{7}
 }
 
+type Req_Node_NewMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PlayerId int64   `protobuf:"varint,1,opt,name=playerId,proto3" json:"playerId,omitempty"`
+	ServerId int32   `protobuf:"varint,2,opt,name=serverId,proto3" json:"serverId,omitempty"`
+	Score    float64 `protobuf:"fixed64,3,opt,name=Score,proto3" json:"Score,omitempty"`
+}
+
+func (x *Req_Node_NewMatch) Reset() {
+	*x = Req_Node_NewMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_Node_NewMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_Node_NewMatch) ProtoMessage() {}
+
+func (x *Req_Node_NewMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_Node_NewMatch.ProtoReflect.Descriptor instead.
+func (*Req_Node_NewMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Req_Node_NewMatch) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *Req_Node_NewMatch) GetServerId() int32 {
+	if x != nil {
+		return x.ServerId
+	}
+	return 0
+}
+
+func (x *Req_Node_NewMatch) GetScore() float64 {
+	if x != nil {
+		return x.Score
+	}
+	return 0
+}
+
+type Rsp_Node_NewMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	State int32 `protobuf:"varint,1,opt,name=state,proto3" json:"state,omitempty"`
+}
+
+func (x *Rsp_Node_NewMatch) Reset() {
+	*x = Rsp_Node_NewMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[9]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_Node_NewMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_Node_NewMatch) ProtoMessage() {}
+
+func (x *Rsp_Node_NewMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[9]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_Node_NewMatch.ProtoReflect.Descriptor instead.
+func (*Rsp_Node_NewMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{9}
+}
+
+func (x *Rsp_Node_NewMatch) GetState() int32 {
+	if x != nil {
+		return x.State
+	}
+	return 0
+}
+
+type Req_Node_CancelMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	PlayerId int64 `protobuf:"varint,1,opt,name=playerId,proto3" json:"playerId,omitempty"`
+	ServerId int32 `protobuf:"varint,2,opt,name=serverId,proto3" json:"serverId,omitempty"`
+}
+
+func (x *Req_Node_CancelMatch) Reset() {
+	*x = Req_Node_CancelMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[10]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_Node_CancelMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_Node_CancelMatch) ProtoMessage() {}
+
+func (x *Req_Node_CancelMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[10]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_Node_CancelMatch.ProtoReflect.Descriptor instead.
+func (*Req_Node_CancelMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{10}
+}
+
+func (x *Req_Node_CancelMatch) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *Req_Node_CancelMatch) GetServerId() int32 {
+	if x != nil {
+		return x.ServerId
+	}
+	return 0
+}
+
+type Rsp_Node_CancelMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	State int32 `protobuf:"varint,1,opt,name=state,proto3" json:"state,omitempty"`
+}
+
+func (x *Rsp_Node_CancelMatch) Reset() {
+	*x = Rsp_Node_CancelMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[11]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_Node_CancelMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_Node_CancelMatch) ProtoMessage() {}
+
+func (x *Rsp_Node_CancelMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[11]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_Node_CancelMatch.ProtoReflect.Descriptor instead.
+func (*Rsp_Node_CancelMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{11}
+}
+
+func (x *Rsp_Node_CancelMatch) GetState() int32 {
+	if x != nil {
+		return x.State
+	}
+	return 0
+}
+
+type Req_Node_CreateRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	RoomType int32 `protobuf:"varint,1,opt,name=roomType,proto3" json:"roomType,omitempty"`
+	ServerId int32 `protobuf:"varint,2,opt,name=serverId,proto3" json:"serverId,omitempty"`
+	ConfId   int32 `protobuf:"varint,3,opt,name=confId,proto3" json:"confId,omitempty"`
+}
+
+func (x *Req_Node_CreateRoom) Reset() {
+	*x = Req_Node_CreateRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[12]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_Node_CreateRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_Node_CreateRoom) ProtoMessage() {}
+
+func (x *Req_Node_CreateRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[12]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_Node_CreateRoom.ProtoReflect.Descriptor instead.
+func (*Req_Node_CreateRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{12}
+}
+
+func (x *Req_Node_CreateRoom) GetRoomType() int32 {
+	if x != nil {
+		return x.RoomType
+	}
+	return 0
+}
+
+func (x *Req_Node_CreateRoom) GetServerId() int32 {
+	if x != nil {
+		return x.ServerId
+	}
+	return 0
+}
+
+func (x *Req_Node_CreateRoom) GetConfId() int32 {
+	if x != nil {
+		return x.ConfId
+	}
+	return 0
+}
+
+type Rsp_Node_CreateRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	State  int32 `protobuf:"varint,1,opt,name=state,proto3" json:"state,omitempty"`
+	RoomId int64 `protobuf:"varint,2,opt,name=roomId,proto3" json:"roomId,omitempty"`
+}
+
+func (x *Rsp_Node_CreateRoom) Reset() {
+	*x = Rsp_Node_CreateRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_server_proto_msgTypes[13]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_Node_CreateRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_Node_CreateRoom) ProtoMessage() {}
+
+func (x *Rsp_Node_CreateRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_server_proto_msgTypes[13]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_Node_CreateRoom.ProtoReflect.Descriptor instead.
+func (*Rsp_Node_CreateRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_server_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *Rsp_Node_CreateRoom) GetState() int32 {
+	if x != nil {
+		return x.State
+	}
+	return 0
+}
+
+func (x *Rsp_Node_CreateRoom) GetRoomId() int64 {
+	if x != nil {
+		return x.RoomId
+	}
+	return 0
+}
+
 var File_src_msg_server_proto protoreflect.FileDescriptor
 
 var file_src_msg_server_proto_rawDesc = []byte{
@@ -508,8 +838,36 @@ var file_src_msg_server_proto_rawDesc = []byte{
 	0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x42, 0x61, 0x73, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x12,
 	0x16, 0x0a, 0x06, 0x6d, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52,
 	0x06, 0x6d, 0x61, 0x69, 0x6c, 0x49, 0x64, 0x22, 0x16, 0x0a, 0x14, 0x52, 0x73, 0x70, 0x5f, 0x4e,
-	0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x42, 0x61, 0x73, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x42,
-	0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x42, 0x61, 0x73, 0x65, 0x4d, 0x61, 0x69, 0x6c, 0x22,
+	0x61, 0x0a, 0x11, 0x52, 0x65, 0x71, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x4e, 0x65, 0x77, 0x4d,
+	0x61, 0x74, 0x63, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49, 0x64,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49, 0x64,
+	0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01,
+	0x28, 0x05, 0x52, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x12, 0x14, 0x0a, 0x05,
+	0x53, 0x63, 0x6f, 0x72, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x01, 0x52, 0x05, 0x53, 0x63, 0x6f,
+	0x72, 0x65, 0x22, 0x29, 0x0a, 0x11, 0x52, 0x73, 0x70, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x4e,
+	0x65, 0x77, 0x4d, 0x61, 0x74, 0x63, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65,
+	0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x22, 0x4e, 0x0a,
+	0x14, 0x52, 0x65, 0x71, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c,
+	0x4d, 0x61, 0x74, 0x63, 0x68, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49,
+	0x64, 0x12, 0x1a, 0x0a, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x05, 0x52, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x22, 0x2c, 0x0a,
+	0x14, 0x52, 0x73, 0x70, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x43, 0x61, 0x6e, 0x63, 0x65, 0x6c,
+	0x4d, 0x61, 0x74, 0x63, 0x68, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x22, 0x65, 0x0a, 0x13, 0x52,
+	0x65, 0x71, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x43, 0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x6f,
+	0x6f, 0x6d, 0x12, 0x1a, 0x0a, 0x08, 0x72, 0x6f, 0x6f, 0x6d, 0x54, 0x79, 0x70, 0x65, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x05, 0x52, 0x08, 0x72, 0x6f, 0x6f, 0x6d, 0x54, 0x79, 0x70, 0x65, 0x12, 0x1a,
+	0x0a, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x08, 0x73, 0x65, 0x72, 0x76, 0x65, 0x72, 0x49, 0x64, 0x12, 0x16, 0x0a, 0x06, 0x63, 0x6f,
+	0x6e, 0x66, 0x49, 0x64, 0x18, 0x03, 0x20, 0x01, 0x28, 0x05, 0x52, 0x06, 0x63, 0x6f, 0x6e, 0x66,
+	0x49, 0x64, 0x22, 0x43, 0x0a, 0x13, 0x52, 0x73, 0x70, 0x5f, 0x4e, 0x6f, 0x64, 0x65, 0x5f, 0x43,
+	0x72, 0x65, 0x61, 0x74, 0x65, 0x52, 0x6f, 0x6f, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61,
+	0x74, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x12,
+	0x16, 0x0a, 0x06, 0x72, 0x6f, 0x6f, 0x6d, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52,
+	0x06, 0x72, 0x6f, 0x6f, 0x6d, 0x49, 0x64, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62,
+	0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -524,7 +882,7 @@ func file_src_msg_server_proto_rawDescGZIP() []byte {
 	return file_src_msg_server_proto_rawDescData
 }
 
-var file_src_msg_server_proto_msgTypes = make([]protoimpl.MessageInfo, 8)
+var file_src_msg_server_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
 var file_src_msg_server_proto_goTypes = []interface{}{
 	(*Req_Node_CreatePlayer)(nil), // 0: game.Req_Node_CreatePlayer
 	(*Rsp_Node_CreatePlayer)(nil), // 1: game.Rsp_Node_CreatePlayer
@@ -534,6 +892,12 @@ var file_src_msg_server_proto_goTypes = []interface{}{
 	(*Rsp_Node_OrderPaid)(nil),    // 5: game.Rsp_Node_OrderPaid
 	(*Req_Node_NewBaseMail)(nil),  // 6: game.Req_Node_NewBaseMail
 	(*Rsp_Node_NewBaseMail)(nil),  // 7: game.Rsp_Node_NewBaseMail
+	(*Req_Node_NewMatch)(nil),     // 8: game.Req_Node_NewMatch
+	(*Rsp_Node_NewMatch)(nil),     // 9: game.Rsp_Node_NewMatch
+	(*Req_Node_CancelMatch)(nil),  // 10: game.Req_Node_CancelMatch
+	(*Rsp_Node_CancelMatch)(nil),  // 11: game.Rsp_Node_CancelMatch
+	(*Req_Node_CreateRoom)(nil),   // 12: game.Req_Node_CreateRoom
+	(*Rsp_Node_CreateRoom)(nil),   // 13: game.Rsp_Node_CreateRoom
 }
 var file_src_msg_server_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -645,6 +1009,78 @@ func file_src_msg_server_proto_init() {
 				return nil
 			}
 		}
+		file_src_msg_server_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_Node_NewMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[9].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_Node_NewMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[10].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_Node_CancelMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[11].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_Node_CancelMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[12].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_Node_CreateRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_server_proto_msgTypes[13].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_Node_CreateRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -652,7 +1088,7 @@ func file_src_msg_server_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_src_msg_server_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   8,
+			NumMessages:   14,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

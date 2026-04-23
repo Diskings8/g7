@@ -57,6 +57,8 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 		}
 	case "mailAll":
 		general_system_game.GMailSystem.SendDefaultSystemTypeMail("test", "test content", []model_common.Attachment{{ItemID: 1032, Count: 1, Bind: 0}}, time.Now().Unix(), 3, "tester")
+	case "match":
+		general_system_game.GMatchSystem.StartMatch(player)
 	}
 	player.RedisReWrite(globals.SaveDataKindCornCache)
 	return rsp

@@ -23,3 +23,14 @@ service GatewayNodeService {
   // 登录服创建玩家
   rpc GetConnCount(Req_Node_ConnCount) returns (Rsp_Node_ConnCount);
 }
+
+service MatchNodeService {
+  // 登录服创建玩家
+  rpc StartMatch(Req_Node_NewMatch) returns (Rsp_Node_NewMatch);
+  rpc CancelMatch(Req_Node_CancelMatch) returns (Rsp_Node_CancelMatch);
+}
+
+service RoomManagerNodeService {
+  // 登录服创建玩家
+  rpc CreateRoom(Req_Node_CreateRoom) returns (Rsp_Node_CreateRoom);
+}
