@@ -74,9 +74,18 @@ func (p *Player) RunMainRoutine() {
 				return
 			}
 			fn()
+		case <-p.QuitChan:
+			return
 		}
 	}
 	//logger.Log.Info(fmt.Sprintf("main routine end: %d", p.PlayerId))
+}
+
+// player.go 添加协程退出机制
+func (p *Player) Close() {
+	p.IsChanClosed = true
+	close(p.ActionChan)
+	p.QuitChan <- struct{}{}
 }
 
 func (p *Player) makeSaveDataAndSend(saveKind int) {
@@ -131,7 +140,7 @@ func (p *Player) Kick(reason string) {
 	p.OfflineAt = time.Now()
 	p.SendMessage(pb.MsgID_MSG_HeartBeat, &pb.Notify_Kick{Reason: reason})
 	p.makeSaveDataAndSend(globals.SaveDataKindLoginOut)
-	p.IsChanClosed = true
+	p.Close()
 	if p.StreamCancelFunc != nil {
 		p.StreamCancelFunc()
 	}

@@ -7,9 +7,10 @@ import (
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/game/model_game"
-	"github.com/go-redis/redis/v8"
 	"sync"
 	"time"
+
+	"github.com/go-redis/redis/v8"
 )
 
 var GPlayerMaps playerMaps
@@ -226,7 +227,7 @@ func (this *playerMaps) StartLockReNewer(curSlot int32) {
 		} else {
 			//logger.Log.Warn(fmt.Sprintf("%d,CheckLockBelongsToMe", v.PlayerId))
 			// 锁不属于我 → 玩家已被顶号/转移 → 主动下线
-			playerLoseLockL = append(playerLoseLockL)
+			playerLoseLockL = append(playerLoseLockL, v)
 		}
 	}
 	// ===========================

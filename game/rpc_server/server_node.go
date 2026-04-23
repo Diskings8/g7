@@ -35,21 +35,41 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 		Nickname: player.Nickname,
 		UserID:   player.UserId,
 	}
-	err := global_game.GGameDB.Insert(daoD.SaveData)
-	if err != nil {
+
+	indexPlayer := model_common.GlobalPlayerIndex{
+		PlayerId: player.PlayerId,
+		UserID:   player.UserId,
+		ServerID: player.ServerId,
+		Nickname: player.Nickname,
+	}
+
+	tx := global_game.GGameDB.TxBegin()
+	defer func() {
+		if r := recover(); r != nil {
+			// global_game.GGlobalDB.Del(&indexPlayer) --- IGNORE ---
+			tx.TxRollback()
+		}
+	}()
+
+	if err := tx.Insert(daoD.SaveData); err != nil {
 		logger.Log.Error(err.Error())
 		rsp = &pb.Rsp_Node_CreatePlayer{}
 		rsp.State = 500
-	} else {
-		rsp.State = 200
-		indexPlayer := model_common.GlobalPlayerIndex{
-			PlayerId: player.PlayerId,
-			UserID:   player.UserId,
-			ServerID: player.ServerId,
-			Nickname: player.Nickname,
-		}
-		_ = global_game.GGlobalDB.Insert(&indexPlayer)
+		return rsp, nil
 	}
+
+	if err := global_game.GGlobalDB.Insert(&indexPlayer); err != nil {
+		logger.Log.Error(err.Error())
+		// 删除已插入的玩家数据
+		global_game.GGameDB.Delete(daoD.SaveData)
+		tx.TxRollback()
+		rsp.State = 500
+		return rsp, nil
+	}
+
+	tx.TxCommit()
+
+	rsp.State = 200
 	return rsp, nil
 }
 

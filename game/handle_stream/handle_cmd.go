@@ -39,6 +39,7 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 			general_system_game.GBagSystem.GainAndConsumption([]structs.KInt32VInt64Bind{{k, v, 1}}, nil, "gm add", player)
 		}
 	case "kick":
+		player.Close()
 		global_game.GPlayerMaps.DelOnePlayerById(player.PlayerId)
 
 	case "del":

@@ -100,6 +100,9 @@ func main() {
 	serverAddr = configx.GEnvCfg.Server.Game
 	logger.Log.Info(fmt.Sprintf("游戏%s服启动绑定%s：%s", globals.ServerId, globals.Container, serverAddr))
 
-	lis, _ := net.Listen("tcp", serverAddr)
+	lis, err := net.Listen("tcp", serverAddr)
+	if err != nil {
+		logger.Log.Fatal(fmt.Sprintf("游戏%s服启动失败：%s", globals.ServerId, err.Error()))
+	}
 	_ = s.Serve(lis)
 }
