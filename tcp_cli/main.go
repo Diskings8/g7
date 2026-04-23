@@ -8,11 +8,12 @@ import (
 	"g7/common/protocol"
 	"g7/common/protos/pb"
 	"g7/common/utils"
-	"github.com/golang/protobuf/proto"
 	"io"
 	"net"
 	"os"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 var gConn net.Conn
@@ -63,6 +64,7 @@ func runConnect() {
 			continue
 		}
 		fmt.Printf("\n网关返回：MsgId:%d, %s\n", msg.MsgID, string(msg.Body))
+		msg.Release()
 	}
 	gConn.Close()
 	gConn = nil

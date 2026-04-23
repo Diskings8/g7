@@ -5,11 +5,16 @@ import (
 	"g7/common/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"log"
+	"math/rand"
 	"sort"
 	"strings"
 	"sync"
 	"time"
 )
+
+func init() {
+	rand.Seed(time.Now().UnixNano())
+}
 
 type GameMonitor struct {
 	gameServerPrefix string
@@ -34,18 +39,27 @@ func (gm *GameMonitor) Run() {
 func (gm *GameMonitor) GetGameServerAddr(serverID string) (string, bool) {
 	gm.mu.RLock()
 	defer gm.mu.RUnlock()
-	addr, ok := gm.cache[serverID]
-	if len(addr) < 1 {
+	addrs, ok := gm.cache[serverID]
+	if !ok || len(addrs) == 0 {
 		return "", false
 	}
-	return addr[0], ok
+	if len(addrs) == 1 {
+		return addrs[0], true
+	}
+	return addrs[rand.Intn(len(addrs))], true
 }
 
 func (gm *GameMonitor) setGameServerAddr(serverID string, addr string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
+	// 检查是否已存在相同地址，避免重复
+	for _, existingAddr := range gm.cache[serverID] {
+		if existingAddr == addr {
+			return
+		}
+	}
 	gm.cache[serverID] = append(gm.cache[serverID], addr)
-	sort.Slice(gm.cache[serverID], func(i, j int) bool { return gm.cache[serverID][i] < gm.cache[serverID][j] })
+	sort.Strings(gm.cache[serverID])
 }
 
 func (gm *GameMonitor) removeGameServerAddr(serverID string, addr string) {

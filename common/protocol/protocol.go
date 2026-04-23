@@ -17,3 +17,8 @@ type Message struct {
 	MsgID  pb.MsgID
 	Body   []byte
 }
+
+func (m *Message) Release() {
+	msgBufPool.Put(m.Body)
+	m.Body = nil
+}

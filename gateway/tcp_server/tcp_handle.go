@@ -11,12 +11,11 @@ import (
 	"g7/common/utils"
 	"g7/gateway/global_gateway"
 	"g7/gateway/tcp_session"
-	"github.com/golang/protobuf/proto"
-	"google.golang.org/grpc"
-	"google.golang.org/grpc/credentials/insecure"
 	"log"
 	"net"
 	"strings"
+
+	"github.com/golang/protobuf/proto"
 )
 
 // 认证结构体
@@ -41,6 +40,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 
 	// 第一步：必须先认证（第一条消息）
 	msg, err := protocol.ReadMessage(conn)
+
 	if err != nil {
 		log.Println(err.Error())
 		return
@@ -54,6 +54,8 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	// 解析认证
 	var req pb.Req_AuthClientToGateWay
 	_ = proto.Unmarshal(msg.Body, &req)
+
+	msg.Release()
 
 	// 验证 Token（真实环境：调用登录服RPC/HTTP）
 	if _, ok := checkToken(req.Token, req.GetUerID()); !ok {
@@ -110,14 +112,12 @@ func (gts *GatewayTcpServer) preCheck(conn net.Conn) (bool, int, string) {
 }
 
 func connectToGameServer(gameAddr string) (pb.GameStreamService_StreamClient, error) {
-	conn, err := grpc.Dial(gameAddr,
-		grpc.WithTransportCredentials(insecure.NewCredentials()),
-	)
+
+	client, err := protocol.NewGameNodeStreamClient(gameAddr)
 	if err != nil {
 		return nil, err
 	}
 
-	client := pb.NewGameStreamServiceClient(conn)
 	stream, err := client.Stream(context.Background())
 	return stream, err
 }
@@ -136,6 +136,7 @@ func clientToGateway(conn net.Conn, _sess *tcp_session.Session, gameStream pb.Ga
 			MsgId: uint32(msg.MsgID),
 			Body:  msg.Body,
 		})
+		msg.Release()
 	}
 }
 
