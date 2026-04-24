@@ -13,10 +13,11 @@ import (
 	"g7/common/utils"
 	"g7/login/global_login"
 	"g7/login/model_login"
-	"github.com/gin-gonic/gin"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/gin-gonic/gin"
 )
 
 var GCallBack91 callBack_91
@@ -101,7 +102,8 @@ func (this *callBack_91) OrderCallBack(c *gin.Context) {
 			return
 		} else if nodeRsp.State == 1 {
 			rsp.Msg = "订单已完成"
-			c.JSON(http.StatusBadRequest, rsp)
+			rsp.Code = 200
+			c.JSON(http.StatusOK, rsp)
 			return
 		}
 	}

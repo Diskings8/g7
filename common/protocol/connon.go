@@ -3,9 +3,10 @@ package protocol
 import (
 	"context"
 	"g7/common/protos/pb"
-	"google.golang.org/grpc"
 	"sync"
 	"time"
+
+	"google.golang.org/grpc"
 )
 
 var defaultPool = newNodeConnPool()
@@ -77,6 +78,18 @@ func NewGameNodeClient(addr string) (pb.GameNodeServiceClient, error) {
 
 	// 2. 创建单工客户端
 	client := pb.NewGameNodeServiceClient(conn)
+	return client, nil
+}
+
+func NewGameNodeStreamClient(addr string) (pb.GameStreamServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := GetConn(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewGameStreamServiceClient(conn)
 	return client, nil
 }
 

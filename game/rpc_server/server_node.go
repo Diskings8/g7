@@ -60,11 +60,8 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 
 	if err := global_game.GGlobalDB.Insert(&indexPlayer); err != nil {
 		logger.Log.Error(err.Error())
-		// 删除已插入的玩家数据
-		global_game.GGameDB.Delete(daoD.SaveData)
-		tx.TxRollback()
+		rsp = &pb.Rsp_Node_CreatePlayer{}
 		rsp.State = 500
-		return rsp, nil
 	}
 
 	tx.TxCommit()

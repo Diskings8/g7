@@ -47,6 +47,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 		}
 		if !global_game.GPlayerMaps.CheckLockValid(player.ServerId, player.PlayerId) {
 			global_game.GPlayerMaps.DelOnePlayerById(player.PlayerId)
+			player.Close()
 			logger.Log.Warn(fmt.Sprintf("%d,CheckLockValid false", player.PlayerId))
 			break
 		}

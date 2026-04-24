@@ -81,5 +81,7 @@ func main() {
 	serverAddr = configx.GEnvCfg.Server.Login
 	logger.Log.Info(fmt.Sprintf("登录服启动绑定%s：%s", globals.Container, serverAddr))
 
-	_ = r.Run(serverAddr)
+	if err := r.Run(serverAddr); err != nil {
+		logger.Log.Fatal("登录服务启动失败:" + err.Error())
+	}
 }
