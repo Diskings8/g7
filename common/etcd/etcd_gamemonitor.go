@@ -2,11 +2,9 @@ package etcd
 
 import (
 	"context"
-	"g7/common/utils"
 	clientv3 "go.etcd.io/etcd/client/v3"
 	"log"
 	"math/rand"
-	"sort"
 	"strings"
 	"sync"
 	"time"
@@ -20,12 +18,12 @@ type GameMonitor struct {
 	gameServerPrefix string
 	etcdClient       *clientv3.Client
 	mu               sync.RWMutex
-	cache            map[string][]string // 非单服模式
+	cache            map[string]*HashRing
 }
 
 func NewGameMonitor() *GameMonitor {
 	return &GameMonitor{
-		cache:            make(map[string][]string),
+		cache:            make(map[string]*HashRing),
 		etcdClient:       GetEtcdClient(),
 		gameServerPrefix: GetAllGameRpcPrefix(),
 	}
@@ -36,42 +34,45 @@ func (gm *GameMonitor) Run() {
 	go gm.watchGameServersWithClient()
 }
 
-func (gm *GameMonitor) GetGameServerAddr(serverID string) (string, bool) {
+func (gm *GameMonitor) GetRandGameServerAddr(serverID string) (string, bool) {
 	gm.mu.RLock()
 	defer gm.mu.RUnlock()
-	addrs, ok := gm.cache[serverID]
-	if !ok || len(addrs) == 0 {
+	hashRing, ok := gm.cache[serverID]
+	if !ok {
 		return "", false
 	}
-	if len(addrs) == 1 {
-		return addrs[0], true
+	addr, found := hashRing.GetWorkerByRand()
+	return addr, found
+}
+
+func (gm *GameMonitor) GetGameServerAddr(serverID, key string) (string, bool) {
+	gm.mu.RLock()
+	defer gm.mu.RUnlock()
+	hashRing, ok := gm.cache[serverID]
+	if !ok {
+		return "", false
 	}
-	return addrs[rand.Intn(len(addrs))], true
+	addr, found := hashRing.GetWorkerByKey(key)
+	return addr, found
 }
 
 func (gm *GameMonitor) setGameServerAddr(serverID string, addr string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
 	// 检查是否已存在相同地址，避免重复
-	for _, existingAddr := range gm.cache[serverID] {
-		if existingAddr == addr {
-			return
-		}
+	if _, ok := gm.cache[serverID]; !ok {
+		gm.cache[serverID] = NewHashRing()
 	}
-	gm.cache[serverID] = append(gm.cache[serverID], addr)
-	sort.Strings(gm.cache[serverID])
+	if gm.cache[serverID].HasKey(addr) {
+		return
+	}
+	gm.cache[serverID].AddWorker(addr)
 }
 
 func (gm *GameMonitor) removeGameServerAddr(serverID string, addr string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
-	for _, v := range gm.cache[serverID] {
-		if v == addr {
-			gm.cache[serverID] = utils.RemoveElement(gm.cache[serverID], addr)
-			break
-		}
-	}
-	sort.Slice(gm.cache[serverID], func(i, j int) bool { return gm.cache[serverID][i] < gm.cache[serverID][j] })
+	gm.cache[serverID].RemoveWorker(addr)
 }
 
 // loadAllGameServers 启动时全量拉取已注册的 GameServer

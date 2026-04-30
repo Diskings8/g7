@@ -15,7 +15,6 @@ func NewPlayerBase(p *model_game.Player, StreamConn pb.GameStreamService_StreamS
 	onlineData.Init(StreamConn, GSaveSystemManager.AsyncSaveQueue)
 	p.OnlineData = onlineData
 	p.StreamCancelFunc = cancelFunc
-	p.CurRedisLockKey = global_game.MakePlayerRedisLockKey(p.ServerId, p.PlayerId)
 	return
 }
 
@@ -33,11 +32,11 @@ type playerManager struct {
 
 func (p *playerManager) Init() {
 	// 玩家锁续约
-	cronx.AddPer1SecondTask(func() {
-		slot := atomic.AddInt32(&p.cacheLockKeyReNewerSlot, 1) - 1
-		curSlot := slot % 5
-		global_game.GPlayerMaps.StartLockReNewer(curSlot)
-	})
+	//cronx.AddPer1SecondTask(func() {
+	//	slot := atomic.AddInt32(&p.cacheLockKeyReNewerSlot, 1) - 1
+	//	curSlot := slot % 5
+	//	global_game.GPlayerMaps.StartLockReNewer(curSlot)
+	//})
 	// 心跳定时器
 	cronx.AddPer12SecondTask(func() {
 		slot := atomic.AddInt32(&p.heartbeatSlot, 1) - 1

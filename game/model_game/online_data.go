@@ -8,6 +8,7 @@ import (
 
 type OnlineData struct {
 	// 流相关
+	StreamId         uint64
 	StreamConn       pb.GameStreamService_StreamServer
 	StreamCancelFunc func()         // 断开流
 	IsChanClosed     bool           // 标记是否关闭
@@ -15,7 +16,6 @@ type OnlineData struct {
 	ActionChan       chan func()    // 独立协程队列（所有逻辑都走这里）
 	QuitChan         chan struct{}  // 退出用
 	SaveChan         chan *SaveDaoD // 给存储系统用的channel
-	CurRedisLockKey  string         //当前redis锁key
 
 	// limit
 	LimitLastReqTime int64

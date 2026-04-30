@@ -27,6 +27,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 	//log.Println("玩家流连接建立")
 	var player *model_game.Player
 	_, StreamCancel := context.WithCancel(stream.Context())
+	streamId := s.NewSteamId()
 
 	// 循环接收网关转发的客户端消息
 	for {
@@ -36,19 +37,18 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			break
 		}
 		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_AUTH {
-			player = s.handleAuth(pkt.GetBody(), stream, StreamCancel)
+			player = s.handleAuth(pkt.GetBody(), stream, streamId, StreamCancel)
 			continue
 		}
 
 		if player == nil {
-			logger.Log.Warn(fmt.Sprintf("%s,not have auth player", pkt.MsgId))
+			logger.Log.Warn(fmt.Sprintf("%d,not have auth player", pkt.MsgId))
 			err = errors.New("not have auth player")
 			break
 		}
-		if !global_game.GPlayerMaps.CheckLockValid(player.ServerId, player.PlayerId) {
-			global_game.GPlayerMaps.DelOnePlayerById(player.PlayerId)
-			player.Close()
-			logger.Log.Warn(fmt.Sprintf("%d,CheckLockValid false", player.PlayerId))
+		if player.StreamId != streamId {
+			// 不是同一个流了，需要断开
+			logger.Log.Warn(fmt.Sprintf("%d,another conn login", player.PlayerId))
 			break
 		}
 		//logger.Log.Info(fmt.Sprintf("%s", pb.MsgID(pkt.MsgId)))
@@ -85,25 +85,17 @@ func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
 	}
 }
 
-func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_StreamServer, cancelFunc func()) (player *model_game.Player) {
+func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_StreamServer, streamId uint64, cancelFunc func()) (player *model_game.Player) {
 	req := pb.Req_AuthClientToGame{}
 	err := json.Unmarshal(data, &req)
 	if err != nil {
 		return nil
 	}
 
-	if ok, err := global_game.GPlayerMaps.CheckLockBelongsToMe(req.GetServerID(), req.GetPlayerID()); !ok {
-		if err != nil {
-			logger.Log.Info(fmt.Sprintf("player %d not belong to me,err:%s", req.GetPlayerID(), err.Error()))
-		} else {
-			logger.Log.Info(fmt.Sprintf("player %d not belong to me", req.GetPlayerID()))
-		}
-		return nil
-	}
-
 	// 重连
 	if val := global_game.GPlayerMaps.GetPlayer(req.GetPlayerID()); val != nil {
 		player = val
+		player.StreamId = streamId
 
 		player.StreamConn = stream
 		player.StreamCancelFunc = cancelFunc
@@ -131,10 +123,12 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		}
 	}
 	player = playerDao.TomSimplePlayer()
+	player.StreamId = streamId
 	manager_game.NewPlayerBase(player, stream, cancelFunc)
 
 	manager_game.GISystemManager.LoadData(playerDao, player)
 	global_game.GPlayerMaps.SetPlayer(player.PlayerId, player)
+	global_game.GPlayerMaps.RegisterRedisLoginKey(player)
 	//
 	manager_game.OnLineRunning(player)
 
@@ -153,4 +147,8 @@ func (s *GameStreamServer) isAllow(p *model_game.Player) bool {
 
 	// 计数+1，判断是否超限
 	return atomic.AddInt32(&p.LimitReqCount, 1) <= 30
+}
+
+func (s *GameStreamServer) NewSteamId() uint64 {
+	return 0
 }

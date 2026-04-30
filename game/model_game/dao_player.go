@@ -57,7 +57,6 @@ func (this *PlayerDao) TomSimplePlayer() *Player {
 		Nickname:      this.Nickname,
 		IsOnline:      this.IsOnline,
 		OfflineAt:     utils.FormatTimestamp(this.OfflineAt),
-		OnlineAt:      utils.FormatTimestamp(this.OnlineAt),
 		LastOfflineAt: utils.FormatTimestamp(this.LastOfflineAt),
 	}
 	this.Unmarshal()

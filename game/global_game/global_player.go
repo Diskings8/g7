@@ -2,10 +2,10 @@ package global_game
 
 import (
 	"context"
-	"errors"
 	"g7/common/configx"
 	"g7/common/globals"
 	"g7/common/logger"
+	"g7/common/redisx"
 	"g7/game/model_game"
 	"sync"
 	"time"
@@ -125,6 +125,7 @@ func (this *playerMaps) HeartBeatCheck(curSlot int32) {
 		})
 	}
 	this.DelPlayerList(players)
+	this.DelRedisLoginKey(players)
 }
 
 // RedisReWriteCheck Redis定时回写任务
@@ -203,74 +204,16 @@ func (this *playerMaps) AllRunFunc(fc func(*model_game.Player)) {
 	}
 }
 
-func (this *playerMaps) StartLockReNewer(curSlot int32) {
-	this.rwLock.RLock()
-	capLen := len(this.Data) / 5
-	if capLen == 0 {
-		capLen = 16
-	} // 兜底初始容量
-	players := make([]*model_game.Player, 0, capLen)
-	//logger.Log.Info(fmt.Sprintf("%d", curSlot))
-	for _, v := range this.Data {
-		if int32(v.PlayerId%5) != curSlot {
-			continue
-		}
-		players = append(players, v)
+func (this *playerMaps) DelRedisLoginKey(ps []*model_game.Player) {
+	var keys []string
+	for _, p := range ps {
+		key := redisx.MakePlayerLoginKey(p.ServerId, p.PlayerId)
+		keys = append(keys, key)
 	}
-	this.rwLock.RUnlock()
-
-	playerLoseLockL := make([]*model_game.Player, 0, 10)
-	for _, v := range players {
-		if ok := this.CheckLockValid(v.ServerId, v.PlayerId); ok {
-			_ = this.renewLock(v.ServerId, v.PlayerId)
-			//logger.Log.Info(fmt.Sprintf("renewLock: %d,%d,%v", v.PlayerId, curSlot, b))
-		} else {
-			//logger.Log.Warn(fmt.Sprintf("%d,CheckLockBelongsToMe", v.PlayerId))
-			// 锁不属于我 → 玩家已被顶号/转移 → 主动下线
-			playerLoseLockL = append(playerLoseLockL, v)
-		}
-	}
-	// ===========================
-	this.DelPlayerList(playerLoseLockL)
+	this.cli.Del(context.Background(), keys...)
 }
 
-func (this *playerMaps) CheckLockBelongsToMe(serverId int32, playerId int64) (bool, error) {
-	key := MakePlayerRedisLockKey(serverId, playerId)
-	// 先校验锁归属，再续约
-	_, err := this.cli.Get(context.Background(), key).Result()
-	if err != nil && !errors.Is(err, redis.Nil) || err == nil {
-		return true, nil
-	}
-	// SETNX 原子加锁
-	return this.cli.SetNX(context.Background(), key, globals.GetServerInstance(), this.lockExpire).Result()
-}
-
-// renewLock 续约锁
-func (this *playerMaps) renewLock(serverId int32, playerId int64) bool {
-	key := MakePlayerRedisLockKey(serverId, playerId)
-	// 先校验锁归属，再续约
-	val, err := this.cli.Get(context.Background(), key).Result()
-	if err != nil || val != globals.GetServerInstance() {
-		return false
-	}
-	b := this.cli.Expire(context.Background(), key, this.renewInterval)
-	return b.Val()
-}
-
-// 收包前必校验锁（核心！）
-func (this *playerMaps) CheckLockValid(serverId int32, playerId int64) bool {
-	if globals.IsDev() {
-		return true
-	}
-	key := MakePlayerRedisLockKey(serverId, playerId)
-	val, err := this.cli.Get(context.Background(), key).Result()
-	if errors.Is(err, redis.Nil) {
-		logger.Log.Warn("lock empty")
-		return false // 锁不存在
-	}
-	if err != nil {
-		logger.Log.Warn(err.Error())
-		return false
-	}
-	return val == globals.GetServerInstance()
+func (this *playerMaps) RegisterRedisLoginKey(p *model_game.Player) {
+	key := redisx.MakePlayerLoginKey(p.ServerId, p.PlayerId)
+	this.cli.Set(context.Background(), key, globals.GetServerInstance(), time.Hour*7*24)
 }

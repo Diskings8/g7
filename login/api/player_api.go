@@ -42,7 +42,7 @@ func CreatePlayer(c *gin.Context) {
 	}
 
 	// 1. 获取区服地址
-	serverAddr, ok := service_login.LTServer.GameMonitor.GetGameServerAddr(utils.Int32ToString(req.GetServerID()))
+	serverAddr, ok := service_login.LTServer.GameMonitor.GetRandGameServerAddr(utils.Int32ToString(req.GetServerID()))
 	if !ok {
 		c.JSON(400, gin.H{"code": 400, "msg": "区服不存在"})
 		return
@@ -90,7 +90,7 @@ func SelectPlayer(c *gin.Context) {
 	}
 
 	//动态查询游戏服地址
-	_, ok := service_login.LTServer.GameMonitor.GetGameServerAddr(utils.Int32ToString(reqs.GetServerID()))
+	_, ok := service_login.LTServer.GameMonitor.GetGameServerAddr(utils.Int32ToString(reqs.GetServerID()), utils.Int64ToString(reqs.GetPlayerID()))
 	if !ok {
 		c.JSON(400, gin.H{"code": 400, "msg": "区服不存在或维护中"})
 		return

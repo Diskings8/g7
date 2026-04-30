@@ -96,6 +96,9 @@ func (p *Player) makeSaveDataAndSend(saveKind int) {
 
 func (p *Player) ToDao(kind int) *SaveDaoD {
 	dao := new(PlayerDao)
+	if kind == globals.SaveDataKindLoginOut {
+		dao.OfflineAt = time.Now().Unix()
+	}
 	dao.Nickname = p.Nickname
 	dao.ServerId = p.ServerId
 	dao.UserId = p.UserId
@@ -103,6 +106,8 @@ func (p *Player) ToDao(kind int) *SaveDaoD {
 	dao.LastDailyResetAt = p.LastDailyResetAt.Unix()
 	dao.LastWeekResetAt = p.LastWeekResetAt.Unix()
 	dao.LastMonthResetAt = p.LastMonthResetAt.Unix()
+	dao.LastOfflineAt = p.LastOfflineAt.Unix()
+	dao.OnlineAt = p.OnlineAt.Unix()
 
 	// 通用数据
 	var generalD = dao.GeneralD
@@ -128,7 +133,6 @@ func (p *Player) ToDao(kind int) *SaveDaoD {
 	daoD := &SaveDaoD{
 		SaveType: kind,
 		SaveData: dao,
-		SaveKey:  p.CurRedisLockKey,
 	}
 	return daoD
 }
