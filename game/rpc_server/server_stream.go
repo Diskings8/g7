@@ -20,6 +20,7 @@ import (
 // GameStreamServer 实现接口
 type GameStreamServer struct {
 	pb.UnimplementedGameStreamServiceServer
+	globalSequence uint64
 }
 
 // Stream 实现双向流方法
@@ -150,5 +151,5 @@ func (s *GameStreamServer) isAllow(p *model_game.Player) bool {
 }
 
 func (s *GameStreamServer) NewSteamId() uint64 {
-	return 0
+	return atomic.AddUint64(&s.globalSequence, 1)
 }
