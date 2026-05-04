@@ -59,13 +59,13 @@ func (this *playerSystem) SavePlayerDao(daoD *model_game.SaveDaoD) {
 	//logger.Log.Info(fmt.Sprintf("save player dao %#v", *daoD))
 	switch daoD.SaveType {
 	case globals.SaveDataKindCornCache:
-		_ = global_game.GPlayerCache.SetPlayerCache(daoD.SaveData)
+		_ = global_game.GPlayerCache.SetPlayerCache(&daoD.SaveData)
 	case globals.SaveDataKindCornDb:
-		db_game.SetPlayerDao(daoD.SaveData)
+		db_game.SetPlayerDao(&daoD.SaveData)
 	case globals.SaveDataKindLoginOut:
-		_ = global_game.GPlayerCache.SetPlayerCache(daoD.SaveData)
-		db_game.SetPlayerDao(daoD.SaveData)
-		this.makeOffLineLog(daoD.SaveData)
+		_ = global_game.GPlayerCache.SetPlayerCache(&daoD.SaveData)
+		db_game.SetPlayerDao(&daoD.SaveData)
+		this.makeOffLineLog(&daoD.SaveData)
 
 	}
 }

@@ -87,9 +87,11 @@ func main() {
 	cronx.InitCron()
 
 	//初始化管理系
+	manager_game.GISystemManager.Init()
 	manager_game.GSaveSystemManager.Init()
 	manager_game.GPlayerManager.Init()
 	manager_game.GActivityManager.Init()
+	manager_game.GGoalSystemManager.Init()
 
 	// 注册grpc服务
 	s := grpc.NewServer()

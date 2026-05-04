@@ -21,6 +21,7 @@ func NewPlayerBase(p *model_game.Player, StreamConn pb.GameStreamService_StreamS
 func OnLineRunning(p *model_game.Player) {
 	//关键：启动玩家专属协程
 	go p.RunMainRoutine()
+	go p.RunSendMessageRoutine()
 }
 
 type playerManager struct {

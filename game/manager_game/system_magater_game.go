@@ -18,11 +18,15 @@ var GISystemManager = &iSystemManager{
 
 var GSaveSystemManager = &saveSystemManager{
 	SaveSystems:    make(map[int32]interface_game.SaveSystem, 0),
-	AsyncSaveQueue: make(chan *model_game.SaveDaoD, 10000),
+	AsyncSaveQueue: make(chan model_game.SaveDaoD, 10000),
 }
 
 var GResetSystemManager = &resetSystemManager{
 	ResetSystems: make(map[int32]interface_game.ResetSystem),
+}
+
+var GGoalSystemManager = &goalSystemManager{
+	GoalSystems: make(map[int32]interface_game.GoalSystem),
 }
 
 type iSystemManager struct {
@@ -69,14 +73,14 @@ func (m *iSystemManager) OnEnterGame(Player *model_game.Player) {
 
 type saveSystemManager struct {
 	SaveSystems    map[int32]interface_game.SaveSystem // 所有注册的系统
-	AsyncSaveQueue chan *model_game.SaveDaoD
+	AsyncSaveQueue chan model_game.SaveDaoD
 }
 
 func (m *saveSystemManager) Init() {
 	go func() {
 		for dao := range m.AsyncSaveQueue {
 			// 单协程写库
-			m.SavePlayerDaoD(dao)
+			m.SavePlayerDaoD(&dao)
 		}
 	}()
 }
@@ -163,4 +167,31 @@ func (m *resetSystemManager) AllReset(Player *model_game.Player) {
 	}
 
 	return
+}
+
+type goalSystemManager struct {
+	GoalSystems map[int32]interface_game.GoalSystem // 所有注册的系统
+}
+
+func (m *goalSystemManager) Init() {
+
+}
+
+func (m *goalSystemManager) Register(systemId int32, sys interface_game.GoalSystem) {
+	if _, ok := m.GoalSystems[systemId]; ok {
+		logger.Log.Warn(fmt.Sprintf("%d system had been Register in resetSystemManager", systemId))
+		return
+	}
+	m.GoalSystems[systemId] = sys
+}
+
+func (m *goalSystemManager) OnGoalsUpdate(goalSystems map[int32][]int32) {
+	for k, v := range goalSystems {
+		m.GoalSystems[k].OnGoalsUpdate(v)
+	}
+}
+func (m *goalSystemManager) OnGoalsFinish(goalSystems map[int32][]int32) {
+	for k, v := range goalSystems {
+		m.GoalSystems[k].OnGoalsFinish(v)
+	}
 }

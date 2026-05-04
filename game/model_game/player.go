@@ -14,6 +14,8 @@ type Player struct {
 	OnlineData  // 存活数据
 	AllBagData  // 背包
 	AllMailData // 邮件
+	GoalData    // 目标数据
+	Trigger
 
 	// 行为日志
 	ActionLogs []*model_common.ActionLog
@@ -81,6 +83,20 @@ func (p *Player) RunMainRoutine() {
 	//logger.Log.Info(fmt.Sprintf("main routine end: %d", p.PlayerId))
 }
 
+func (p *Player) RunSendMessageRoutine() {
+	for !p.IsChanClosed {
+		select {
+		case msg, ok := <-p.RpcSendChan:
+			if !ok {
+				return
+			}
+			_ = p.StreamConn.Send(&msg)
+		default:
+
+		}
+	}
+}
+
 // player.go 添加协程退出机制
 func (p *Player) Close() {
 	p.IsChanClosed = true
@@ -94,8 +110,8 @@ func (p *Player) makeSaveDataAndSend(saveKind int) {
 	p.SaveChan <- dao
 }
 
-func (p *Player) ToDao(kind int) *SaveDaoD {
-	dao := new(PlayerDao)
+func (p *Player) ToDao(kind int) SaveDaoD {
+	var dao PlayerDao
 	if kind == globals.SaveDataKindLoginOut {
 		dao.OfflineAt = time.Now().Unix()
 	}
@@ -130,7 +146,7 @@ func (p *Player) ToDao(kind int) *SaveDaoD {
 	}
 	dao.ActivityData = utils.MarshalAndCompress(activityD)
 	//
-	daoD := &SaveDaoD{
+	daoD := SaveDaoD{
 		SaveType: kind,
 		SaveData: dao,
 	}

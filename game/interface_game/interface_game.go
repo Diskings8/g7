@@ -28,3 +28,10 @@ type ActivitySystem interface {
 	OnActivityFinish(cofId int32, activityId int64)
 	OnActivityClose(cofId int32, activityId int64)
 }
+
+type GoalSystem interface {
+	Init()
+	GetName() string
+	OnGoalsUpdate([]int32)
+	OnGoalsFinish([]int32)
+}

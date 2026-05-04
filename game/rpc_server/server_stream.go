@@ -124,10 +124,10 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		}
 	}
 	player = playerDao.TomSimplePlayer()
-	player.StreamId = streamId
 	manager_game.NewPlayerBase(player, stream, cancelFunc)
-
+	player.StreamId = streamId
 	manager_game.GISystemManager.LoadData(playerDao, player)
+	player.GoalData.SetCallBackSystem(manager_game.GGoalSystemManager)
 	global_game.GPlayerMaps.SetPlayer(player.PlayerId, player)
 	global_game.GPlayerMaps.RegisterRedisLoginKey(player)
 	//

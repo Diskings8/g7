@@ -8,6 +8,7 @@ import (
 	"g7/common/protos/pb"
 	"g7/common/structs"
 	"g7/common/utils"
+	"g7/game/const_game"
 	"g7/game/general_system_game"
 	"g7/game/global_game"
 	"g7/game/model_game"
@@ -60,6 +61,15 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 		general_system_game.GMailSystem.SendDefaultSystemTypeMail("test", "test content", []model_common.Attachment{{ItemID: 1032, Count: 1, Bind: 0}}, time.Now().Unix(), 3, "tester")
 	case "match":
 		general_system_game.GMatchSystem.StartMatch(player)
+	case "goal":
+		switch cmds[1] {
+		case "add":
+			k := utils.StringToInit32(cmds[2])
+			g := general_system_game.GGoalSystem.DevNewGoal(k)
+			general_system_game.GGoalSystem.AddGoal(g, player)
+		case "trigger":
+			player.Trigger.TriggerCommon(const_game.GoalType_KillMonster, 102, 1)
+		}
 	}
 	player.RedisReWrite(globals.SaveDataKindCornCache)
 	return rsp

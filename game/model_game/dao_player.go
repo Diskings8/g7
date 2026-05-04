@@ -60,11 +60,12 @@ func (this *PlayerDao) TomSimplePlayer() *Player {
 		LastOfflineAt: utils.FormatTimestamp(this.LastOfflineAt),
 	}
 	this.Unmarshal()
+	p.Trigger = NewTrigger(p)
 	return p
 }
 
 type SaveDaoD struct {
 	SaveType int
 	SaveKey  string
-	SaveData *PlayerDao
+	SaveData PlayerDao
 }

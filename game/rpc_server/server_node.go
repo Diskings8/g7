@@ -27,7 +27,7 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 	}
 	daoD := player.ToDao(globals.SaveDataKindCornDb)
 	// 初始化各个系统的数据
-	manager_game.GISystemManager.LoadData(daoD.SaveData, player)
+	manager_game.GISystemManager.LoadData(&daoD.SaveData, player)
 
 	rsp := &pb.Rsp_Node_CreatePlayer{
 		PlayerID: player.PlayerId,
@@ -51,7 +51,7 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 		}
 	}()
 
-	if err := tx.Insert(daoD.SaveData); err != nil {
+	if err := tx.Insert(&daoD.SaveData); err != nil {
 		logger.Log.Error(err.Error())
 		rsp = &pb.Rsp_Node_CreatePlayer{}
 		rsp.State = 500
