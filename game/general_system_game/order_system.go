@@ -17,30 +17,30 @@ import (
 	"time"
 )
 
-var GOrderSystem = &orderService{}
+var GOrderSystem = &orderSystem{}
 
-type orderService struct {
+type orderSystem struct {
 }
 
 func init() {
 	manager_game.GISystemManager.Register(const_game.General_OrderSystem, GOrderSystem)
 }
 
-func (this *orderService) Init() {
+func (this *orderSystem) Init() {
 
 }
 
-func (this *orderService) LoadData(PlayerDao *model_game.PlayerDao, Player *model_game.Player) {
+func (this *orderSystem) LoadData(PlayerDao *model_game.PlayerDao, Player *model_game.Player) {
 
 }
-func (this *orderService) OnEnterGame(Player *model_game.Player) {
+func (this *orderSystem) OnEnterGame(Player *model_game.Player) {
 
 }
-func (this *orderService) GetName() string {
+func (this *orderSystem) GetName() string {
 	return "General_OrderSystem"
 }
 
-func (this *orderService) CreateOrder(reqData []byte, Player *model_game.Player) any {
+func (this *orderSystem) CreateOrder(reqData []byte, Player *model_game.Player) any {
 	req := &pb.Req_CreateOrder{}
 	_ = proto.Unmarshal(reqData, req)
 
@@ -93,11 +93,11 @@ func (this *orderService) CreateOrder(reqData []byte, Player *model_game.Player)
 	return nil
 }
 
-func (this *orderService) generateOrderNo() string {
+func (this *orderSystem) generateOrderNo() string {
 	return snowflakes.GenStringID()
 }
 
-func (this *orderService) makeLoginLog(player *model_game.Player, orderId string) {
+func (this *orderSystem) makeLoginLog(player *model_game.Player, orderId string) {
 	ld := model_common.ActionLog{
 		BaseLog:      model_common.BaseLog{ServerId: player.ServerId, EventType: globals.ActionEventLogin, CreateTime: time.Now().Unix()},
 		PlayerID:     player.PlayerId,
@@ -112,6 +112,6 @@ func (this *orderService) makeLoginLog(player *model_game.Player, orderId string
 	player.ActionLogs = append(player.ActionLogs, &ld)
 }
 
-func (this *orderService) GrantRewards(rewards map[int32]int64, player *model_game.Player) {
+func (this *orderSystem) GrantRewards(rewards map[int32]int64, player *model_game.Player) {
 
 }

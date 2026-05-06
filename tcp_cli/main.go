@@ -55,16 +55,16 @@ func runConnect() {
 
 	}
 	for {
-		msg, errx := protocol.ReadMessage(gConn)
+		pkg, errx := protocol.ReadPacketFromConn(gConn)
 		if errx == io.EOF {
 			fmt.Println("网络断开")
 			break
 		}
-		if msg == nil {
+		if pkg == nil {
 			continue
 		}
-		fmt.Printf("\n网关返回：MsgId:%d, %s\n", msg.MsgID, string(msg.Body))
-		msg.Release()
+		fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, string(pkg.Body))
+		pkg.Release()
 	}
 	gConn.Close()
 	gConn = nil
@@ -98,19 +98,18 @@ func SelectUse(int int32) *pb.Req_AuthClientToGateWay {
 
 func firstMsg() {
 	msg := MyData()
-	msgBody, _ := proto.Marshal(msg)
-	protocol.WriteMessage(gConn, pb.MsgID_MSG_AUTH, msgBody)
+	MakeMsgToSend(pb.MsgID_MSG_AUTH, msg)
 	return
 }
 
 func MakeMsgToSend(MsgId pb.MsgID, message proto.Message) (rsp any) {
 	msgBody, _ := proto.Marshal(message)
-	protocol.WriteMessage(gConn, MsgId, msgBody)
+	_ = protocol.WritePacketToConn(gConn, MsgId, 0, msgBody)
 	return
 }
 
 func heartbeat() {
-	protocol.WriteMessage(gConn, pb.MsgID_MSG_HeartBeat, []byte(""))
+	_ = protocol.WritePacketToConn(gConn, pb.MsgID_MSG_HeartBeat, 0, []byte(""))
 	return
 }
 

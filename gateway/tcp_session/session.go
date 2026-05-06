@@ -14,6 +14,7 @@ type Session struct {
 	userID     int64 // 用户ID
 	playerID   int64 // 角色ID
 	serverID   int32 // 要连接的游戏服ID
+	seq        uint32
 	gameStream pb.GameStreamService_StreamClient
 	closed     bool
 	lock       sync.Mutex
@@ -58,6 +59,11 @@ func (s *Session) SetOwner(UerId, PlayerId int64, serverId int32) {
 	s.userID = UerId
 	s.playerID = PlayerId
 	s.serverID = serverId
+}
+
+func (s *Session) NewSeq() uint32 {
+	s.seq++
+	return s.seq
 }
 
 func (s *Session) SetStream(Stream pb.GameStreamService_StreamClient) {

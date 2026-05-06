@@ -22,7 +22,7 @@ import (
 
 func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	if ok, code, msg := gts.preCheck(conn); !ok {
-		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(code, msg))
+		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(code, msg))
 		_ = conn.Close()
 		return
 	}
@@ -39,27 +39,28 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	//log.Println("新连接:", conn.RemoteAddr())
 
 	// 第一步：必须先认证（第一条消息）
-	msg, err := protocol.ReadMessage(conn)
+	packet, err := protocol.ReadPacketFromConn(conn)
 
 	if err != nil {
 		log.Println(err.Error())
 		return
 	}
 
-	if msg.MsgID != pb.MsgID_MSG_AUTH {
+	if packet.MsgID != pb.MsgID_MSG_AUTH {
+		packet.Release()
 		log.Println("未认证，断开")
 		return
 	}
 
 	// 解析认证
 	var req pb.Req_AuthClientToGateWay
-	_ = proto.Unmarshal(msg.Body, &req)
+	_ = proto.Unmarshal(packet.Body, &req)
 
-	msg.Release()
+	packet.Release()
 
 	// 验证 Token（真实环境：调用登录服RPC/HTTP）
 	if _, ok := checkToken(req.Token, req.GetUerID()); !ok {
-		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(401, "token失效"))
+		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(401, "token失效"))
 		return
 	}
 
@@ -69,7 +70,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	// --- 获取游戏服地址（从Watch缓存）---
 	gameAddr, ok := gts.gameMonitor.GetGameServerAddr(utils.Int32ToString(req.ServerID), utils.Int64ToString(req.GetPlayerID()))
 	if !ok {
-		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(503, "游戏服维护中"))
+		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(503, "游戏服维护中"))
 		return
 	}
 
@@ -78,7 +79,7 @@ func (gts *GatewayTcpServer) HandleClient(conn net.Conn) {
 	stream, err := connectToGameServer(gameAddr)
 	if err != nil {
 		log.Printf("连接游戏服失败: %v", err)
-		_ = protocol.WriteMessage(conn, 1002, errcode.MakeHttpErrCodeRespond(503, "连接游戏服失败"))
+		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(503, "连接游戏服失败"))
 		return
 	}
 	sess.SetStream(stream)
@@ -126,17 +127,17 @@ func connectToGameServer(gameAddr string) (pb.GameStreamService_StreamClient, er
 func clientToGateway(conn net.Conn, _sess *tcp_session.Session, gameStream pb.GameStreamService_StreamClient) {
 	makeFirstMessage(_sess, gameStream)
 	for {
-		msg, err := protocol.ReadMessage(conn)
+		packet, err := protocol.ReadPacketFromConn(conn)
 		if err != nil {
 			log.Printf("客户端断开: %v", err)
 			return
 		}
 		// 把客户端的包转发给游戏服 gRPC 流
 		_ = gameStream.Send(&pb.GameMessage{
-			MsgId: uint32(msg.MsgID),
-			Body:  msg.Body,
+			MsgId: uint32(packet.MsgID),
+			Body:  packet.Body,
 		})
-		msg.Release()
+		packet.Release()
 	}
 }
 
@@ -159,7 +160,7 @@ func gatewayToClient(conn net.Conn, sess *tcp_session.Session, gameStream pb.Gam
 			return
 		}
 		// 把游戏服的包转发给客户端 TCP
-		_ = protocol.WriteMessage(conn, pb.MsgID(pkt.MsgId), pkt.Body)
+		_ = protocol.WritePacketToConn(conn, pb.MsgID(pkt.MsgId), sess.NewSeq(), pkt.Body)
 	}
 }
 
@@ -173,7 +174,7 @@ func checkToken(tokenStr string, clientUID int64) (*jwt.Claims, bool) {
 
 	// 2. 防篡改：客户端传的UID必须和Token里的UID一致
 	if claims.UserID != clientUID {
-		log.Printf("clientUID error " + fmt.Sprintf("%s, Req %s", claims.UID, clientUID))
+		log.Printf("clientUID error " + fmt.Sprintf("%d, Req %d", claims.UID, clientUID))
 		return nil, false
 	}
 

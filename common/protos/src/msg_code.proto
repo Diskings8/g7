@@ -12,11 +12,17 @@ enum MsgID {
   MSG_GM_Cmd = 1; // 测试用gm
 
   // 网关 ↔ 游戏服
+  MSG_CLIENT_AUTH  = 10000; //
   MSG_AUTH      = 10001;          // 鉴权
   MSG_HeartBeat = 10002;          // 心跳
   MSG_Kick      = 10003;          // 下线
 
+  // 网关 <-> 场景服
+  MSG_GATEWAY_TO_SCENE  = 11000; //
+  MSG_MOVE      = 11001;
+
   // 游戏业务 start from 20000
+  MSG_GATEWAY_TO_GAME   = 20000; //
   MSG_Req_EnterGame = 20001;    // 进入游戏请求
   MSG_Rsp_EnterGame = 20002;    // 进入游戏返回
 
