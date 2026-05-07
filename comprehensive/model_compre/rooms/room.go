@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"g7/common/logger"
 	"g7/common/protos/pb"
+	"g7/comprehensive/model_compre/battle/world"
 	"sync"
 	"time"
 )
@@ -22,14 +23,20 @@ type Room struct {
 	inputChan     chan PlayAction
 	tickRate      time.Duration // e.g. 50 * time.Millisecond
 	pendingInputs []PlayAction
-	world         World
+	world         *world.World
 }
 
 func NewRoom(confId int32, roomId string, members []string) *Room {
-	return &Room{roomId: roomId, players: make(map[int64]*PlayerStream),
-		members: members, inputChan: make(chan PlayAction, 2000),
+	r := &Room{
+		roomId:        roomId,
+		players:       make(map[int64]*PlayerStream),
+		members:       members,
+		inputChan:     make(chan PlayAction, 2000),
 		pendingInputs: make([]PlayAction, 0, 2000),
-		tickRate:      50 * time.Millisecond}
+		world:         world.NewWorld(),
+	}
+	r.world.Start()
+	return r
 }
 
 func (r *Room) GetPlayerStream(playerId int64) (*PlayerStream, bool) {
@@ -50,6 +57,7 @@ func (r *Room) RemovePlayer(playerId int64) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 	delete(r.players, playerId)
+	r.world.RemoveActor(playerId)
 	if len(r.players) == 0 {
 		r.close() // 触发房间主循环退出
 	}
@@ -57,17 +65,13 @@ func (r *Room) RemovePlayer(playerId int64) {
 
 func (r *Room) Start(ctx context.Context) {
 	logger.Log.Info(fmt.Sprintf("%s room start", r.roomId))
-	ticker := time.NewTicker(r.tickRate)
-	defer ticker.Stop()
 	for {
 		select {
 		case msg, ok := <-r.inputChan:
 			if !ok {
 				return
 			}
-			r.pendingInputs = append(r.pendingInputs, msg)
-		case <-ticker.C:
-			r.update()
+			r.world.PushInput(msg.PlayerId, msg.Action)
 		case <-ctx.Done():
 			// 房间被主动关闭，做好清理
 			r.shutdown()
@@ -85,22 +89,6 @@ func (r *Room) shutdown() {
 	close(r.inputChan)
 }
 
-func (r *Room) update() {
-	for _, input := range r.pendingInputs {
-		r.handleInput(input)
-	}
-	r.pendingInputs = r.pendingInputs[:0]
-
-	// 2. 推进世界状态（移动、技能冷却、AI、计时器等）
-	r.world.Step(r.tickRate)
-
-	// 3. 生成下行广播数据
-	snapshot := r.world.GetSnapshot()
-
-	// 4. 广播给所有玩家
-	r.broadcast(snapshot)
-}
-
 func (r *Room) broadcast(msg *pb.GameMessage) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -112,10 +100,6 @@ func (r *Room) broadcast(msg *pb.GameMessage) {
 	}
 }
 
-func (r *Room) handleInput(input PlayAction) {
-
-}
-
 func (r *Room) close() {
-
+	r.world.Stop()
 }
