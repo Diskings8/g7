@@ -7,10 +7,12 @@ import (
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
-	"g7/gateway/rpc_server"
-	"g7/gateway/tcp_server"
+	"g7/gateway/global_gateway"
+	"g7/gateway/mix_server"
 	"log"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 )
 
@@ -30,6 +32,14 @@ func main() {
 	//
 	logger.Init()
 	logger.Log.Info(fmt.Sprintf("本网关启动配置：%s", confStr))
+
+	go func() {
+		// 端口随便选，不和你的服务冲突即可 比如 6061
+		err := http.ListenAndServe("0.0.0.0:6061", nil)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	// 注册etcd,监听游戏服
 	var etcdTcpAddr, etcdRpcAddr string
@@ -57,7 +67,10 @@ func main() {
 	logger.Log.Info("网关监注册etcd完成")
 
 	//初始化tcp服务
-	tcp_server.GTServer.Init()
+	mix_server.GMixServer.Init(etcdRpcAddr)
+
+	//
+	global_gateway.GConnSessionMap.Init()
 
 	//监听grpc服务
 	var tcpServerAddr, rpcServerAddr string
@@ -68,7 +81,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	go rpc_server.RunGrpcServer(lisGrpc)
+	go mix_server.RunGrpcServer(lisGrpc, rpcServerAddr)
 
 	// 开始tcp服务
 	lisTcp, err := net.Listen("tcp", tcpServerAddr)
@@ -79,7 +92,7 @@ func main() {
 
 	for {
 		conn, _ := lisTcp.Accept()
-		go tcp_server.GTServer.HandleClient(conn)
+		go mix_server.GMixServer.HandleClient(conn)
 		//go handle(conn)
 	}
 }

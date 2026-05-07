@@ -105,6 +105,146 @@ func (x *Rsp_LoginGame) GetResult() bool {
 	return false
 }
 
+type Req_StartMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Req_StartMatch) Reset() {
+	*x = Req_StartMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[2]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_StartMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_StartMatch) ProtoMessage() {}
+
+func (x *Req_StartMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[2]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_StartMatch.ProtoReflect.Descriptor instead.
+func (*Req_StartMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{2}
+}
+
+type Rsp_StartMatch struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result bool `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"` // 结果
+}
+
+func (x *Rsp_StartMatch) Reset() {
+	*x = Rsp_StartMatch{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_StartMatch) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_StartMatch) ProtoMessage() {}
+
+func (x *Rsp_StartMatch) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_StartMatch.ProtoReflect.Descriptor instead.
+func (*Rsp_StartMatch) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *Rsp_StartMatch) GetResult() bool {
+	if x != nil {
+		return x.Result
+	}
+	return false
+}
+
+type Notify_MatchSuccess struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result bool   `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"` // 结果
+	Reason string `protobuf:"bytes,2,opt,name=reason,proto3" json:"reason,omitempty"`
+}
+
+func (x *Notify_MatchSuccess) Reset() {
+	*x = Notify_MatchSuccess{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[4]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Notify_MatchSuccess) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Notify_MatchSuccess) ProtoMessage() {}
+
+func (x *Notify_MatchSuccess) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[4]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Notify_MatchSuccess.ProtoReflect.Descriptor instead.
+func (*Notify_MatchSuccess) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{4}
+}
+
+func (x *Notify_MatchSuccess) GetResult() bool {
+	if x != nil {
+		return x.Result
+	}
+	return false
+}
+
+func (x *Notify_MatchSuccess) GetReason() string {
+	if x != nil {
+		return x.Reason
+	}
+	return ""
+}
+
 var File_src_msg_player_proto protoreflect.FileDescriptor
 
 var file_src_msg_player_proto_rawDesc = []byte{
@@ -113,8 +253,16 @@ var file_src_msg_player_proto_rawDesc = []byte{
 	0x52, 0x65, 0x71, 0x5f, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x47, 0x61, 0x6d, 0x65, 0x22, 0x27, 0x0a,
 	0x0d, 0x52, 0x73, 0x70, 0x5f, 0x4c, 0x6f, 0x67, 0x69, 0x6e, 0x47, 0x61, 0x6d, 0x65, 0x12, 0x16,
 	0x0a, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06,
-	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62, 0x06,
-	0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x22, 0x10, 0x0a, 0x0e, 0x52, 0x65, 0x71, 0x5f, 0x53, 0x74,
+	0x61, 0x72, 0x74, 0x4d, 0x61, 0x74, 0x63, 0x68, 0x22, 0x28, 0x0a, 0x0e, 0x52, 0x73, 0x70, 0x5f,
+	0x53, 0x74, 0x61, 0x72, 0x74, 0x4d, 0x61, 0x74, 0x63, 0x68, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65,
+	0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75,
+	0x6c, 0x74, 0x22, 0x45, 0x0a, 0x13, 0x4e, 0x6f, 0x74, 0x69, 0x66, 0x79, 0x5f, 0x4d, 0x61, 0x74,
+	0x63, 0x68, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x73,
+	0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c,
+	0x74, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28,
+	0x09, 0x52, 0x06, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70,
+	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -129,10 +277,13 @@ func file_src_msg_player_proto_rawDescGZIP() []byte {
 	return file_src_msg_player_proto_rawDescData
 }
 
-var file_src_msg_player_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_src_msg_player_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
 var file_src_msg_player_proto_goTypes = []interface{}{
-	(*Req_LoginGame)(nil), // 0: game.Req_LoginGame
-	(*Rsp_LoginGame)(nil), // 1: game.Rsp_LoginGame
+	(*Req_LoginGame)(nil),       // 0: game.Req_LoginGame
+	(*Rsp_LoginGame)(nil),       // 1: game.Rsp_LoginGame
+	(*Req_StartMatch)(nil),      // 2: game.Req_StartMatch
+	(*Rsp_StartMatch)(nil),      // 3: game.Rsp_StartMatch
+	(*Notify_MatchSuccess)(nil), // 4: game.Notify_MatchSuccess
 }
 var file_src_msg_player_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -172,6 +323,42 @@ func file_src_msg_player_proto_init() {
 				return nil
 			}
 		}
+		file_src_msg_player_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_StartMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_player_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_StartMatch); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_player_proto_msgTypes[4].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Notify_MatchSuccess); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -179,7 +366,7 @@ func file_src_msg_player_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_src_msg_player_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   2,
+			NumMessages:   5,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

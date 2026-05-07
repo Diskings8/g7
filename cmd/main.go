@@ -47,7 +47,7 @@ func checkEtcdGateway() {
 
 func checkEtcdMatch() {
 	//etcd.UpdateEtcdConf(etcd_conf.ConfSwitchLoginOn, "true")
-	for _, v := range etcd.ShowServiceList(globals.MatchNodeRpc) {
+	for _, v := range etcd.ShowServiceList(globals.MatchRpc) {
 		fmt.Println(v)
 	}
 }

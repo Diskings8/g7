@@ -46,16 +46,25 @@ message Req_Node_NewBaseMail{
 message Rsp_Node_NewBaseMail{
 }
 
+
+message MatchWaiter{
+  string teamId = 1;
+  double score = 2;
+  string teamLeader = 3;
+  repeated string teamMember = 4;
+}
+
 message Req_Node_NewMatch{
-  int64 playerId = 1;
-  int32 serverId = 2;
-  double Score = 3;
+  MatchWaiter waiter = 1;
 }
 
 message Rsp_Node_NewMatch{
   int32 state = 1;
+  int64 expectedWaitTime = 2;
+  string errReason = 3;
 }
 
+// 取消匹配
 message Req_Node_CancelMatch{
   int64 playerId = 1;
   int32 serverId = 2;
@@ -65,13 +74,39 @@ message Rsp_Node_CancelMatch{
   int32 state = 1;
 }
 
+// 匹配成功
+message Req_Node_MatchSuccess{
+  int32 state = 1;
+  repeated string matchMember = 2;
+  string roomId = 3;
+  string roomAddr = 4;
+}
+
+message Rsp_Node_MatchSuccess{
+  int32 state = 1;
+}
+
+// 创建房间
 message Req_Node_CreateRoom{
   int32 roomType = 1;
-  int32 serverId = 2;
-  int32 confId = 3;
+  int32 confId = 2;
+  repeated string matchMember = 3;
+  string matchId = 4;
 }
 
 message Rsp_Node_CreateRoom{
   int32 state = 1;
-  int64 roomId = 2;
+  string roomId = 2;
+  string roomAddr = 3;
+}
+
+
+message Req_Node_MakeConnToRoom{
+  int64 playerId = 1;
+  string roomId = 2;
+  string roomAddr = 3;
+}
+
+message Rsp_Node_MakeConnToRoom{
+  int32 state = 1;
 }

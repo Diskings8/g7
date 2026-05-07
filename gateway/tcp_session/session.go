@@ -1,11 +1,16 @@
 package tcp_session
 
 import (
+	"g7/common/logger"
+	"g7/common/protocol"
 	"g7/common/protos/pb"
+	"log"
 	"net"
 	"sync"
 	"sync/atomic"
 	"time"
+
+	"github.com/golang/protobuf/proto"
 )
 
 // Session 会话：网关只存这些！绝对不存业务数据！
@@ -16,24 +21,31 @@ type Session struct {
 	serverID   int32 // 要连接的游戏服ID
 	seq        uint32
 	gameStream pb.GameStreamService_StreamClient
+	roomStream pb.RoomStreamService_StreamClient
+	roomId     string
 	closed     bool
 	lock       sync.Mutex
+	connSend   chan *pb.GameMessage
+	gameSend   chan *pb.GameMessage
+	roomSend   chan *pb.GameMessage
 	// 限流
-	pktCount int32
-	pktTime  int64
+	pktCount            int32
+	pktTime             int64
+	etcdGatewayGrpcAddr string
 }
 
-var (
-	sessionMap = make(map[net.Conn]*Session)
-	sessLock   sync.RWMutex
-)
-
-func NewSession(conn net.Conn) *Session {
+func NewSession(conn net.Conn, etcdGatewayGrpcAddr string) *Session {
 	sess := &Session{conn: conn}
-	sessLock.Lock()
-	sessionMap[conn] = sess
-	sessLock.Unlock()
+	sess.Init(etcdGatewayGrpcAddr)
+	gSessionManager.NewSession(sess, conn)
 	return sess
+}
+
+func (s *Session) Init(etcdGatewayGrpcAddr string) {
+	s.connSend = make(chan *pb.GameMessage, 400)
+	s.roomSend = make(chan *pb.GameMessage, 400)
+	s.gameSend = make(chan *pb.GameMessage, 400)
+	s.etcdGatewayGrpcAddr = etcdGatewayGrpcAddr
 }
 
 func (s *Session) Close() {
@@ -50,9 +62,11 @@ func (s *Session) Close() {
 		_ = s.gameStream.CloseSend()
 	}
 
-	sessLock.Lock()
-	delete(sessionMap, s.conn)
-	sessLock.Unlock()
+	gSessionManager.RemoveConn(s.conn)
+
+	close(s.connSend)
+	close(s.gameSend)
+	close(s.roomSend)
 }
 
 func (s *Session) SetOwner(UerId, PlayerId int64, serverId int32) {
@@ -61,13 +75,18 @@ func (s *Session) SetOwner(UerId, PlayerId int64, serverId int32) {
 	s.serverID = serverId
 }
 
-func (s *Session) NewSeq() uint32 {
+func (s *Session) newSeq() uint32 {
 	s.seq++
 	return s.seq
 }
 
-func (s *Session) SetStream(Stream pb.GameStreamService_StreamClient) {
+func (s *Session) SetGameStream(Stream pb.GameStreamService_StreamClient) {
 	s.gameStream = Stream
+}
+
+func (s *Session) SetRoomStream(Stream pb.RoomStreamService_StreamClient, roomId string) {
+	s.roomStream = Stream
+	s.roomId = roomId
 }
 
 func (s *Session) GetPlayerId() int64 {
@@ -86,4 +105,129 @@ func (s *Session) AllowPacket() bool {
 		return true
 	}
 	return atomic.AddInt32(&s.pktCount, 1) <= 50 // 每秒50包，防止攻击
+}
+
+func (s *Session) sendToConn(msg *pb.GameMessage) {
+	s.connSend <- msg
+}
+
+func (s *Session) AuthToGame() {
+	msg := pb.Req_AuthClientToGame{PlayerID: s.GetPlayerId(), ServerID: s.GetServerId(), GatewayAddr: s.etcdGatewayGrpcAddr}
+	msgBody, _ := proto.Marshal(&msg)
+	req := &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_AUTH), Body: msgBody}
+	err := s.gameStream.Send(req)
+	if err == nil {
+		logger.Log.Info("send auth success")
+	} else {
+		logger.Log.Error(err.Error())
+	}
+}
+
+func (s *Session) AuthToRoom() {
+	msg := pb.Req_AuthClientToRoom{PlayerID: s.GetPlayerId(), ServerID: s.GetServerId(), RoomId: s.roomId}
+	msgBody, _ := proto.Marshal(&msg)
+	req := &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_AUTH), Body: msgBody}
+	err := s.roomStream.Send(req)
+	if err == nil {
+		logger.Log.Info("send auth success")
+	} else {
+		logger.Log.Error(err.Error())
+	}
+}
+
+func (s *Session) RunGoRoutineToRecvFromConn() {
+	for {
+		packet, err := protocol.ReadPacketFromConn(s.conn)
+		if err != nil {
+			log.Printf("客户端断开: %v", err)
+			return
+		}
+		gameMessage := &pb.GameMessage{MsgId: uint32(packet.MsgID), Body: packet.Body}
+		s.switchToSelectStream(gameMessage)
+		packet.Release()
+	}
+}
+
+func (s *Session) switchToSelectStream(gameMessage *pb.GameMessage) {
+	msgId := pb.MsgID(gameMessage.GetMsgId())
+	if msgId >= pb.MsgID_MSG_GATEWAY_TO_SCENE && msgId < pb.MsgID_MSG_GATEWAY_TO_GAME {
+		s.roomSend <- gameMessage
+		return
+	}
+	s.gameSend <- gameMessage
+	return
+}
+
+func (s *Session) RunGoRoutineToSendToConn() {
+	for !s.closed {
+		select {
+		case msg, ok := <-s.connSend:
+			if !ok {
+				return
+			}
+			err := protocol.WritePacketToConn(s.conn, pb.MsgID(msg.MsgId), s.newSeq(), msg.Body)
+			if err != nil {
+				log.Printf("write to conn error: %v", err)
+				s.Close()
+				return
+			}
+		}
+	}
+}
+
+// RunGoRoutineToRecvFromGame 游戏服 → 网关 → 客户端
+func (s *Session) RunGoRoutineToRecvFromGame() {
+	for !s.closed {
+		pkt, err := s.gameStream.Recv()
+		if err != nil {
+			log.Printf("游戏服流断开: %v", err)
+			s.Close()
+			return
+		}
+		s.sendToConn(pkt)
+	}
+}
+
+// RunGoRoutineToSendToGame 客户端 → 网关 → 游戏服
+func (s *Session) RunGoRoutineToSendToGame() {
+	s.AuthToGame()
+	for !s.closed {
+		select {
+		case msg, ok := <-s.gameSend:
+			if !ok {
+				return
+			}
+			_ = s.gameStream.Send(&pb.GameMessage{
+				MsgId: msg.MsgId,
+				Body:  msg.Body,
+			})
+		}
+	}
+}
+
+func (s *Session) RunGoRoutineToSendToRoom() {
+	s.AuthToRoom()
+	for !s.closed {
+		select {
+		case msg, ok := <-s.roomSend:
+			if !ok {
+				return
+			}
+			_ = s.roomStream.Send(&pb.GameMessage{
+				MsgId: msg.MsgId,
+				Body:  msg.Body,
+			})
+		}
+	}
+}
+
+func (s *Session) RunGoRoutineToRecvFromRoom() {
+	for !s.closed {
+		pkt, err := s.roomStream.Recv()
+		if err != nil {
+			log.Printf("%d 房间服流断开: %v", s.playerID, err)
+			return
+		}
+		s.sendToConn(pkt)
+	}
 }

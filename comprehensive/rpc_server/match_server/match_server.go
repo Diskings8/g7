@@ -1,4 +1,4 @@
-package rpc_server
+package match_server
 
 import (
 	"context"
@@ -11,10 +11,16 @@ type MatchServer struct {
 }
 
 func (ms *MatchServer) StartMatch(_ctx context.Context, req *pb.Req_Node_NewMatch) (*pb.Rsp_Node_NewMatch, error) {
-	rsp := &pb.Rsp_Node_NewMatch{}
-	err := manager_system.GMatchManager.NewMatcher(req.GetPlayerId(), req.GetServerId())
-	if err != nil {
-		rsp.State = 0
+	rsp := &pb.Rsp_Node_NewMatch{
+		State: 1,
 	}
+	matcherInfo := manager_system.GMatchManager.NewMatcher(req.GetWaiter())
+	err := manager_system.GMatchManager.StarMatch(matcherInfo)
+	if err != nil {
+		rsp.State = 2
+		rsp.ErrReason = err.Error()
+		return rsp, nil
+	}
+	rsp.ExpectedWaitTime = 3 * 60
 	return rsp, nil
 }

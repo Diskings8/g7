@@ -37,6 +37,10 @@ func SetKey(key string, value []byte, cacheExpire time.Duration) error {
 	return rDB.Set(context.Background(), key, value, cacheExpire+time.Duration(rand.Intn(120))*time.Minute).Err()
 }
 
+func MGet(keys []string) ([]interface{}, error) {
+	return rDB.MGet(context.Background(), keys...).Result()
+}
+
 func TryLock(key string, expire time.Duration) bool {
 	ok, _ := rDB.SetNX(context.Background(), key, "true", expire).Result()
 	return ok

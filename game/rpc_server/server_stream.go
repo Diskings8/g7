@@ -2,7 +2,6 @@ package rpc_server
 
 import (
 	"context"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"g7/common/logger"
@@ -13,6 +12,8 @@ import (
 	"g7/game/handle_stream"
 	"g7/game/manager_game"
 	"g7/game/model_game"
+	"github.com/golang/protobuf/proto"
+	"log"
 	"sync/atomic"
 	"time"
 )
@@ -25,7 +26,7 @@ type GameStreamServer struct {
 
 // Stream 实现双向流方法
 func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err error) {
-	//log.Println("玩家流连接建立")
+	log.Println("玩家流连接建立")
 	var player *model_game.Player
 	_, StreamCancel := context.WithCancel(stream.Context())
 	streamId := s.NewSteamId()
@@ -38,6 +39,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			break
 		}
 		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_AUTH {
+			//logger.Log.Warn(fmt.Sprintf("%d,MsgID_MSG_AUTH", pkt.MsgId))
 			player = s.handleAuth(pkt.GetBody(), stream, streamId, StreamCancel)
 			continue
 		}
@@ -88,10 +90,11 @@ func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
 
 func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_StreamServer, streamId uint64, cancelFunc func()) (player *model_game.Player) {
 	req := pb.Req_AuthClientToGame{}
-	err := json.Unmarshal(data, &req)
+	err := proto.Unmarshal(data, &req)
 	if err != nil {
 		return nil
 	}
+	//logger.Log.Info(fmt.Sprintf("gateway grpcAddr:%+v", req.GatewayAddr))
 
 	// 重连
 	if val := global_game.GPlayerMaps.GetPlayer(req.GetPlayerID()); val != nil {
@@ -99,6 +102,7 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		player.StreamId = streamId
 
 		player.StreamConn = stream
+		player.RoomData.GateWayAddr = req.GetGatewayAddr()
 		player.StreamCancelFunc = cancelFunc
 		player.IsOnline = true
 		player.OfflineAt = time.Time{}
@@ -126,6 +130,7 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 	player = playerDao.TomSimplePlayer()
 	manager_game.NewPlayerBase(player, stream, cancelFunc)
 	player.StreamId = streamId
+	player.RoomData.GateWayAddr = req.GetGatewayAddr()
 	manager_game.GISystemManager.LoadData(playerDao, player)
 	player.GoalData.SetCallBackSystem(manager_game.GGoalSystemManager)
 	global_game.GPlayerMaps.SetPlayer(player.PlayerId, player)

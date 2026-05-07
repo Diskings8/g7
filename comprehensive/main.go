@@ -11,10 +11,15 @@ import (
 	"g7/common/protos/pb"
 	"g7/common/redisx"
 	"g7/comprehensive/manager_system"
-	"g7/comprehensive/rpc_server"
+	"g7/comprehensive/rpc_server/match_server"
+	"g7/comprehensive/rpc_server/room_server"
+	"g7/comprehensive/rpc_server/roommanager_server"
 	"google.golang.org/grpc"
 	"net"
 	"os"
+	"os/signal"
+	"sync"
+	"syscall"
 )
 
 func main() {
@@ -42,19 +47,22 @@ func main() {
 	// 注册etcd
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
 	etcd.GEtcdConfUpdateCenter.LoadAndWatchConfig()
-	var etcdMatchAddr, etcdRoomManagerAddr string
+	var etcdMatchAddr, etcdRoomManagerAddr, etcdRoomAddr string
 	if globals.IsContainerDocker() {
 		globals.InstanceId = os.Getenv("POD_NAME")
 		podIP := os.Getenv("POD_IP")
 		etcdMatchAddr = fmt.Sprintf("%s%s", podIP, configx.GEnvCfg.Comprehensive.Match)
 		etcdRoomManagerAddr = fmt.Sprintf("%s%s", podIP, configx.GEnvCfg.Comprehensive.RoomManager)
+		etcdRoomAddr = fmt.Sprintf("%s%s", podIP, configx.GEnvCfg.Comprehensive.Room)
 	} else {
 		globals.InstanceId = "1"
 		etcdMatchAddr = fmt.Sprintf("%s%s", "", configx.GEnvCfg.Comprehensive.Match)
 		etcdRoomManagerAddr = fmt.Sprintf("%s%s", "", configx.GEnvCfg.Comprehensive.RoomManager)
+		etcdRoomAddr = fmt.Sprintf("%s%s", "", configx.GEnvCfg.Comprehensive.Room)
 	}
 	etcd.RegisterMatchNodeRpc(globals.InstanceId, etcdMatchAddr)
 	etcd.RegisterRoomManagerNodeRpc(globals.InstanceId, etcdRoomManagerAddr)
+	etcd.RegisterRoomNodeRpc(globals.InstanceId, etcdRoomAddr)
 
 	//初始化定时器
 	cronx.InitCron()
@@ -62,14 +70,76 @@ func main() {
 	//初始化管理系
 	manager_system.GMatchManager.Init()
 
-	// 注册grpc服务
-	s := grpc.NewServer()
-	pb.RegisterMatchNodeServiceServer(s, &rpc_server.MatchServer{})
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	wg := sync.WaitGroup{}
 
+	// 注册grpc服务
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := runMatchServer(); err != nil {
+			logger.Log.Error(fmt.Sprintf("Match server error: %v", err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := runRoomManagerServer(); err != nil {
+			logger.Log.Error(fmt.Sprintf("RoomManager server error: %v", err))
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+		if err := runRoomServer(); err != nil {
+			logger.Log.Error(fmt.Sprintf("Room server error: %v", err))
+		}
+	}()
+
+	wg.Wait()
+	logger.Log.Info("所有服务已退出，进程结束")
+}
+
+func runMatchServer() error {
+	s := grpc.NewServer()
+	pb.RegisterMatchNodeServiceServer(s, &match_server.MatchServer{})
 	var serverAddr string
 	serverAddr = configx.GEnvCfg.Comprehensive.Match
-	logger.Log.Info(fmt.Sprintf("公共服启动绑定%s：%s", globals.Container, serverAddr))
+	logger.Log.Info(fmt.Sprintf("公共服%s启动绑定%s：%s", "runMatchServer", globals.Container, serverAddr))
 
 	lis, _ := net.Listen("tcp", serverAddr)
-	_ = s.Serve(lis)
+	return s.Serve(lis)
+}
+
+func runRoomManagerServer() error {
+	s := grpc.NewServer()
+
+	var serverAddr string
+	serverAddr = configx.GEnvCfg.Comprehensive.RoomManager
+	logger.Log.Info(fmt.Sprintf("公共服%s启动绑定%s：%s", "runRoomManagerServer", globals.Container, serverAddr))
+
+	roommanager_server.GRoomManagerServer.Init()
+	pb.RegisterRoomManagerNodeServiceServer(s, roommanager_server.GRoomManagerServer)
+
+	lis, _ := net.Listen("tcp", serverAddr)
+	return s.Serve(lis)
+}
+
+func runRoomServer() error {
+	s := grpc.NewServer()
+
+	var serverAddr string
+	serverAddr = configx.GEnvCfg.Comprehensive.Room
+	logger.Log.Info(fmt.Sprintf("公共服%s启动绑定%s：%s", "runRoomServer", globals.Container, serverAddr))
+
+	room_server.GRoomMixServer.Init(serverAddr)
+	pb.RegisterRoomNodeServiceServer(s, room_server.GRoomMixServer)
+	pb.RegisterRoomStreamServiceServer(s, room_server.GRoomMixServer)
+
+	lis, _ := net.Listen("tcp", serverAddr)
+	return s.Serve(lis)
 }

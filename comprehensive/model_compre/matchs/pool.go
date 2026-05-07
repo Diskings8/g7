@@ -7,12 +7,6 @@ import (
 	"time"
 )
 
-// 分数索引项（用于快速范围查询）
-type RatingItem struct {
-	Rating   int
-	WaiterId string
-}
-
 // 优先队列（按进入时间排序，用于超时扩圈）
 type PriorityQueue []*WaitingInfo
 
@@ -32,12 +26,12 @@ func (pq *PriorityQueue) Pop() interface{} {
 type LocalMatchPool struct {
 	mu sync.RWMutex
 
-	// 玩家详情
+	// 匹配者详情
 	waiter map[string]*WaitingInfo
 
 	// 分数索引（有序列表，用于范围查询）
 	// 使用双向链表 + 跳表的思想，这里简化用数组 + 排序
-	ratingIndex []RatingItem
+	ratingIndex []WaitingItem
 
 	// 时间优先队列（用于扩圈扫描）
 	timeQueue PriorityQueue
@@ -49,27 +43,24 @@ type LocalMatchPool struct {
 func NewLocalMatchPool() *LocalMatchPool {
 	return &LocalMatchPool{
 		waiter:      make(map[string]*WaitingInfo),
-		ratingIndex: make([]RatingItem, 0),
+		ratingIndex: make([]WaitingItem, 0),
 		timeQueue:   make(PriorityQueue, 0),
 		dirty:       false,
 	}
 }
 
-// 添加玩家到匹配池
+// Add 添加匹配队伍到匹配池
 func (p *LocalMatchPool) Add(waiter *WaitingInfo) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
 
-	p.waiter[waiter.PlayerID] = waiter
-	p.ratingIndex = append(p.ratingIndex, RatingItem{
-		Rating:   waiter.Rating,
-		WaiterId: waiter.PlayerID,
-	})
+	p.waiter[waiter.TeamID] = waiter
+	p.ratingIndex = append(p.ratingIndex, waiter.ToWaitingItem())
 	heap.Push(&p.timeQueue, waiter)
 	p.dirty = true
 }
 
-// 移除玩家
+// 移除匹配者
 func (p *LocalMatchPool) Remove(waiterId string) *WaitingInfo {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -85,7 +76,7 @@ func (p *LocalMatchPool) Remove(waiterId string) *WaitingInfo {
 	return player
 }
 
-// 获取玩家信息
+// 获取匹配者信息
 func (p *LocalMatchPool) Get(waiterId string) *WaitingInfo {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
@@ -102,15 +93,15 @@ func (p *LocalMatchPool) GetAllWaiters() []*WaitingInfo {
 	return result
 }
 
-// 获取所有等待玩家数量
+// 获取所有等待匹配者数量
 func (p *LocalMatchPool) Size() int {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 	return len(p.waiter)
 }
 
-// 按分数范围查找候选玩家
-func (p *LocalMatchPool) FindByRatingRange(minRating, maxRating int, excludeID string, limit int) []string {
+// 按分数范围查找候选匹配者
+func (p *LocalMatchPool) FindByRatingRange(minRating, maxRating float64, excludeID string, limit int) []WaitingItem {
 	p.mu.RLock()
 	defer p.mu.RUnlock()
 
@@ -119,16 +110,16 @@ func (p *LocalMatchPool) FindByRatingRange(minRating, maxRating int, excludeID s
 		p.sortLocked()
 	}
 
-	result := make([]string, 0, limit)
+	result := make([]WaitingItem, 0, limit)
 	for _, item := range p.ratingIndex {
-		if item.Rating < minRating {
+		if item.Score < minRating {
 			continue
 		}
-		if item.Rating > maxRating {
+		if item.Score > maxRating {
 			break
 		}
-		if item.WaiterId != excludeID {
-			result = append(result, item.WaiterId)
+		if item.TeamID != excludeID {
+			result = append(result, item)
 			if len(result) >= limit {
 				break
 			}
@@ -137,7 +128,7 @@ func (p *LocalMatchPool) FindByRatingRange(minRating, maxRating int, excludeID s
 	return result
 }
 
-// 获取需要扩圈的玩家（进入时间超过当前扩圈等级的最大等待时间）
+// 获取需要扩圈的匹配者（进入时间超过当前扩圈等级的最大等待时间）
 func (p *LocalMatchPool) GetPlayersNeedExpand(now time.Time) []*WaitingInfo {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -165,7 +156,7 @@ func (p *LocalMatchPool) GetPlayersNeedExpand(now time.Time) []*WaitingInfo {
 	return result
 }
 
-// 更新玩家的扩圈等级
+// 更新匹配者的扩圈等级
 func (p *LocalMatchPool) UpdateExpandLevel(waiterId string, newLevel int) {
 	p.mu.Lock()
 	defer p.mu.Unlock()
@@ -184,16 +175,16 @@ func (p *LocalMatchPool) sortLocked() {
 	// 使用稳定排序，相同分数按时间（这里简化，按playerID保证确定性）
 	for i := 0; i < len(p.ratingIndex)-1; i++ {
 		for j := i + 1; j < len(p.ratingIndex); j++ {
-			if p.ratingIndex[i].Rating > p.ratingIndex[j].Rating {
+			if p.ratingIndex[i].Score > p.ratingIndex[j].Score {
 				p.ratingIndex[i], p.ratingIndex[j] = p.ratingIndex[j], p.ratingIndex[i]
 			}
 		}
 	}
 
-	// 清理已删除的玩家
-	valid := make([]RatingItem, 0, len(p.ratingIndex))
+	// 清理已删除的匹配者
+	valid := make([]WaitingItem, 0, len(p.ratingIndex))
 	for _, item := range p.ratingIndex {
-		if _, ok := p.waiter[item.WaiterId]; ok {
+		if _, ok := p.waiter[item.TeamID]; ok {
 			valid = append(valid, item)
 		}
 	}

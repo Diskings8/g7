@@ -93,6 +93,18 @@ func NewGameNodeStreamClient(addr string) (pb.GameStreamServiceClient, error) {
 	return client, nil
 }
 
+func NewRoomNodeStreamClient(addr string) (pb.RoomStreamServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := GetConn(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewRoomStreamServiceClient(conn)
+	return client, nil
+}
+
 func NewGatewayNodeClient(addr string) (pb.GatewayNodeServiceClient, error) {
 	// 1. 建立连接（单工不需要长流）
 	conn, err := GetConn(addr)
@@ -114,5 +126,29 @@ func NewMatchNodeClient(addr string) (pb.MatchNodeServiceClient, error) {
 
 	// 2. 创建单工客户端
 	client := pb.NewMatchNodeServiceClient(conn)
+	return client, nil
+}
+
+func NewRoomManagerNodeClient(addr string) (pb.RoomManagerNodeServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := GetConn(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewRoomManagerNodeServiceClient(conn)
+	return client, nil
+}
+
+func NewRoomNodeClient(addr string) (pb.RoomNodeServiceClient, error) {
+	// 1. 建立连接（单工不需要长流）
+	conn, err := GetConn(addr)
+	if err != nil {
+		return nil, err
+	}
+
+	// 2. 创建单工客户端
+	client := pb.NewRoomNodeServiceClient(conn)
 	return client, nil
 }

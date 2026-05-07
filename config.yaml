@@ -69,3 +69,4 @@ json_path:
 comprehensive:
   match: ":10085"
   room_manager: ":10086"
+  room: ":10087"

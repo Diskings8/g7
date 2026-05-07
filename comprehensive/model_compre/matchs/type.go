@@ -4,13 +4,14 @@ import (
 	"time"
 )
 
-var TeamCount = 2
+var competingTeamCount = 2
+var TeamSize = 1
 
 // 扩圈配置
 type ExpandConfig struct {
-	Level   int // 扩圈等级 0,1,2,3,4
-	Range   int // 分数范围 ±
-	MaxWait int // 最大等待秒数
+	Level   int     // 扩圈等级 0,1,2,3,4
+	Range   float64 // 分数范围 ±
+	MaxWait int     // 最大等待秒数
 }
 
 var DefaultExpandConfig = []ExpandConfig{
@@ -23,19 +24,34 @@ var DefaultExpandConfig = []ExpandConfig{
 
 // 等待玩家信息
 type WaitingInfo struct {
-	PlayerID    string
-	Rating      int       // 隐藏分
+	TeamID      string  // 队伍ID
+	Rating      float64 // 隐藏分
+	ConfId      int32
 	EnterTime   time.Time // 进入匹配时间
 	ExpandLevel int       // 当前扩圈等级
-	TeamID      string    // 队伍ID（组队时）
 	TeamSize    int       // 队伍人数
+	TeamLeader  string    // 队长
+	TeamMember  []string  // 队员
+}
+
+func (wi WaitingInfo) ToWaitingItem() WaitingItem {
+	return WaitingItem{
+		Score:       wi.Rating,
+		TeamMembers: wi.TeamMember,
+		TeamID:      wi.TeamID,
+	}
+}
+
+type WaitingItem struct {
+	TeamID      string // 队伍ID
+	TeamMembers []string
+	Score       float64
 }
 
 // 匹配结果
 type MatchResult struct {
-	RoomID  string   `json:"room_id"`
-	TeamA   []string `json:"team_a"`
-	TeamB   []string `json:"team_b"`
-	RatingA int      `json:"rating_a"`
-	RatingB int      `json:"rating_b"`
+	MatchID  string `json:"match_id"`
+	ConfId   int32
+	RoomType int32
+	Teams    []WaitingItem `json:"teams"`
 }

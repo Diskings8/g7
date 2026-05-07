@@ -5,6 +5,7 @@ const (
 	GatewayRpc     = "gateway_rpc"
 	GameRpc        = "game_rpc"
 	LoginRpc       = "login_rpc"
-	MatchNodeRpc   = "match_rpc"
+	MatchRpc       = "match_rpc"
 	RoomManagerRpc = "room_manager_rpc"
+	RoomRpc        = "room_rpc"
 )

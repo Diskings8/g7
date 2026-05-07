@@ -25,6 +25,9 @@ enum MsgID {
   MSG_GATEWAY_TO_GAME   = 20000; //
   MSG_Req_EnterGame = 20001;    // 进入游戏请求
   MSG_Rsp_EnterGame = 20002;    // 进入游戏返回
+  MSG_Req_StartMatch = 20011;
+  MSG_Rsp_StartMatch = 20012;
+  MSG_Notify_MatchSuccess = 20013;
 
   //
   MSG_Req_BagData = 21001;
@@ -33,4 +36,5 @@ enum MsgID {
   MSG_Req_CreateOrder = 21101;
   MSG_Rsp_CreateOrder = 21102;
   // 进入游戏
+
 }

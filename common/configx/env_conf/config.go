@@ -86,6 +86,7 @@ type JsonPath struct {
 type Comprehensive struct {
 	Match       string `yaml:"match"`
 	RoomManager string `yaml:"room_manager"`
+	Room        string `yaml:"room"`
 }
 
 type Config struct {

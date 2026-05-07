@@ -59,10 +59,10 @@ func (gm *GameMonitor) GetGameServerAddr(serverID, key string) (string, bool) {
 func (gm *GameMonitor) setGameServerAddr(serverID string, addr string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
-	// 检查是否已存在相同地址，避免重复
 	if _, ok := gm.cache[serverID]; !ok {
 		gm.cache[serverID] = NewHashRing()
 	}
+	// 检查是否已存在相同地址，避免重复
 	if gm.cache[serverID].HasKey(addr) {
 		return
 	}

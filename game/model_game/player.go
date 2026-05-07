@@ -15,6 +15,7 @@ type Player struct {
 	AllBagData  // 背包
 	AllMailData // 邮件
 	GoalData    // 目标数据
+	RoomData    // 房间数据
 	Trigger
 
 	// 行为日志
@@ -91,8 +92,6 @@ func (p *Player) RunSendMessageRoutine() {
 				return
 			}
 			_ = p.StreamConn.Send(&msg)
-		default:
-
 		}
 	}
 }

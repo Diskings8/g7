@@ -6,13 +6,16 @@ import (
 )
 
 type Matcher struct {
-	pool *LocalMatchPool
-	cb   func(result *MatchResult)
+	pool      *LocalMatchPool
+	matchType int32
+	confId    int32
+	cb        func(result *MatchResult)
 }
 
 func NewMatcher() *Matcher {
 	return &Matcher{
-		pool: NewLocalMatchPool(),
+		matchType: 1,
+		pool:      NewLocalMatchPool(),
 	}
 }
 
@@ -25,23 +28,15 @@ func (mm *Matcher) SetCallbackFunc(cb func(result *MatchResult)) {
 }
 
 // 添加玩家到匹配队列
-func (m *Matcher) Join(matcher string, rating int, teamID string, teamSize int) error {
-	fmt.Println("new matcher", matcher)
-	waiter := &WaitingInfo{
-		PlayerID:    matcher,
-		Rating:      rating,
-		EnterTime:   time.Now(),
-		ExpandLevel: 0,
-		TeamID:      teamID,
-		TeamSize:    teamSize,
-	}
-	m.pool.Add(waiter)
+func (m *Matcher) Join(waiter WaitingInfo) error {
+	//fmt.Println("new matcher team: ", waiter.TeamID)
+	m.pool.Add(&waiter)
 	return nil
 }
 
 // 取消匹配
-func (m *Matcher) Cancel(playerID string) {
-	m.pool.Remove(playerID)
+func (m *Matcher) Cancel(waiterId string) {
+	m.pool.Remove(waiterId)
 }
 
 // 尝试匹配（每次匹配尝试都调用）
@@ -49,6 +44,7 @@ func (m *Matcher) TryMatch() *MatchResult {
 	// 1. 先处理扩圈
 	m.processExpand()
 
+	TeamCount := m.getTeamCountByMatchType()
 	// 2. 获取所有等待玩家
 	if m.pool.Size() < TeamCount {
 		return nil // 不够10人
@@ -56,14 +52,23 @@ func (m *Matcher) TryMatch() *MatchResult {
 
 	// 3. 遍历等待队列，尝试匹配
 	// 这里简化：取第一个玩家作为锚点，尝试找9个队友
-	players := m.pool.GetAllWaiters() // 需要实现这个方法
-	for _, anchor := range players {
+	waiters := m.pool.GetAllWaiters() // 需要实现这个方法
+	for _, anchor := range waiters {
 		result := m.tryMatchForWaiter(anchor)
 		if result != nil {
 			return result
 		}
 	}
 	return nil
+}
+
+func (m *Matcher) getTeamCountByMatchType() int {
+	switch m.matchType {
+	case 1:
+		return 1
+	default:
+		return competingTeamCount
+	}
 }
 
 // 为指定玩家尝试匹配
@@ -73,57 +78,26 @@ func (m *Matcher) tryMatchForWaiter(anchor *WaitingInfo) *MatchResult {
 	maxRating := anchor.Rating + cfg.Range
 
 	// 查找候选
-	candidates := m.pool.FindByRatingRange(minRating, maxRating, anchor.PlayerID, 50)
-	if len(candidates) < (TeamCount - 1) {
+	candidates := m.pool.FindByRatingRange(minRating, maxRating, anchor.TeamID, 50)
+	waitCompetingTeamCount := m.getTeamCountByMatchType()
+	if len(candidates) < (waitCompetingTeamCount - 1) {
 		return nil // 候选不足
 	}
 
-	// 尝试组成10人队伍
-	team := m.buildBalancedTeam(append([]string{anchor.PlayerID}, candidates...))
-	if len(team) != TeamCount {
-		return nil
-	}
-
-	// 分成两队
-	teamA, teamB := m.splitTeams(team)
+	// 尝试组成队伍
+	teamCount := m.getTeamCountByMatchType()
+	teams := m.buildCompetingTeams(append([]WaitingItem{anchor.ToWaitingItem()}, candidates...), teamCount, 1)
 
 	return &MatchResult{
-		RoomID:  generateRoomID(),
-		TeamA:   teamA,
-		TeamB:   teamB,
-		RatingA: m.calcTeamRating(teamA),
-		RatingB: m.calcTeamRating(teamB),
+		MatchID:  generateMatchID(),
+		Teams:    teams,
+		RoomType: m.matchType,
+		ConfId:   m.confId,
 	}
 }
 
-// 构建平衡队伍（简单的贪心算法）
-func (m *Matcher) buildBalancedTeam(candidates []string) []string {
-	if len(candidates) < TeamCount {
-		return nil
-	}
-	// 简化：取前10个
-	return candidates[:TeamCount]
-}
-
-// 分成两队（尽量平衡）
-func (m *Matcher) splitTeams(players []string) ([]string, []string) {
-	// 按分数排序后，蛇形分配
-	// 简化：前5后5
-	return players[:TeamCount/2], players[TeamCount/2:]
-}
-
-// 计算队伍平均分
-func (m *Matcher) calcTeamRating(team []string) int {
-	total := 0
-	for _, pid := range team {
-		if waiter := m.pool.Get(pid); waiter != nil {
-			total += waiter.Rating
-		}
-	}
-	if len(team) == 0 {
-		return 0
-	}
-	return total / len(team)
+func (m *Matcher) buildCompetingTeams(items []WaitingItem, TeamCount, TeamSize int) []WaitingItem {
+	return items[:TeamCount]
 }
 
 // 处理扩圈
@@ -133,11 +107,11 @@ func (m *Matcher) processExpand() {
 	for _, waiter := range needExpand {
 		newLevel := waiter.ExpandLevel + 1
 		if newLevel < len(DefaultExpandConfig) {
-			m.pool.UpdateExpandLevel(waiter.PlayerID, newLevel)
+			m.pool.UpdateExpandLevel(waiter.TeamID, newLevel)
 		}
 	}
 }
 
-func generateRoomID() string {
-	return fmt.Sprintf("room_%d", time.Now().UnixNano())
+func generateMatchID() string {
+	return fmt.Sprintf("match_%d", time.Now().UnixNano())
 }

@@ -2,7 +2,6 @@ package general_system_game
 
 import (
 	"context"
-	"fmt"
 	"g7/common/etcd"
 	"g7/common/logger"
 	"g7/common/protocol"
@@ -10,6 +9,7 @@ import (
 	"g7/game/const_game"
 	"g7/game/manager_game"
 	"g7/game/model_game"
+	"time"
 )
 
 var GMatchSystem = &matchSystem{}
@@ -49,15 +49,17 @@ func (this *matchSystem) StartMatch(Player *model_game.Player) {
 		logger.Log.Error(err.Error())
 		return
 	}
-	rsp, err := cli.StartMatch(context.Background(), &pb.Req_Node_NewMatch{
-		PlayerId: Player.PlayerId,
-		ServerId: Player.ServerId,
-		Score:    1000,
-	})
+	waiter := pb.MatchWaiter{
+		TeamId:     time.Now().String(),
+		Score:      1000,
+		TeamLeader: Player.GetSeverAndPlayerId(),
+		TeamMember: []string{Player.GetSeverAndPlayerId()},
+	}
+	_, err = cli.StartMatch(context.Background(), &pb.Req_Node_NewMatch{Waiter: &waiter})
 	if err != nil {
 		logger.Log.Error(err.Error())
 		return
 	}
-	fmt.Println(rsp)
+	//fmt.Println(rsp)
 	return
 }

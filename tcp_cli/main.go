@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"flag"
 	"fmt"
 	"g7/common/cronx"
@@ -11,6 +12,7 @@ import (
 	"io"
 	"net"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/golang/protobuf/proto"
@@ -28,16 +30,13 @@ var cmdParms string
 func main() {
 	flag.StringVar(&cmdParms, "role", "1", "")
 	flag.Parse()
-	selectRole = utils.StringToInit32(cmdParms)
+	selectRole = utils.StringToInt32(cmdParms)
 	// 1. 连接网关
 	go runConnect()
 	time.Sleep(1 * time.Second)
 	fmt.Println("✅ 成功连接到 Gateway！:", SelectUse(selectRole).PlayerID)
 	cronx.InitCron()
-	firstMsg()
 	cronx.AddPer5SecondTask(heartbeat)
-
-	MakeMsgToSend(pb.MsgID_MSG_Req_EnterGame, &pb.Req_LoginGame{})
 
 	// 等待接收网关返回
 	//buf := make([]byte, 1024)
@@ -54,14 +53,19 @@ func runConnect() {
 		}
 
 	}
+	firstMsg()
+	time.Sleep(1 * time.Second)
+	MakeMsgToSend(pb.MsgID_MSG_Req_EnterGame, &pb.Req_LoginGame{})
+
 	for {
 		pkg, errx := protocol.ReadPacketFromConn(gConn)
-		if errx == io.EOF {
-			fmt.Println("网络断开")
+		if errx != nil {
+			if errors.Is(errx, io.EOF) {
+				fmt.Println("网络断开")
+			} else {
+				fmt.Println(errx.Error())
+			}
 			break
-		}
-		if pkg == nil {
-			continue
 		}
 		fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, string(pkg.Body))
 		pkg.Release()
@@ -109,6 +113,9 @@ func MakeMsgToSend(MsgId pb.MsgID, message proto.Message) (rsp any) {
 }
 
 func heartbeat() {
+	if gConn == nil {
+		return
+	}
 	_ = protocol.WritePacketToConn(gConn, pb.MsgID_MSG_HeartBeat, 0, []byte(""))
 	return
 }
@@ -119,7 +126,13 @@ func WaitWrite() {
 		fmt.Print("\n输入 指令：")
 		scanner.Scan()
 		key := scanner.Text()
-		fmt.Println(key)
-		MakeMsgToSend(pb.MsgID_MSG_GM_Cmd, &pb.Req_RunGm{Cmd: key})
+		if strings.HasPrefix(key, "gm") {
+			key = strings.TrimSpace(strings.Replace(key, "gm", "", 1))
+			fmt.Println(key)
+			MakeMsgToSend(pb.MsgID_MSG_GM_Cmd, &pb.Req_RunGm{Cmd: key})
+			continue
+		}
+		MakeMsgToSend(pb.MsgID_MSG_MOVE, &pb.Req_RunGm{Cmd: key})
+
 	}
 }

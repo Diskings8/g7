@@ -11,3 +11,16 @@ message Req_LoginGame {
 message Rsp_LoginGame{
   bool result = 1;  // 结果
 }
+
+
+message Req_StartMatch {
+}
+
+message Rsp_StartMatch{
+  bool result = 1;  // 结果
+}
+
+message Notify_MatchSuccess{
+  bool result = 1;  // 结果
+  string reason = 2;
+}

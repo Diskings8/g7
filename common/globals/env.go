@@ -2,11 +2,12 @@ package globals
 
 // Env 全局环境变量
 var (
-	Env        string // 开发环境
-	ServerId   string // 服务器id
-	InstanceId string // 实例
-	Container  string // 容器
-	Platform   string //
+	Env          string // 开发环境
+	ServerId     string // 服务器id
+	InstanceId   string // 实例
+	EtcdGrpcAddr string // 注册到etcd的地址
+	Container    string // 容器
+	Platform     string //
 )
 
 const (
@@ -53,4 +54,8 @@ func IsContainerDocker() bool {
 
 func GetServerInstance() string {
 	return ServerId + "_" + InstanceId
+}
+
+func GetEtcdAddr() string {
+	return EtcdGrpcAddr
 }

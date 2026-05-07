@@ -40,9 +40,9 @@ func (this *mailSystem) GetName() string {
 
 func (this *mailSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Player) {
 	Player.AllMailData = dao.GeneralD.MailData
-	if Player.AllMailData.CurBaseMailId <= this.curBaseId {
-		logger.Log.Info("base mail has changed")
-		go this.syncBaseMailToPlayer(16, this.curBaseId, Player.PlayerId)
+	if Player.AllMailData.CurBaseMailId < this.curBaseId {
+		//logger.Log.Info("base mail has changed")
+		go this.syncBaseMailToPlayer(Player.AllMailData.CurBaseMailId, this.curBaseId, Player.PlayerId)
 		Player.AllMailData.CurBaseMailId = this.curBaseId
 		// 数据库批量获取然后生成
 	}
@@ -50,9 +50,9 @@ func (this *mailSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.P
 }
 
 func (this *mailSystem) syncBaseMailToPlayer(srcId, tarId, playerId int64) {
-	//if tarId <= srcId {
-	//	return
-	//}
+	if tarId <= srcId {
+		return
+	}
 
 	// 构造过滤条件：双库通用（MySQL/Mongo都支持）
 	where := "id > ? AND id <= ? AND end_time > ?"
@@ -69,7 +69,7 @@ func (this *mailSystem) syncBaseMailToPlayer(srcId, tarId, playerId int64) {
 	for _, oneBaseMail := range baseMails {
 		oneMailObj := &model_common.PlayerMail{
 			Title:       oneBaseMail.Title,
-			ServerID:    utils.StringToInit32(globals.ServerId),
+			ServerID:    utils.StringToInt32(globals.ServerId),
 			Content:     oneBaseMail.Content,
 			Attachments: oneBaseMail.Attachments, // 附件JSON
 			HasAttach:   oneBaseMail.HasAttach,
@@ -83,7 +83,7 @@ func (this *mailSystem) syncBaseMailToPlayer(srcId, tarId, playerId int64) {
 	}
 	//fmt.Println("wait send len ", len(mailsToInsert))
 	if len(mailsToInsert) == 0 {
-		fmt.Println("mailsToInsert len == 0")
+		//fmt.Println("mailsToInsert len == 0")
 		return
 	}
 	err = global_game.GGameDB.BatchInsert(mailsToInsert)
@@ -185,7 +185,7 @@ func (this *mailSystem) BatchReceiveAttach(mailIDs []int64, Player *model_game.P
 func (this *mailSystem) SendDefaultSystemTypeMail(title, content string, attaches []model_common.Attachment, presetSendTimeStamp int64, expireHours int32, sender string) error {
 	deadlineTimeStamp := utils.FormatTimestamp(presetSendTimeStamp).Add(time.Hour * time.Duration(expireHours)).Unix()
 	baseMail := this.makeSystemMailBase(title, content, attaches, presetSendTimeStamp, deadlineTimeStamp, sender)
-	targetSeverId := utils.StringToInit64(globals.ServerId)
+	targetSeverId := utils.StringToInt64(globals.ServerId)
 	baseMail.TargetServerID = &targetSeverId
 	err := global_game.GGlobalDB.Insert(baseMail)
 	if err != nil {
@@ -236,7 +236,7 @@ func (this *mailSystem) RecvNode_NewBaseMail(nodeMsg *pb.Req_Node_NewBaseMail) {
 	for _, playerId := range playerIds {
 		oneMailObj := &model_common.PlayerMail{
 			Title:       baseMail.Title,
-			ServerID:    utils.StringToInit32(globals.ServerId),
+			ServerID:    utils.StringToInt32(globals.ServerId),
 			Content:     baseMail.Content,
 			Attachments: baseMail.Attachments, // 附件JSON
 			HasAttach:   baseMail.HasAttach,

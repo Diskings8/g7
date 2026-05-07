@@ -48,9 +48,11 @@ func getLoginRpcPrefix() string {
 	return "/" + globals.LoginRpc + "/"
 }
 
-func getMatchNodeRpcPrefix() string { return "/" + globals.MatchNodeRpc + "/" }
+func getMatchNodeRpcPrefix() string { return "/" + globals.MatchRpc + "/" }
 
-func getRoomManagerRpcPrefix() string { return "/" + globals.RoomManagerRpc + "/" }
+func GetRoomManagerRpcPrefix() string { return "/" + globals.RoomManagerRpc + "/" }
+
+func GetRoomRpcPrefix() string { return "/" + globals.RoomRpc + "/" }
 
 // RegisterGatewayTcp 注册网关
 func RegisterGatewayTcp(instance, addr string) {
@@ -69,7 +71,12 @@ func RegisterMatchNodeRpc(instance, addr string) {
 }
 
 func RegisterRoomManagerNodeRpc(instance, addr string) {
-	key := getRoomManagerRpcPrefix() + instance + "/" + addr
+	key := GetRoomManagerRpcPrefix() + instance + "/" + addr
+	registerWithLease(key, addr)
+}
+
+func RegisterRoomNodeRpc(instance, addr string) {
+	key := GetRoomRpcPrefix() + instance + "/" + addr
 	registerWithLease(key, addr)
 }
 
@@ -154,6 +161,19 @@ func GetGameServersByServerID(serverID string) ([]structs.KVString, error) {
 
 func GetMatchServersList() ([]structs.KVString, error) {
 	key := getMatchNodeRpcPrefix()
+	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
+	if err != nil {
+		return nil, err
+	}
+	var addrs []structs.KVString
+	for _, kv := range resp.Kvs {
+		addrs = append(addrs, structs.KVString{string(kv.Key), string(kv.Value)})
+	}
+	return addrs, nil
+}
+
+func GetRoomManagerServersList() ([]structs.KVString, error) {
+	key := GetRoomManagerRpcPrefix()
 	resp, err := etcdClient.Get(context.Background(), key, clientv3.WithPrefix())
 	if err != nil {
 		return nil, err

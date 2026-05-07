@@ -9,6 +9,7 @@ import (
 	"g7/common/snowflakes"
 	"g7/game/general_system_game"
 	"g7/game/global_game"
+	"g7/game/handle_grpc"
 	"g7/game/manager_game"
 	"g7/game/model_game"
 )
@@ -107,4 +108,10 @@ func (s *GameNodeServer) GenOrderItems() map[int32]int64 {
 func (s *GameNodeServer) NotifyNewBaseMail(_ctx context.Context, req *pb.Req_Node_NewBaseMail) (*pb.Rsp_Node_NewBaseMail, error) {
 	general_system_game.GMailSystem.RecvNode_NewBaseMail(req)
 	return &pb.Rsp_Node_NewBaseMail{}, nil
+}
+
+func (s *GameNodeServer) MatchNodeMatchSuccess(_ctx context.Context, req *pb.Req_Node_MatchSuccess) (*pb.Rsp_Node_MatchSuccess, error) {
+	//logger.Log.Warn(fmt.Sprintf("GameNodeServer.MatchNodeMatchSuccess req:%v", req))
+	handle_grpc.HandleMatchSuccess(req)
+	return &pb.Rsp_Node_MatchSuccess{State: 1}, nil
 }

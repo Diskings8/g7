@@ -35,8 +35,8 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 	case "add":
 		switch cmds[1] {
 		case "item":
-			k := utils.StringToInit32(cmds[2])
-			v := utils.StringToInit64(cmds[3])
+			k := utils.StringToInt32(cmds[2])
+			v := utils.StringToInt64(cmds[3])
 			general_system_game.GBagSystem.GainAndConsumption([]structs.KInt32VInt64Bind{{k, v, 1}}, nil, "gm add", player)
 		}
 	case "kick":
@@ -46,12 +46,12 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 	case "del":
 		switch cmds[1] {
 		case "item":
-			k := utils.StringToInit32(cmds[2])
-			v := utils.StringToInit64(cmds[3])
+			k := utils.StringToInt32(cmds[2])
+			v := utils.StringToInt64(cmds[3])
 			general_system_game.GBagSystem.GainAndConsumption(nil, []structs.KInt32VInt64Bind{{k, v, 0}}, "gm del", player)
 		}
 	case "pay":
-		k := utils.StringToInit32(cmds[1])
+		k := utils.StringToInt32(cmds[1])
 		d, _ := json.Marshal(&pb.Req_CreateOrder{ProductId: k})
 		r := general_system_game.GOrderSystem.CreateOrder(d, player)
 		if r != nil {
@@ -64,7 +64,7 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 	case "goal":
 		switch cmds[1] {
 		case "add":
-			k := utils.StringToInit32(cmds[2])
+			k := utils.StringToInt32(cmds[2])
 			g := general_system_game.GGoalSystem.DevNewGoal(k)
 			general_system_game.GGoalSystem.AddGoal(g, player)
 		case "trigger":

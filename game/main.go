@@ -25,6 +25,9 @@ import (
 	_ "g7/game/general_system_game"
 
 	"google.golang.org/grpc"
+
+	"net/http"
+	_ "net/http/pprof"
 )
 
 func main() {
@@ -43,6 +46,14 @@ func main() {
 	// 3、初始化日志
 	logger.Init()
 	logger.Log.Info(fmt.Sprintf("游戏服%s 启动中...", globals.ServerId))
+
+	go func() {
+		// 端口随便选，不和你的服务冲突即可 比如 6060 / 9876
+		err := http.ListenAndServe("0.0.0.0:6060", nil)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	//
 	_ = confs.ReloadAllConfig()
@@ -78,6 +89,7 @@ func main() {
 		etcdAddr = fmt.Sprintf("%s", configx.GEnvCfg.Server.Game)
 	}
 	etcd.RegisterGameRpc(globals.ServerId, globals.InstanceId, etcdAddr)
+	globals.EtcdGrpcAddr = etcdAddr
 
 	//全局对象初始化 init
 	global_game.GPlayerMaps.Init(redisx.GetClient())

@@ -215,5 +215,6 @@ func (this *playerMaps) DelRedisLoginKey(ps []*model_game.Player) {
 
 func (this *playerMaps) RegisterRedisLoginKey(p *model_game.Player) {
 	key := redisx.MakePlayerLoginKey(p.ServerId, p.PlayerId)
-	this.cli.Set(context.Background(), key, globals.GetServerInstance(), time.Hour*7*24)
+	loginVal := redisx.MakePlayerLoginValue(p.ServerId, p.PlayerId, globals.GetEtcdAddr())
+	this.cli.Set(context.Background(), key, loginVal, time.Hour*24*2)
 }

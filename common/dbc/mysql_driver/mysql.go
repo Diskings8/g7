@@ -3,7 +3,6 @@ package mysql_driver
 import (
 	"fmt"
 	"g7/common/dbc/dbc_interface"
-	"g7/common/globals"
 	"g7/common/model_common"
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
@@ -16,9 +15,9 @@ type MySQLDriver struct {
 }
 
 func (m *MySQLDriver) getDb() *gorm.DB {
-	if globals.IsDev() {
-		return m.db.Debug()
-	}
+	//if globals.IsDev() {
+	//	return m.db.Debug()
+	//}
 	return m.db
 }
 
