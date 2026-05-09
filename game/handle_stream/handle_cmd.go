@@ -55,7 +55,7 @@ func handleGmCmd(reqD []byte, player *model_game.Player) any {
 		d, _ := json.Marshal(&pb.Req_CreateOrder{ProductId: k})
 		r := general_system_game.GOrderSystem.CreateOrder(d, player)
 		if r != nil {
-			rsp.Ext = r.(*pb.Rsp_CreateOrder).OrderId
+			rsp.Ext = r.OrderId
 		}
 	case "mailAll":
 		general_system_game.GMailSystem.SendDefaultSystemTypeMail("test", "test content", []model_common.Attachment{{ItemID: 1032, Count: 1, Bind: 0}}, time.Now().Unix(), 3, "tester")

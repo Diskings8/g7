@@ -1,6 +1,7 @@
 package tcp_session
 
 import (
+	"fmt"
 	"g7/common/logger"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
@@ -108,7 +109,9 @@ func (s *Session) AllowPacket() bool {
 }
 
 func (s *Session) sendToConn(msg *pb.GameMessage) {
-	s.connSend <- msg
+	if s.connSend != nil {
+		s.connSend <- msg
+	}
 }
 
 func (s *Session) AuthToGame() {
@@ -177,6 +180,11 @@ func (s *Session) RunGoRoutineToSendToConn() {
 
 // RunGoRoutineToRecvFromGame 游戏服 → 网关 → 客户端
 func (s *Session) RunGoRoutineToRecvFromGame() {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Error(fmt.Sprintf("%v", e))
+		}
+	}()
 	for !s.closed {
 		pkt, err := s.gameStream.Recv()
 		if err != nil {
@@ -190,6 +198,11 @@ func (s *Session) RunGoRoutineToRecvFromGame() {
 
 // RunGoRoutineToSendToGame 客户端 → 网关 → 游戏服
 func (s *Session) RunGoRoutineToSendToGame() {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Error(fmt.Sprintf("%v", e))
+		}
+	}()
 	s.AuthToGame()
 	for !s.closed {
 		select {
@@ -206,6 +219,11 @@ func (s *Session) RunGoRoutineToSendToGame() {
 }
 
 func (s *Session) RunGoRoutineToSendToRoom() {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Error(fmt.Sprintf("%v", e))
+		}
+	}()
 	s.AuthToRoom()
 	for !s.closed {
 		select {
@@ -222,6 +240,11 @@ func (s *Session) RunGoRoutineToSendToRoom() {
 }
 
 func (s *Session) RunGoRoutineToRecvFromRoom() {
+	defer func() {
+		if e := recover(); e != nil {
+			logger.Log.Error(fmt.Sprintf("%v", e))
+		}
+	}()
 	for !s.closed {
 		pkt, err := s.roomStream.Recv()
 		if err != nil {

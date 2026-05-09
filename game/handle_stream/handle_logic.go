@@ -15,14 +15,18 @@ func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp an
 		rsp = handleMsgCreateOrder(data, player)
 	case pb.MsgID_MSG_GM_Cmd:
 		rsp = handleGmCmd(data, player)
+	case pb.MsgID_MSG_Req_EnterScene:
+		rsp = handleMsgEnterScene(data, player)
 	}
 	return
 }
 
 func handleMsgEnterGame(req []byte, player *model_game.Player) (rsp any) {
 
-	manager_game.GResetSystemManager.AllReset(player)
-	manager_game.GISystemManager.OnEnterGame(player)
+	player.RunInActor(func() {
+		manager_game.GResetSystemManager.AllReset(player)
+		manager_game.GISystemManager.OnEnterGame(player)
+	})
 
 	rsp = &pb.Rsp_LoginGame{Result: true}
 	return
@@ -30,4 +34,8 @@ func handleMsgEnterGame(req []byte, player *model_game.Player) (rsp any) {
 
 func handleMsgCreateOrder(req []byte, player *model_game.Player) (rsp any) {
 	return general_system_game.GOrderSystem.CreateOrder(req, player)
+}
+
+func handleMsgEnterScene(req []byte, player *model_game.Player) (rsp any) {
+	return general_system_game.GBattleSystem.ReqToEnterScene(req, player)
 }

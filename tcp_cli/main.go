@@ -132,7 +132,13 @@ func WaitWrite() {
 			MakeMsgToSend(pb.MsgID_MSG_GM_Cmd, &pb.Req_RunGm{Cmd: key})
 			continue
 		}
-		MakeMsgToSend(pb.MsgID_MSG_MOVE, &pb.Req_RunGm{Cmd: key})
+		keyI := utils.StringToInt32(key)
+		switch keyI {
+		case 1:
+			MakeMsgToSend(pb.MsgID_MSG_Req_EnterScene, &pb.Req_EnterRoom{})
+		case 2:
+			MakeMsgToSend(pb.MsgID_MSG_MOVE, &pb.Action_Move{X: 1, Y: 0, Z: 0})
+		}
 
 	}
 }

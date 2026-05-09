@@ -24,3 +24,20 @@ message Notify_MatchSuccess{
   bool result = 1;  // 结果
   string reason = 2;
 }
+
+message Req_EnterRoom {
+
+}
+
+message Rsp_EnterRoom{
+  bool result = 1;  // 结果
+}
+
+
+message Req_QuitRoom {
+
+}
+
+message Rsp_QuitRoom{
+  bool result = 1;  // 结果
+}

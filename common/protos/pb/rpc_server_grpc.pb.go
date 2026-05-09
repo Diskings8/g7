@@ -692,6 +692,8 @@ var RoomManagerNodeService_ServiceDesc = grpc.ServiceDesc{
 
 const (
 	RoomNodeService_CreateRoom_FullMethodName = "/game.RoomNodeService/CreateRoom"
+	RoomNodeService_EnterRoom_FullMethodName  = "/game.RoomNodeService/EnterRoom"
+	RoomNodeService_QuitRoom_FullMethodName   = "/game.RoomNodeService/QuitRoom"
 )
 
 // RoomNodeServiceClient is the client API for RoomNodeService service.
@@ -699,6 +701,8 @@ const (
 // For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
 type RoomNodeServiceClient interface {
 	CreateRoom(ctx context.Context, in *Req_Node_CreateRoom, opts ...grpc.CallOption) (*Rsp_Node_CreateRoom, error)
+	EnterRoom(ctx context.Context, in *Req_Node_EnterRoom, opts ...grpc.CallOption) (*Rsp_Node_EnterRoom, error)
+	QuitRoom(ctx context.Context, in *Req_Node_QuitRoom, opts ...grpc.CallOption) (*Rsp_Node_QuitRoom, error)
 }
 
 type roomNodeServiceClient struct {
@@ -718,11 +722,31 @@ func (c *roomNodeServiceClient) CreateRoom(ctx context.Context, in *Req_Node_Cre
 	return out, nil
 }
 
+func (c *roomNodeServiceClient) EnterRoom(ctx context.Context, in *Req_Node_EnterRoom, opts ...grpc.CallOption) (*Rsp_Node_EnterRoom, error) {
+	out := new(Rsp_Node_EnterRoom)
+	err := c.cc.Invoke(ctx, RoomNodeService_EnterRoom_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *roomNodeServiceClient) QuitRoom(ctx context.Context, in *Req_Node_QuitRoom, opts ...grpc.CallOption) (*Rsp_Node_QuitRoom, error) {
+	out := new(Rsp_Node_QuitRoom)
+	err := c.cc.Invoke(ctx, RoomNodeService_QuitRoom_FullMethodName, in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
 // RoomNodeServiceServer is the server API for RoomNodeService service.
 // All implementations must embed UnimplementedRoomNodeServiceServer
 // for forward compatibility
 type RoomNodeServiceServer interface {
 	CreateRoom(context.Context, *Req_Node_CreateRoom) (*Rsp_Node_CreateRoom, error)
+	EnterRoom(context.Context, *Req_Node_EnterRoom) (*Rsp_Node_EnterRoom, error)
+	QuitRoom(context.Context, *Req_Node_QuitRoom) (*Rsp_Node_QuitRoom, error)
 	mustEmbedUnimplementedRoomNodeServiceServer()
 }
 
@@ -732,6 +756,12 @@ type UnimplementedRoomNodeServiceServer struct {
 
 func (UnimplementedRoomNodeServiceServer) CreateRoom(context.Context, *Req_Node_CreateRoom) (*Rsp_Node_CreateRoom, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method CreateRoom not implemented")
+}
+func (UnimplementedRoomNodeServiceServer) EnterRoom(context.Context, *Req_Node_EnterRoom) (*Rsp_Node_EnterRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method EnterRoom not implemented")
+}
+func (UnimplementedRoomNodeServiceServer) QuitRoom(context.Context, *Req_Node_QuitRoom) (*Rsp_Node_QuitRoom, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method QuitRoom not implemented")
 }
 func (UnimplementedRoomNodeServiceServer) mustEmbedUnimplementedRoomNodeServiceServer() {}
 
@@ -764,6 +794,42 @@ func _RoomNodeService_CreateRoom_Handler(srv interface{}, ctx context.Context, d
 	return interceptor(ctx, in, info, handler)
 }
 
+func _RoomNodeService_EnterRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_EnterRoom)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoomNodeServiceServer).EnterRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoomNodeService_EnterRoom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoomNodeServiceServer).EnterRoom(ctx, req.(*Req_Node_EnterRoom))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _RoomNodeService_QuitRoom_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(Req_Node_QuitRoom)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(RoomNodeServiceServer).QuitRoom(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: RoomNodeService_QuitRoom_FullMethodName,
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(RoomNodeServiceServer).QuitRoom(ctx, req.(*Req_Node_QuitRoom))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
 // RoomNodeService_ServiceDesc is the grpc.ServiceDesc for RoomNodeService service.
 // It's only intended for direct use with grpc.RegisterService,
 // and not to be introspected or modified (even as a copy)
@@ -774,6 +840,14 @@ var RoomNodeService_ServiceDesc = grpc.ServiceDesc{
 		{
 			MethodName: "CreateRoom",
 			Handler:    _RoomNodeService_CreateRoom_Handler,
+		},
+		{
+			MethodName: "EnterRoom",
+			Handler:    _RoomNodeService_EnterRoom_Handler,
+		},
+		{
+			MethodName: "QuitRoom",
+			Handler:    _RoomNodeService_QuitRoom_Handler,
 		},
 	},
 	Streams:  []grpc.StreamDesc{},

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"g7/common/logger"
+	"g7/common/model_common"
 	"g7/common/mqc/mq_topic"
 	"g7/common/protos/pb"
 	"g7/game/db_game"
@@ -54,23 +55,27 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			logger.Log.Warn(fmt.Sprintf("%d,another conn login", player.PlayerId))
 			break
 		}
-		//logger.Log.Info(fmt.Sprintf("%s", pb.MsgID(pkt.MsgId)))
-		// 这里写你的游戏逻辑：根据 msg_id 处理 body
+
+		var allowFlag bool
 		player.RunInActor(func() {
 			if !s.isAllow(player) {
 				logger.Log.Info(fmt.Sprintf("%d not allow", player.PlayerId))
+				allowFlag = true
 				return
 			}
 			// 更新心跳
 			player.LastHearBeatTime = time.Now()
-			// 处理逻辑
-			rsp := s.handleGameMessageLogic(pb.MsgID(pkt.MsgId), pkt.Body, player)
-			if rsp != nil {
-				player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
-			}
-			//处理mq日志
-			s.handleGameMQCreate(player)
 		})
+		if allowFlag {
+			continue
+		}
+		// 处理逻辑
+		rsp := s.handleGameMessageLogic(pb.MsgID(pkt.MsgId), pkt.Body, player)
+		if rsp != nil {
+			player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
+		}
+		//处理mq日志
+		s.handleGameMQCreate(player)
 	}
 	StreamCancel()
 
@@ -82,8 +87,12 @@ func (s *GameStreamServer) handleGameMessageLogic(msgID pb.MsgID, data []byte, p
 }
 
 func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
-	valL := player.GetAllActionLogs()
-	for _, v := range valL {
+	var RunLogs []*model_common.ActionLog
+	RunLogs = player.GetAllActionLogs()
+	if len(RunLogs) == 0 {
+		return
+	}
+	for _, v := range RunLogs {
 		global_game.GGlobalMQ.ProduceMessage(mq_topic.MakeGameActionTopicKey(), v)
 	}
 }

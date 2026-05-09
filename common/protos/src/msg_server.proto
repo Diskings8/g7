@@ -3,7 +3,7 @@ syntax = "proto3";
 package game;
 option go_package = "./pb";
 
-
+import "src/msg_common.proto";
 
 message Req_Node_CreatePlayer{
   int64 userID =  1;
@@ -108,5 +108,24 @@ message Req_Node_MakeConnToRoom{
 }
 
 message Rsp_Node_MakeConnToRoom{
+  int32 state = 1;
+}
+
+message Req_Node_EnterRoom{
+  int64 playerId = 1;
+  string roomId = 2;
+  BattleActor actor = 3;
+}
+
+message Rsp_Node_EnterRoom{
+  int32 state = 1;
+}
+
+message Req_Node_QuitRoom{
+  int64 playerId = 1;
+  string roomId = 2;
+}
+
+message Rsp_Node_QuitRoom{
   int32 state = 1;
 }

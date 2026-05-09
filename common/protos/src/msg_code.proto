@@ -19,7 +19,8 @@ enum MsgID {
 
   // 网关 <-> 场景服
   MSG_GATEWAY_TO_SCENE  = 11000; //
-  MSG_MOVE      = 11001;
+  MSG_World_NineGridsSnapshot      = 11001; // 9宫格快照
+  MSG_Actor_Move        = 12001;
 
   // 游戏业务 start from 20000
   MSG_GATEWAY_TO_GAME   = 20000; //
@@ -28,6 +29,10 @@ enum MsgID {
   MSG_Req_StartMatch = 20011;
   MSG_Rsp_StartMatch = 20012;
   MSG_Notify_MatchSuccess = 20013;
+  MSG_Req_EnterScene = 20015;
+  MSG_Rsp_EnterScene = 20016;
+  MSG_Req_QuitScene = 20017;
+  MSG_Rsp_QuitScene = 20018;
 
   //
   MSG_Req_BagData = 21001;

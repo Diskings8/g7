@@ -2,9 +2,8 @@ package rooms
 
 import (
 	"context"
-	"fmt"
-	"g7/common/logger"
 	"g7/common/protos/pb"
+	"g7/comprehensive/model_compre/battle/actors"
 	"g7/comprehensive/model_compre/battle/world"
 	"sync"
 	"time"
@@ -17,7 +16,7 @@ type PlayAction struct {
 
 type Room struct {
 	mu            sync.RWMutex
-	roomId        string
+	RoomId        string
 	players       map[int64]*PlayerStream
 	members       []string
 	inputChan     chan PlayAction
@@ -28,14 +27,13 @@ type Room struct {
 
 func NewRoom(confId int32, roomId string, members []string) *Room {
 	r := &Room{
-		roomId:        roomId,
+		RoomId:        roomId,
 		players:       make(map[int64]*PlayerStream),
 		members:       members,
 		inputChan:     make(chan PlayAction, 2000),
 		pendingInputs: make([]PlayAction, 0, 2000),
-		world:         world.NewWorld(),
 	}
-	r.world.Start()
+	r.world = world.NewWorld(r)
 	return r
 }
 
@@ -63,8 +61,14 @@ func (r *Room) RemovePlayer(playerId int64) {
 	}
 }
 
+func (r *Room) EnterPlayerActor(playerId int64, actorInfo *pb.BattleActor) {
+	worldActor := actors.NewPlayerActor(playerId, actorInfo)
+	r.world.AddActor(&worldActor)
+}
+
 func (r *Room) Start(ctx context.Context) {
-	logger.Log.Info(fmt.Sprintf("%s room start", r.roomId))
+	ticker := time.NewTicker(r.tickRate) // 50ms
+	defer ticker.Stop()
 	for {
 		select {
 		case msg, ok := <-r.inputChan:
@@ -72,6 +76,8 @@ func (r *Room) Start(ctx context.Context) {
 				return
 			}
 			r.world.PushInput(msg.PlayerId, msg.Action)
+		case <-ticker.C:
+			r.update() //
 		case <-ctx.Done():
 			// 房间被主动关闭，做好清理
 			r.shutdown()
@@ -89,7 +95,7 @@ func (r *Room) shutdown() {
 	close(r.inputChan)
 }
 
-func (r *Room) broadcast(msg *pb.GameMessage) {
+func (r *Room) Broadcast(msg *pb.GameMessage) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 	for _, session := range r.players {
@@ -101,5 +107,28 @@ func (r *Room) broadcast(msg *pb.GameMessage) {
 }
 
 func (r *Room) close() {
-	r.world.Stop()
+
+}
+
+func (r *Room) shouldSend(playerId int64, msg *pb.GameMessage) bool {
+	// todo 后续可以添加msg.data的hash码对比
+	return true
+}
+
+func (r *Room) update() {
+	// 推动下一跳
+	r.world.Tick(r.tickRate)
+
+	//各个角色的9宫格广播
+	r.mu.RLock()
+	defer r.mu.RUnlock()
+	for playerID, session := range r.players {
+		msg := r.world.GetViewSnapshot(playerID)
+		if msg != nil && r.shouldSend(playerID, msg) {
+			select {
+			case session.send <- msg:
+			default:
+			}
+		}
+	}
 }

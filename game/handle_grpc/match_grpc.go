@@ -2,7 +2,6 @@ package handle_grpc
 
 import (
 	"context"
-	"fmt"
 	"g7/common/logger"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
@@ -16,7 +15,7 @@ func HandleMatchSuccess(req *pb.Req_Node_MatchSuccess) {
 		playerIdStr := redisx.GetPlayerLoginValueIndex(v, redisx.RedisPlayerLoginValIndexPlayerId)
 		playerId := utils.StringToInt64(playerIdStr)
 		player := global_game.GPlayerMaps.GetPlayer(playerId)
-		logger.Log.Info(fmt.Sprintf("HandleMatchSuccess:%+v", req))
+		//logger.Log.Info(fmt.Sprintf("HandleMatchSuccess:%+v", req))
 		// todo
 		player.RunInActor(func() {
 			player.RoomData.RoomId = req.RoomId

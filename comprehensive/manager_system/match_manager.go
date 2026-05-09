@@ -118,7 +118,7 @@ func (mm *matchManager) callBackFunc(result *matchs.MatchResult) {
 	}
 	//创建房间
 	createRoomRsp := mm.authorityCreateRoom(result, memberLoginKeys)
-	logger.Log.Info(fmt.Sprintf("authorityCreateRoom:resp:%+v", createRoomRsp))
+	//logger.Log.Info(fmt.Sprintf("authorityCreateRoom:resp:%+v", createRoomRsp))
 
 	var serverMap = make(map[string][]string)
 	var allMemberLoginVals = make([]string, 0, 6)

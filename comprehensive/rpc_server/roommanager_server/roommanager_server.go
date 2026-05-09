@@ -47,7 +47,7 @@ func (rms *RoomManagerServer) AuthorityCreateRoom(_ctx context.Context, req *pb.
 		rsp.State = 2
 		return rsp, nil
 	}
-	logger.Log.Warn(fmt.Sprintf("RoomManagerServer.AuthorityCreateRoom:%+v", rspNode))
+	//logger.Log.Warn(fmt.Sprintf("RoomManagerServer.AuthorityCreateRoom:%+v", rspNode))
 	rsp.RoomId = rspNode.RoomId
 	rsp.RoomAddr = rspNode.RoomAddr
 	return rsp, nil

@@ -22,6 +22,7 @@ func NewPlayerStream(playerId int64, stream pb.RoomStreamService_StreamServer, r
 }
 
 func (ps *PlayerStream) Recv(msg *pb.GameMessage) {
+	//logger.Log.Info(fmt.Sprintf("recv player:%v", msg))
 	select {
 	case ps.room.inputChan <- PlayAction{PlayerId: ps.playerId, Action: msg}:
 	case <-ps.stop:

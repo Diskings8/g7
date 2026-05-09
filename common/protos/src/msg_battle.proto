@@ -1,0 +1,22 @@
+syntax = "proto3";
+
+package game;
+option go_package = "./pb";
+
+
+message Action_Move{
+  double x = 1;
+  double y = 2;
+  double z = 3;
+}
+
+message ActorState{
+  int64  actorId = 1;
+  Action_Move move = 2;
+  bool isMove = 3;
+}
+
+message WorldSnapshot{
+  uint32  frameId = 1;
+  repeated ActorState actorStates = 2;
+}

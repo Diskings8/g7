@@ -245,6 +245,176 @@ func (x *Notify_MatchSuccess) GetReason() string {
 	return ""
 }
 
+type Req_EnterRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Req_EnterRoom) Reset() {
+	*x = Req_EnterRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[5]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_EnterRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_EnterRoom) ProtoMessage() {}
+
+func (x *Req_EnterRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[5]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_EnterRoom.ProtoReflect.Descriptor instead.
+func (*Req_EnterRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{5}
+}
+
+type Rsp_EnterRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result bool `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"` // 结果
+}
+
+func (x *Rsp_EnterRoom) Reset() {
+	*x = Rsp_EnterRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[6]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_EnterRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_EnterRoom) ProtoMessage() {}
+
+func (x *Rsp_EnterRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[6]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_EnterRoom.ProtoReflect.Descriptor instead.
+func (*Rsp_EnterRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{6}
+}
+
+func (x *Rsp_EnterRoom) GetResult() bool {
+	if x != nil {
+		return x.Result
+	}
+	return false
+}
+
+type Req_QuitRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+}
+
+func (x *Req_QuitRoom) Reset() {
+	*x = Req_QuitRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[7]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Req_QuitRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Req_QuitRoom) ProtoMessage() {}
+
+func (x *Req_QuitRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[7]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Req_QuitRoom.ProtoReflect.Descriptor instead.
+func (*Req_QuitRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{7}
+}
+
+type Rsp_QuitRoom struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
+
+	Result bool `protobuf:"varint,1,opt,name=result,proto3" json:"result,omitempty"` // 结果
+}
+
+func (x *Rsp_QuitRoom) Reset() {
+	*x = Rsp_QuitRoom{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_src_msg_player_proto_msgTypes[8]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *Rsp_QuitRoom) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Rsp_QuitRoom) ProtoMessage() {}
+
+func (x *Rsp_QuitRoom) ProtoReflect() protoreflect.Message {
+	mi := &file_src_msg_player_proto_msgTypes[8]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Rsp_QuitRoom.ProtoReflect.Descriptor instead.
+func (*Rsp_QuitRoom) Descriptor() ([]byte, []int) {
+	return file_src_msg_player_proto_rawDescGZIP(), []int{8}
+}
+
+func (x *Rsp_QuitRoom) GetResult() bool {
+	if x != nil {
+		return x.Result
+	}
+	return false
+}
+
 var File_src_msg_player_proto protoreflect.FileDescriptor
 
 var file_src_msg_player_proto_rawDesc = []byte{
@@ -261,8 +431,15 @@ var file_src_msg_player_proto_rawDesc = []byte{
 	0x63, 0x68, 0x53, 0x75, 0x63, 0x63, 0x65, 0x73, 0x73, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x73,
 	0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c,
 	0x74, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x18, 0x02, 0x20, 0x01, 0x28,
-	0x09, 0x52, 0x06, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70,
-	0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	0x09, 0x52, 0x06, 0x72, 0x65, 0x61, 0x73, 0x6f, 0x6e, 0x22, 0x0f, 0x0a, 0x0d, 0x52, 0x65, 0x71,
+	0x5f, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x52, 0x6f, 0x6f, 0x6d, 0x22, 0x27, 0x0a, 0x0d, 0x52, 0x73,
+	0x70, 0x5f, 0x45, 0x6e, 0x74, 0x65, 0x72, 0x52, 0x6f, 0x6f, 0x6d, 0x12, 0x16, 0x0a, 0x06, 0x72,
+	0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20, 0x01, 0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73,
+	0x75, 0x6c, 0x74, 0x22, 0x0e, 0x0a, 0x0c, 0x52, 0x65, 0x71, 0x5f, 0x51, 0x75, 0x69, 0x74, 0x52,
+	0x6f, 0x6f, 0x6d, 0x22, 0x26, 0x0a, 0x0c, 0x52, 0x73, 0x70, 0x5f, 0x51, 0x75, 0x69, 0x74, 0x52,
+	0x6f, 0x6f, 0x6d, 0x12, 0x16, 0x0a, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x18, 0x01, 0x20,
+	0x01, 0x28, 0x08, 0x52, 0x06, 0x72, 0x65, 0x73, 0x75, 0x6c, 0x74, 0x42, 0x06, 0x5a, 0x04, 0x2e,
+	0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
@@ -277,13 +454,17 @@ func file_src_msg_player_proto_rawDescGZIP() []byte {
 	return file_src_msg_player_proto_rawDescData
 }
 
-var file_src_msg_player_proto_msgTypes = make([]protoimpl.MessageInfo, 5)
+var file_src_msg_player_proto_msgTypes = make([]protoimpl.MessageInfo, 9)
 var file_src_msg_player_proto_goTypes = []interface{}{
 	(*Req_LoginGame)(nil),       // 0: game.Req_LoginGame
 	(*Rsp_LoginGame)(nil),       // 1: game.Rsp_LoginGame
 	(*Req_StartMatch)(nil),      // 2: game.Req_StartMatch
 	(*Rsp_StartMatch)(nil),      // 3: game.Rsp_StartMatch
 	(*Notify_MatchSuccess)(nil), // 4: game.Notify_MatchSuccess
+	(*Req_EnterRoom)(nil),       // 5: game.Req_EnterRoom
+	(*Rsp_EnterRoom)(nil),       // 6: game.Rsp_EnterRoom
+	(*Req_QuitRoom)(nil),        // 7: game.Req_QuitRoom
+	(*Rsp_QuitRoom)(nil),        // 8: game.Rsp_QuitRoom
 }
 var file_src_msg_player_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
@@ -359,6 +540,54 @@ func file_src_msg_player_proto_init() {
 				return nil
 			}
 		}
+		file_src_msg_player_proto_msgTypes[5].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_EnterRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_player_proto_msgTypes[6].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_EnterRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_player_proto_msgTypes[7].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Req_QuitRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_src_msg_player_proto_msgTypes[8].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*Rsp_QuitRoom); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -366,7 +595,7 @@ func file_src_msg_player_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: file_src_msg_player_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   5,
+			NumMessages:   9,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

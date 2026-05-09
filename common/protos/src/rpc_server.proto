@@ -37,6 +37,8 @@ service RoomManagerNodeService {
 
 service RoomNodeService {
   rpc CreateRoom(Req_Node_CreateRoom) returns (Rsp_Node_CreateRoom);
+  rpc EnterRoom(Req_Node_EnterRoom) returns (Rsp_Node_EnterRoom);
+  rpc QuitRoom(Req_Node_QuitRoom) returns (Rsp_Node_QuitRoom);
 }
 service RoomStreamService {
   rpc Stream(stream GameMessage) returns (stream GameMessage) {}

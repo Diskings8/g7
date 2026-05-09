@@ -8,3 +8,10 @@ const (
 )
 
 type ActorType int32
+
+const (
+	ActorTypePlayer ActorType = iota + 10
+)
+const (
+	ActorTypeMonster ActorType = iota + 100
+)

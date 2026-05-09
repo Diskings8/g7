@@ -19,7 +19,35 @@ func (rms *RoomMixServer) CreateRoom(_ctx context.Context, req *pb.Req_Node_Crea
 		RoomAddr: rms.etcdAddr,
 	}
 	room := rooms.NewRoom(req.GetConfId(), roomId, req.GetMatchMember())
-	rms.roomMaps[roomId] = room
-	go room.Start()
+	rms.AddRoom(room)
+	go room.Start(context.Background())
+	return rsp, nil
+}
+
+func (rms *RoomMixServer) EnterRoom(_ctx context.Context, req *pb.Req_Node_EnterRoom) (*pb.Rsp_Node_EnterRoom, error) {
+	roomId := req.GetRoomId()
+	rsp := &pb.Rsp_Node_EnterRoom{
+		State: 1,
+	}
+	room, ok := rms.GetRoom(roomId)
+	if !ok {
+		rsp.State = 2
+		return rsp, nil
+	}
+	room.EnterPlayerActor(req.GetPlayerId(), req.GetActor())
+	return rsp, nil
+}
+
+func (rms *RoomMixServer) QuitRoom(_ctx context.Context, req *pb.Req_Node_QuitRoom) (*pb.Rsp_Node_QuitRoom, error) {
+	roomId := req.GetRoomId()
+	rsp := &pb.Rsp_Node_QuitRoom{
+		State: 1,
+	}
+	room, ok := rms.GetRoom(roomId)
+	if !ok {
+		rsp.State = 2
+		return rsp, nil
+	}
+	room.RemovePlayer(req.GetPlayerId())
 	return rsp, nil
 }

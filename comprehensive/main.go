@@ -18,7 +18,6 @@ import (
 	"net"
 	"os"
 	"os/signal"
-	"sync"
 	"syscall"
 )
 
@@ -72,39 +71,36 @@ func main() {
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
-	wg := sync.WaitGroup{}
 
 	// 注册grpc服务
+	var (
+		matchServer   *grpc.Server
+		roomMgrServer *grpc.Server
+		roomServer    *grpc.Server
+	)
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := runMatchServer(); err != nil {
-			logger.Log.Error(fmt.Sprintf("Match server error: %v", err))
-		}
-	}()
+	matchServer = runMatchServer()
+	roomMgrServer = runRoomManagerServer()
+	roomServer = runRoomServer()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := runRoomManagerServer(); err != nil {
-			logger.Log.Error(fmt.Sprintf("RoomManager server error: %v", err))
-		}
-	}()
+	<-sigChan
+	logger.Log.Info("收到退出信号，开始关闭服务...")
+	if roomServer != nil {
+		roomServer.GracefulStop()
 
-	wg.Add(1)
-	go func() {
-		defer wg.Done()
-		if err := runRoomServer(); err != nil {
-			logger.Log.Error(fmt.Sprintf("Room server error: %v", err))
-		}
-	}()
+	}
+	if roomMgrServer != nil {
+		roomMgrServer.GracefulStop()
 
-	wg.Wait()
+	}
+	if matchServer != nil {
+		matchServer.GracefulStop()
+		
+	}
 	logger.Log.Info("所有服务已退出，进程结束")
 }
 
-func runMatchServer() error {
+func runMatchServer() *grpc.Server {
 	s := grpc.NewServer()
 	pb.RegisterMatchNodeServiceServer(s, &match_server.MatchServer{})
 	var serverAddr string
@@ -112,10 +108,15 @@ func runMatchServer() error {
 	logger.Log.Info(fmt.Sprintf("公共服%s启动绑定%s：%s", "runMatchServer", globals.Container, serverAddr))
 
 	lis, _ := net.Listen("tcp", serverAddr)
-	return s.Serve(lis)
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			logger.Log.Error(fmt.Sprintf("runMatchServer server error: %v", err))
+		}
+	}()
+	return s
 }
 
-func runRoomManagerServer() error {
+func runRoomManagerServer() *grpc.Server {
 	s := grpc.NewServer()
 
 	var serverAddr string
@@ -126,10 +127,15 @@ func runRoomManagerServer() error {
 	pb.RegisterRoomManagerNodeServiceServer(s, roommanager_server.GRoomManagerServer)
 
 	lis, _ := net.Listen("tcp", serverAddr)
-	return s.Serve(lis)
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			logger.Log.Error(fmt.Sprintf("runRoomManagerServer server error: %v", err))
+		}
+	}()
+	return s
 }
 
-func runRoomServer() error {
+func runRoomServer() *grpc.Server {
 	s := grpc.NewServer()
 
 	var serverAddr string
@@ -141,5 +147,10 @@ func runRoomServer() error {
 	pb.RegisterRoomStreamServiceServer(s, room_server.GRoomMixServer)
 
 	lis, _ := net.Listen("tcp", serverAddr)
-	return s.Serve(lis)
+	go func() {
+		if err := s.Serve(lis); err != nil {
+			logger.Log.Error(fmt.Sprintf("Room server error: %v", err))
+		}
+	}()
+	return s
 }

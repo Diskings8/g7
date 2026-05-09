@@ -1,17 +1,20 @@
 package actors
 
 import (
-	"g7/comprehensive/model_compre/battle/world"
-	"time"
+	"g7/common/protos/pb"
+	"g7/comprehensive/model_compre/battle"
+	"g7/comprehensive/model_compre/battle/common_battle"
 )
 
 type PlayerActor struct {
 	Actor
+	BattleInfo *pb.BattleActor
 }
 
-func (p *PlayerActor) HandleInput(input *any, world *world.World) {
-}
-
-func (p *PlayerActor) Update(delta time.Duration, world *world.World) {
-
+func NewPlayerActor(actorId int64, battleInfo *pb.BattleActor) PlayerActor {
+	pa := PlayerActor{
+		BattleInfo: battleInfo,
+	}
+	pa.Actor = NewActor(actorId, battle.ActorTypePlayer, common_battle.Vector3D{})
+	return pa
 }

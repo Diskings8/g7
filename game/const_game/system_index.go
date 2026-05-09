@@ -11,4 +11,5 @@ const (
 	General_MailSystem
 	General_RankSystem
 	General_MatchSystem
+	General_BattleSystem
 )

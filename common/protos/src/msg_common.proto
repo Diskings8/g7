@@ -12,3 +12,8 @@ message KvInt32Int64  {
   int32  key    = 1;  // k
   int64  value  = 2;  //v
 }
+
+message BattleActor{
+  int64 actorId = 1;
+  string name = 2;
+}
