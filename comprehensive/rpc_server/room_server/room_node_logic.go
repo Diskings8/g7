@@ -11,12 +11,17 @@ func (rms *RoomMixServer) Init(etcdAddr string) {
 	rms.roomMaps = make(map[string]*rooms.Room)
 }
 
-func (rms *RoomMixServer) CreateRoom(_ctx context.Context, req *pb.Req_Node_CreateRoom) (*pb.Rsp_Node_CreateRoom, error) {
+func (rms *RoomMixServer) CreateRoom(_ctx context.Context, req *pb.Req_Node_CreateRoom) (rsp *pb.Rsp_Node_CreateRoom, e error) {
 	roomId := req.GetMatchId()
-	rsp := &pb.Rsp_Node_CreateRoom{
+	//logger.Log.Info(roomId)
+	rsp = &pb.Rsp_Node_CreateRoom{
 		RoomId:   roomId,
 		State:    1,
 		RoomAddr: rms.etcdAddr,
+	}
+	_, ok := rms.GetRoom(roomId)
+	if ok {
+		return
 	}
 	room := rooms.NewRoom(req.GetConfId(), roomId, req.GetMatchMember())
 	rms.AddRoom(room)

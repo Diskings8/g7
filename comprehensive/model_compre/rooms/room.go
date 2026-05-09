@@ -5,6 +5,7 @@ import (
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle/actors"
 	"g7/comprehensive/model_compre/battle/world"
+	"github.com/golang/protobuf/proto"
 	"sync"
 	"time"
 )
@@ -17,7 +18,7 @@ type PlayAction struct {
 type Room struct {
 	mu            sync.RWMutex
 	RoomId        string
-	players       map[int64]*PlayerStream
+	players       map[int64]*RoomPlayerData
 	members       []string
 	inputChan     chan PlayAction
 	tickRate      time.Duration // e.g. 50 * time.Millisecond
@@ -28,10 +29,11 @@ type Room struct {
 func NewRoom(confId int32, roomId string, members []string) *Room {
 	r := &Room{
 		RoomId:        roomId,
-		players:       make(map[int64]*PlayerStream),
+		players:       make(map[int64]*RoomPlayerData),
 		members:       members,
 		inputChan:     make(chan PlayAction, 2000),
 		pendingInputs: make([]PlayAction, 0, 2000),
+		tickRate:      50 * time.Millisecond,
 	}
 	r.world = world.NewWorld(r)
 	return r
@@ -39,15 +41,15 @@ func NewRoom(confId int32, roomId string, members []string) *Room {
 
 func (r *Room) GetPlayerStream(playerId int64) (*PlayerStream, bool) {
 	val, ok := r.players[playerId]
-	return val, ok
+	return val.Ps, ok
 }
 
 func (r *Room) SetPlayerStream(playerId int64, stream pb.RoomStreamService_StreamServer) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
-	ps := NewPlayerStream(playerId, stream, r)
-	r.players[playerId] = ps
-	go ps.RunSendRoutine()
+	rpd := NewRoomPlayerData(playerId, stream, r)
+	r.players[playerId] = rpd
+	go rpd.Ps.RunSendRoutine()
 	return
 }
 
@@ -88,8 +90,8 @@ func (r *Room) Start(ctx context.Context) {
 
 func (r *Room) shutdown() {
 	r.mu.Lock()
-	for _, session := range r.players {
-		session.Quit()
+	for _, rpd := range r.players {
+		rpd.Ps.Quit()
 	}
 	r.mu.Unlock()
 	close(r.inputChan)
@@ -98,9 +100,9 @@ func (r *Room) shutdown() {
 func (r *Room) Broadcast(msg *pb.GameMessage) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
-	for _, session := range r.players {
+	for _, rpd := range r.players {
 		select {
-		case session.send <- msg:
+		case rpd.Ps.send <- msg:
 		default: // 发送失败或通道满，跳过
 		}
 	}
@@ -115,20 +117,50 @@ func (r *Room) shouldSend(playerId int64, msg *pb.GameMessage) bool {
 	return true
 }
 
+func (r *Room) marshalGameMessage(MsgId pb.MsgID, data proto.Message) *pb.GameMessage {
+	d, _ := proto.Marshal(data)
+	return &pb.GameMessage{MsgId: uint32(MsgId), Body: d}
+}
+
+func (r *Room) calcNineGirdsView() {
+	r.mu.RLock()
+	players := make(map[int64]*RoomPlayerData, len(r.players))
+	for k, v := range r.players {
+		players[k] = v
+	}
+	r.mu.RUnlock()
+	for playerID, rpd := range players {
+		currentView := r.world.GetNineGridsViewActors(playerID)
+		var enterList []int64  // 新进入
+		var leaveList []int64  // 离开（可以不发，或发个 Leave 事件）
+		var updateList []int64 // 留在视野内且变脏的
+		lastView := rpd.GetLastView()
+
+		enterList, updateList, leaveList = r.world.GetDirtyActorsInView(currentView, lastView)
+		// 无变化直接跳过
+		if len(enterList) == 0 && len(updateList) == 0 && len(leaveList) == 0 {
+			continue
+		}
+
+		snap := r.world.NewWorldSnapshot(enterList, updateList, leaveList)
+		msg := r.marshalGameMessage(pb.MsgID_MSG_World_NineGridsSnapshot, snap)
+		select {
+		case rpd.Ps.send <- msg:
+		default:
+		}
+		rpd.SetLastView(currentView)
+	}
+}
+
 func (r *Room) update() {
 	// 推动下一跳
 	r.world.Tick(r.tickRate)
 
+	defer func() {
+		// 清除本帧标记
+		r.world.ClearDirtyFlags()
+	}()
+
 	//各个角色的9宫格广播
-	r.mu.RLock()
-	defer r.mu.RUnlock()
-	for playerID, session := range r.players {
-		msg := r.world.GetViewSnapshot(playerID)
-		if msg != nil && r.shouldSend(playerID, msg) {
-			select {
-			case session.send <- msg:
-			default:
-			}
-		}
-	}
+	r.calcNineGirdsView()
 }

@@ -18,5 +18,7 @@ message ActorState{
 
 message WorldSnapshot{
   uint32  frameId = 1;
-  repeated ActorState actorStates = 2;
+  repeated ActorState enterList  = 2;
+  repeated ActorState updateList   = 3;
+  repeated int64 leaveList = 4;
 }

@@ -110,6 +110,7 @@ func (a *Actor) doMove(delta time.Duration) {
 		a.isMoving = false
 		return
 	}
+	a.dirty = true
 
 	// 3D 距离
 	dist := math.Sqrt(distSq)

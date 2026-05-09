@@ -67,13 +67,25 @@ func runConnect() {
 			}
 			break
 		}
-		fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, string(pkg.Body))
+		switchUnMarshal(pkg)
 		pkg.Release()
 	}
 	gConn.Close()
 	gConn = nil
 	time.Sleep(3 * time.Second)
 	runConnect()
+}
+
+func switchUnMarshal(pkg *protocol.Packet) {
+	var data proto.Message
+	switch pkg.MsgID {
+	case pb.MsgID_MSG_World_NineGridsSnapshot:
+		data = &pb.WorldSnapshot{}
+	default:
+		return
+	}
+	proto.Unmarshal(pkg.Body, data)
+	fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, data.String())
 }
 
 func MyData() *pb.Req_AuthClientToGateWay {
@@ -137,7 +149,7 @@ func WaitWrite() {
 		case 1:
 			MakeMsgToSend(pb.MsgID_MSG_Req_EnterScene, &pb.Req_EnterRoom{})
 		case 2:
-			MakeMsgToSend(pb.MsgID_MSG_MOVE, &pb.Action_Move{X: 1, Y: 0, Z: 0})
+			MakeMsgToSend(pb.MsgID_MSG_Actor_Move, &pb.Action_Move{X: 1, Y: 0, Z: 0})
 		}
 
 	}

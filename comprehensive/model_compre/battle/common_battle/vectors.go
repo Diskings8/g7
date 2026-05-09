@@ -9,10 +9,6 @@ type Vector3D struct {
 	Z float64
 }
 
-func (v3d *Vector3D) GetXY2D() (x, y int32) {
-	return v3d.X, v3d.Y
-}
-
 func (v3d *Vector3D) ToProto() *pb.Action_Move {
 	return &pb.Action_Move{X: v3d.X, Y: v3d.Y, Z: v3d.Z}
 }

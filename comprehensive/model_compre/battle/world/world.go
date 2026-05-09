@@ -6,7 +6,6 @@ import (
 	"g7/comprehensive/model_compre/battle/actoractions"
 	"g7/comprehensive/model_compre/battle/grids"
 	"g7/comprehensive/model_compre/battle/interfaces"
-	"github.com/golang/protobuf/proto"
 	"sync"
 	"sync/atomic"
 )
@@ -46,6 +45,50 @@ func (w *World) RemoveActor(actorID int64) {
 	delete(w.actors, actorID)
 }
 
+func (w *World) GetDirtyActorsInView(currentView map[int64]struct{}, lastView map[int64]struct{}) (enter, update, leave []int64) {
+	if currentView == nil {
+		return nil, nil, nil
+	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for id := range currentView {
+		if _, ok := lastView[id]; ok {
+			if x := w.actors[id]; x != nil && x.IsDirty() {
+				update = append(update, id)
+			}
+		} else {
+			enter = append(enter, id) // 新进入
+		}
+	}
+	for id := range lastView {
+		if _, ok := currentView[id]; !ok {
+			leave = append(leave, id)
+		}
+	}
+	return
+}
+
+func (w *World) NewWorldSnapshot(enterList, updateList, leaveList []int64) (result *pb.WorldSnapshot) {
+	result = &pb.WorldSnapshot{FrameId: w.frameID, LeaveList: leaveList}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, oneActorId := range enterList {
+		ac, ok := w.actors[oneActorId]
+		if !ok {
+			continue
+		}
+		result.EnterList = append(result.EnterList, ac.ToProto(true))
+	}
+	for _, oneActorId := range updateList {
+		ac, ok := w.actors[oneActorId]
+		if !ok {
+			continue
+		}
+		result.UpdateList = append(result.UpdateList, ac.ToProto(false))
+	}
+	return
+}
+
 func (w *World) PushInput(actorId int64, action *pb.GameMessage) {
 	select {
 	case w.actionsCh <- actoractions.ActorAction{ActorId: actorId, Action: action}:
@@ -55,31 +98,15 @@ func (w *World) PushInput(actorId int64, action *pb.GameMessage) {
 	}
 }
 
-func (w *World) GetSnapshot() (rsp *pb.GameMessage, ok bool) {
-	rsp = &pb.GameMessage{}
-	ok = true
-	snapshot := &pb.WorldSnapshot{
-		FrameId:     w.frameID,
-		ActorStates: []*pb.ActorState{},
-	}
+func (w *World) ClearDirtyFlags() {
 	w.mu.RLock()
+	defer w.mu.RUnlock()
 	for _, actor := range w.actors {
-		if !actor.IsDirty() {
-			continue
-		}
-		protoActor := actor.ToProto()
-		snapshot.ActorStates = append(snapshot.ActorStates, protoActor)
+		actor.ClearDirty()
 	}
-	w.mu.RUnlock()
-	if len(snapshot.ActorStates) == 0 {
-		ok = false
-	}
-	rsp.MsgId = uint32(pb.MsgID_MSG_World_NineGridsSnapshot)
-	rsp.Body, _ = proto.Marshal(snapshot)
-	return
 }
 
-func (w *World) GetViewSnapshot(playerId int64) (rsp *pb.GameMessage) {
+func (w *World) GetNineGridsViewActors(playerId int64) (viewActors map[int64]struct{}) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
@@ -90,19 +117,11 @@ func (w *World) GetViewSnapshot(playerId int64) (rsp *pb.GameMessage) {
 	}
 	gx, gy := w.gridMap.GridCoord(actor.Pos())
 	nGrids := w.gridMap.NineGrids(gx, gy)
-	inView := make(map[int64]struct{})
+	viewActors = make(map[int64]struct{})
 	for _, g := range nGrids {
 		for _, id := range w.gridMap.GetKeyActor(g) {
-			inView[id] = struct{}{}
+			viewActors[id] = struct{}{}
 		}
 	}
-	snap := &pb.WorldSnapshot{FrameId: w.frameID}
-	for id := range inView {
-		if a, ok := w.actors[id]; ok {
-			snap.ActorStates = append(snap.ActorStates, a.ToProto())
-		}
-	}
-	rsp = &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_World_NineGridsSnapshot)}
-	rsp.Body, _ = proto.Marshal(snap)
-	return rsp
+	return
 }

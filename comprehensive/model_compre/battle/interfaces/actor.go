@@ -12,7 +12,7 @@ type Actor interface {
 	ID() int64
 	Type() battle.ActorType // Player, Monster, etc.
 	Update(delta time.Duration, world World)
-	ToProto() *pb.ActorState
+	ToProto(bool) *pb.ActorState
 	IsDirty() bool
 	ClearDirty()
 	Pos() common_battle.Vector3D

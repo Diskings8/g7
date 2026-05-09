@@ -2,7 +2,7 @@ package actors
 
 import "g7/common/protos/pb"
 
-func (a *Actor) ToProto() *pb.ActorState {
+func (a *Actor) ToProto(isFull bool) *pb.ActorState {
 	result := &pb.ActorState{
 		ActorId: a.id,
 		IsMove:  a.isMoving,

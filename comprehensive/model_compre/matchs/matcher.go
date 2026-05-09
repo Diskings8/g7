@@ -15,6 +15,7 @@ type Matcher struct {
 func NewMatcher() *Matcher {
 	return &Matcher{
 		matchType: 1,
+		confId:    1,
 		pool:      NewLocalMatchPool(),
 	}
 }
@@ -89,7 +90,7 @@ func (m *Matcher) tryMatchForWaiter(anchor *WaitingInfo) *MatchResult {
 	teams := m.buildCompetingTeams(append([]WaitingItem{anchor.ToWaitingItem()}, candidates...), teamCount, 1)
 
 	return &MatchResult{
-		MatchID:  generateMatchID(),
+		MatchID:  m.generateMatchID(),
 		Teams:    teams,
 		RoomType: m.matchType,
 		ConfId:   m.confId,
@@ -112,6 +113,11 @@ func (m *Matcher) processExpand() {
 	}
 }
 
-func generateMatchID() string {
-	return fmt.Sprintf("match_%d", time.Now().UnixNano())
+func (m *Matcher) generateMatchID() string {
+	switch m.confId {
+	case 1:
+		return fmt.Sprintf("match_1")
+	default:
+		return fmt.Sprintf("match_%d", time.Now().UnixNano())
+	}
 }
