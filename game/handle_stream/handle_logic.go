@@ -5,9 +5,10 @@ import (
 	"g7/game/general_system_game"
 	"g7/game/manager_game"
 	"g7/game/model_game"
+	"github.com/golang/protobuf/proto"
 )
 
-func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp any) {
+func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp proto.Message) {
 	switch MsgId {
 	case pb.MsgID_MSG_Req_EnterGame:
 		rsp = handleMsgEnterGame(data, player)
@@ -21,7 +22,7 @@ func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp an
 	return
 }
 
-func handleMsgEnterGame(req []byte, player *model_game.Player) (rsp any) {
+func handleMsgEnterGame(req []byte, player *model_game.Player) (rsp proto.Message) {
 
 	player.RunInActor(func() {
 		manager_game.GResetSystemManager.AllReset(player)
@@ -32,10 +33,10 @@ func handleMsgEnterGame(req []byte, player *model_game.Player) (rsp any) {
 	return
 }
 
-func handleMsgCreateOrder(req []byte, player *model_game.Player) (rsp any) {
+func handleMsgCreateOrder(req []byte, player *model_game.Player) (rsp proto.Message) {
 	return general_system_game.GOrderSystem.CreateOrder(req, player)
 }
 
-func handleMsgEnterScene(req []byte, player *model_game.Player) (rsp any) {
+func handleMsgEnterScene(req []byte, player *model_game.Player) (rsp proto.Message) {
 	return general_system_game.GBattleSystem.ReqToEnterScene(req, player)
 }

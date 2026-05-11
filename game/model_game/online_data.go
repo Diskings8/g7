@@ -1,8 +1,9 @@
 package model_game
 
 import (
-	"encoding/json"
+	"g7/common/logger"
 	"g7/common/protos/pb"
+	"github.com/golang/protobuf/proto"
 	"time"
 )
 
@@ -23,8 +24,11 @@ type OnlineData struct {
 	LimitReqCount    int32
 }
 
-func (this *OnlineData) SendMessage(msgId pb.MsgID, data any) {
-	body, _ := json.Marshal(data)
+func (this *OnlineData) SendMessage(msgId pb.MsgID, data proto.Message) {
+	body, err := proto.Marshal(data)
+	if err != nil {
+		logger.Log.Error(err.Error())
+	}
 	this.RpcSendChan <- pb.GameMessage{MsgId: uint32(msgId), Body: body}
 }
 

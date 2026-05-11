@@ -91,6 +91,7 @@ func (p *Player) RunMainRoutine() {
 }
 
 func (p *Player) RunSendMessageRoutine() {
+	defer func() { recover() }()
 	for !p.IsChanClosed {
 		select {
 		case msg, ok := <-p.RpcSendChan:

@@ -72,7 +72,11 @@ func (gm *GameMonitor) setGameServerAddr(serverID string, addr string) {
 func (gm *GameMonitor) removeGameServerAddr(serverID string, addr string) {
 	gm.mu.Lock()
 	defer gm.mu.Unlock()
-	gm.cache[serverID].RemoveWorker(addr)
+	val, ok := gm.cache[serverID]
+	if ok {
+		val.RemoveWorker(addr)
+	}
+
 }
 
 // loadAllGameServers 启动时全量拉取已注册的 GameServer

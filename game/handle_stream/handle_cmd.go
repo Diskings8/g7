@@ -17,7 +17,7 @@ import (
 	"time"
 )
 
-func handleGmCmd(reqD []byte, player *model_game.Player) any {
+func handleGmCmd(reqD []byte, player *model_game.Player) proto.Message {
 	if globals.IsProd() {
 		return nil
 	}

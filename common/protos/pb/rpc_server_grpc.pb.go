@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.3.0
 // - protoc             v3.21.8
-// source: src/rpc_server.proto
+// source: rpc_server.proto
 
 package pb
 
@@ -137,7 +137,7 @@ var GameStreamService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -340,7 +340,7 @@ var GameNodeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -469,7 +469,7 @@ var GatewayNodeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -596,7 +596,7 @@ var MatchNodeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -687,7 +687,7 @@ var RoomManagerNodeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -851,7 +851,7 @@ var RoomNodeService_ServiceDesc = grpc.ServiceDesc{
 		},
 	},
 	Streams:  []grpc.StreamDesc{},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }
 
 const (
@@ -973,5 +973,5 @@ var RoomStreamService_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "src/rpc_server.proto",
+	Metadata: "rpc_server.proto",
 }

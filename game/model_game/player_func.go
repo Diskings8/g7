@@ -17,3 +17,13 @@ func (p *Player) ToBattleActor() *pb.BattleActor {
 	})
 	return battleActor
 }
+
+func (p *Player) ToClientInfo() *pb.GamePlayerInfo {
+	var gamePlayerInfo = &pb.GamePlayerInfo{}
+	p.RunInActor(func() {
+		gamePlayerInfo.PlayerId = p.PlayerId
+		gamePlayerInfo.ServrId = p.ServerId
+		gamePlayerInfo.NickName = p.Nickname
+	})
+	return gamePlayerInfo
+}

@@ -32,7 +32,7 @@ func HandleMatchSuccess(req *pb.Req_Node_MatchSuccess) {
 			logger.Log.Error(err.Error())
 			return
 		}
-		player.SendMessage(pb.MsgID_MSG_Notify_MatchSuccess, pb.Notify_MatchSuccess{Result: true, Reason: "匹配成功"})
+		player.SendMessage(pb.MsgID_MSG_Notify_MatchSuccess, &pb.Notify_MatchSuccess{Result: true, Reason: "匹配成功"})
 	}
 
 }

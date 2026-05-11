@@ -81,10 +81,16 @@ func switchUnMarshal(pkg *protocol.Packet) {
 	switch pkg.MsgID {
 	case pb.MsgID_MSG_World_NineGridsSnapshot:
 		data = &pb.WorldSnapshot{}
+	case pb.MsgID_MSG_AUTH:
+		data = &pb.Rsp_AuthClientToGateWay{}
 	default:
 		return
 	}
-	proto.Unmarshal(pkg.Body, data)
+	err := proto.Unmarshal(pkg.Body, data)
+	if err != nil {
+		fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, err)
+		return
+	}
 	fmt.Printf("\n网关返回：MsgId:%d, %s\n", pkg.MsgID, data.String())
 }
 

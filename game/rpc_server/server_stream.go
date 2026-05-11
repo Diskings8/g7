@@ -41,7 +41,9 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 		}
 		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_AUTH {
 			//logger.Log.Warn(fmt.Sprintf("%d,MsgID_MSG_AUTH", pkt.MsgId))
-			player = s.handleAuth(pkt.GetBody(), stream, streamId, StreamCancel)
+			var rsp *pb.Rsp_AuthClientToGateWay
+			player, rsp = s.handleAuth(pkt.GetBody(), stream, streamId, StreamCancel)
+			player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
 			continue
 		}
 
@@ -82,7 +84,7 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 	return nil
 }
 
-func (s *GameStreamServer) handleGameMessageLogic(msgID pb.MsgID, data []byte, player *model_game.Player) (rsp any) {
+func (s *GameStreamServer) handleGameMessageLogic(msgID pb.MsgID, data []byte, player *model_game.Player) (rsp proto.Message) {
 	return handle_stream.HandleLogic(msgID, data, player)
 }
 
@@ -97,11 +99,16 @@ func (s *GameStreamServer) handleGameMQCreate(player *model_game.Player) {
 	}
 }
 
-func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_StreamServer, streamId uint64, cancelFunc func()) (player *model_game.Player) {
+func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_StreamServer, streamId uint64, cancelFunc func()) (player *model_game.Player, rsp *pb.Rsp_AuthClientToGateWay) {
 	req := pb.Req_AuthClientToGame{}
 	err := proto.Unmarshal(data, &req)
+	rsp = &pb.Rsp_AuthClientToGateWay{
+		ErrCode: 200,
+	}
 	if err != nil {
-		return nil
+		rsp.ErrCode = 503
+		rsp.Reason = err.Error()
+		return nil, rsp
 	}
 	//logger.Log.Info(fmt.Sprintf("gateway grpcAddr:%+v", req.GatewayAddr))
 
@@ -115,24 +122,23 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		player.StreamCancelFunc = cancelFunc
 		player.IsOnline = true
 		player.OfflineAt = time.Time{}
+		rsp.PlayerInfo = player.ToClientInfo()
 		//logger.Log.Info(fmt.Sprintf("玩家 %d 重连成功", player.PlayerId))
 		return
 	}
 	// 新上线 从redis获取缓存加载
-	playerId := req.PlayerID
-	serverId := req.ServerID
-	playerDao, err := global_game.GPlayerCache.GetPlayerCache(serverId, playerId)
+	playerDao, err := global_game.GPlayerCache.GetPlayerCache(req.ServerID, req.PlayerID)
 	if err != nil {
 		//logger.Log.Info(fmt.Sprintf("玩家 %d Redis缓存加载失败，降级到MySQL: %v", playerId, err))
 		// 2.2 Redis加载失败，兜底从MySQL加载冷数据
-		playerDao, err = db_game.GetPlayerByID(playerId)
+		playerDao, err = db_game.GetPlayerByID(req.PlayerID)
 		if err != nil {
-			logger.Log.Info(fmt.Sprintf("玩家 %d MySQL加载失败: %v", playerId, err))
-			return nil
+			logger.Log.Info(fmt.Sprintf("玩家 %d MySQL加载失败: %v", req.PlayerID, err))
+			return
 		}
 		// 2.3 加载成功后，回填Redis（下次登录走缓存）
 		if err := global_game.GPlayerCache.SetPlayerCache(playerDao); err != nil {
-			logger.Log.Info(fmt.Sprintf("玩家 %d 回填Redis失败: %v", playerId, err))
+			logger.Log.Info(fmt.Sprintf("玩家 %d 回填Redis失败: %v", req.PlayerID, err))
 			// 这里不阻塞，不影响玩家登录，只打日志告警
 		}
 	}
@@ -146,7 +152,7 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 	global_game.GPlayerMaps.RegisterRedisLoginKey(player)
 	//
 	manager_game.OnLineRunning(player)
-
+	rsp.PlayerInfo = player.ToClientInfo()
 	return
 }
 

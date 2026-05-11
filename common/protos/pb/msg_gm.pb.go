@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.21.8
-// source: src/msg_gm.proto
+// source: msg_gm.proto
 
 package pb
 
@@ -31,7 +31,7 @@ type Req_RunGm struct {
 func (x *Req_RunGm) Reset() {
 	*x = Req_RunGm{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_msg_gm_proto_msgTypes[0]
+		mi := &file_msg_gm_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -44,7 +44,7 @@ func (x *Req_RunGm) String() string {
 func (*Req_RunGm) ProtoMessage() {}
 
 func (x *Req_RunGm) ProtoReflect() protoreflect.Message {
-	mi := &file_src_msg_gm_proto_msgTypes[0]
+	mi := &file_msg_gm_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -57,7 +57,7 @@ func (x *Req_RunGm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Req_RunGm.ProtoReflect.Descriptor instead.
 func (*Req_RunGm) Descriptor() ([]byte, []int) {
-	return file_src_msg_gm_proto_rawDescGZIP(), []int{0}
+	return file_msg_gm_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *Req_RunGm) GetCmd() string {
@@ -79,7 +79,7 @@ type Rsp_RunGm struct {
 func (x *Rsp_RunGm) Reset() {
 	*x = Rsp_RunGm{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_msg_gm_proto_msgTypes[1]
+		mi := &file_msg_gm_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -92,7 +92,7 @@ func (x *Rsp_RunGm) String() string {
 func (*Rsp_RunGm) ProtoMessage() {}
 
 func (x *Rsp_RunGm) ProtoReflect() protoreflect.Message {
-	mi := &file_src_msg_gm_proto_msgTypes[1]
+	mi := &file_msg_gm_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -105,7 +105,7 @@ func (x *Rsp_RunGm) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Rsp_RunGm.ProtoReflect.Descriptor instead.
 func (*Rsp_RunGm) Descriptor() ([]byte, []int) {
-	return file_src_msg_gm_proto_rawDescGZIP(), []int{1}
+	return file_msg_gm_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Rsp_RunGm) GetState() int32 {
@@ -122,37 +122,37 @@ func (x *Rsp_RunGm) GetExt() string {
 	return ""
 }
 
-var File_src_msg_gm_proto protoreflect.FileDescriptor
+var File_msg_gm_proto protoreflect.FileDescriptor
 
-var file_src_msg_gm_proto_rawDesc = []byte{
-	0x0a, 0x10, 0x73, 0x72, 0x63, 0x2f, 0x6d, 0x73, 0x67, 0x5f, 0x67, 0x6d, 0x2e, 0x70, 0x72, 0x6f,
-	0x74, 0x6f, 0x12, 0x04, 0x67, 0x61, 0x6d, 0x65, 0x22, 0x1d, 0x0a, 0x09, 0x52, 0x65, 0x71, 0x5f,
-	0x52, 0x75, 0x6e, 0x47, 0x6d, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x6d, 0x64, 0x18, 0x01, 0x20, 0x01,
-	0x28, 0x09, 0x52, 0x03, 0x63, 0x6d, 0x64, 0x22, 0x33, 0x0a, 0x09, 0x52, 0x73, 0x70, 0x5f, 0x52,
-	0x75, 0x6e, 0x47, 0x6d, 0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x65, 0x78,
-	0x74, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03, 0x65, 0x78, 0x74, 0x42, 0x06, 0x5a, 0x04,
-	0x2e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+var file_msg_gm_proto_rawDesc = []byte{
+	0x0a, 0x0c, 0x6d, 0x73, 0x67, 0x5f, 0x67, 0x6d, 0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04,
+	0x67, 0x61, 0x6d, 0x65, 0x22, 0x1d, 0x0a, 0x09, 0x52, 0x65, 0x71, 0x5f, 0x52, 0x75, 0x6e, 0x47,
+	0x6d, 0x12, 0x10, 0x0a, 0x03, 0x63, 0x6d, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x09, 0x52, 0x03,
+	0x63, 0x6d, 0x64, 0x22, 0x33, 0x0a, 0x09, 0x52, 0x73, 0x70, 0x5f, 0x52, 0x75, 0x6e, 0x47, 0x6d,
+	0x12, 0x14, 0x0a, 0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x05, 0x73, 0x74, 0x61, 0x74, 0x65, 0x12, 0x10, 0x0a, 0x03, 0x65, 0x78, 0x74, 0x18, 0x02, 0x20,
+	0x01, 0x28, 0x09, 0x52, 0x03, 0x65, 0x78, 0x74, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62,
+	0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_src_msg_gm_proto_rawDescOnce sync.Once
-	file_src_msg_gm_proto_rawDescData = file_src_msg_gm_proto_rawDesc
+	file_msg_gm_proto_rawDescOnce sync.Once
+	file_msg_gm_proto_rawDescData = file_msg_gm_proto_rawDesc
 )
 
-func file_src_msg_gm_proto_rawDescGZIP() []byte {
-	file_src_msg_gm_proto_rawDescOnce.Do(func() {
-		file_src_msg_gm_proto_rawDescData = protoimpl.X.CompressGZIP(file_src_msg_gm_proto_rawDescData)
+func file_msg_gm_proto_rawDescGZIP() []byte {
+	file_msg_gm_proto_rawDescOnce.Do(func() {
+		file_msg_gm_proto_rawDescData = protoimpl.X.CompressGZIP(file_msg_gm_proto_rawDescData)
 	})
-	return file_src_msg_gm_proto_rawDescData
+	return file_msg_gm_proto_rawDescData
 }
 
-var file_src_msg_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
-var file_src_msg_gm_proto_goTypes = []interface{}{
+var file_msg_gm_proto_msgTypes = make([]protoimpl.MessageInfo, 2)
+var file_msg_gm_proto_goTypes = []interface{}{
 	(*Req_RunGm)(nil), // 0: game.Req_RunGm
 	(*Rsp_RunGm)(nil), // 1: game.Rsp_RunGm
 }
-var file_src_msg_gm_proto_depIdxs = []int32{
+var file_msg_gm_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -160,13 +160,13 @@ var file_src_msg_gm_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_src_msg_gm_proto_init() }
-func file_src_msg_gm_proto_init() {
-	if File_src_msg_gm_proto != nil {
+func init() { file_msg_gm_proto_init() }
+func file_msg_gm_proto_init() {
+	if File_msg_gm_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_src_msg_gm_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_msg_gm_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Req_RunGm); i {
 			case 0:
 				return &v.state
@@ -178,7 +178,7 @@ func file_src_msg_gm_proto_init() {
 				return nil
 			}
 		}
-		file_src_msg_gm_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_msg_gm_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*Rsp_RunGm); i {
 			case 0:
 				return &v.state
@@ -195,18 +195,18 @@ func file_src_msg_gm_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_src_msg_gm_proto_rawDesc,
+			RawDescriptor: file_msg_gm_proto_rawDesc,
 			NumEnums:      0,
 			NumMessages:   2,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_src_msg_gm_proto_goTypes,
-		DependencyIndexes: file_src_msg_gm_proto_depIdxs,
-		MessageInfos:      file_src_msg_gm_proto_msgTypes,
+		GoTypes:           file_msg_gm_proto_goTypes,
+		DependencyIndexes: file_msg_gm_proto_depIdxs,
+		MessageInfos:      file_msg_gm_proto_msgTypes,
 	}.Build()
-	File_src_msg_gm_proto = out.File
-	file_src_msg_gm_proto_rawDesc = nil
-	file_src_msg_gm_proto_goTypes = nil
-	file_src_msg_gm_proto_depIdxs = nil
+	File_msg_gm_proto = out.File
+	file_msg_gm_proto_rawDesc = nil
+	file_msg_gm_proto_goTypes = nil
+	file_msg_gm_proto_depIdxs = nil
 }

@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.26.0
 // 	protoc        v3.21.8
-// source: src/msg_common.proto
+// source: msg_common.proto
 
 package pb
 
@@ -25,14 +25,15 @@ type GameMessage struct {
 	sizeCache     protoimpl.SizeCache
 	unknownFields protoimpl.UnknownFields
 
-	MsgId uint32 `protobuf:"varint,1,opt,name=msg_id,json=msgId,proto3" json:"msg_id,omitempty"` // 协议ID
-	Body  []byte `protobuf:"bytes,2,opt,name=body,proto3" json:"body,omitempty"`                 // proto 数据
+	MsgId   uint32 `protobuf:"varint,1,opt,name=msg_id,json=msgId,proto3" json:"msg_id,omitempty"` // 协议ID
+	ErrCode int32  `protobuf:"varint,2,opt,name=errCode,proto3" json:"errCode,omitempty"`          // 错误码
+	Body    []byte `protobuf:"bytes,3,opt,name=body,proto3" json:"body,omitempty"`                 // proto 数据
 }
 
 func (x *GameMessage) Reset() {
 	*x = GameMessage{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_msg_common_proto_msgTypes[0]
+		mi := &file_msg_common_proto_msgTypes[0]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -45,7 +46,7 @@ func (x *GameMessage) String() string {
 func (*GameMessage) ProtoMessage() {}
 
 func (x *GameMessage) ProtoReflect() protoreflect.Message {
-	mi := &file_src_msg_common_proto_msgTypes[0]
+	mi := &file_msg_common_proto_msgTypes[0]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -58,12 +59,19 @@ func (x *GameMessage) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameMessage.ProtoReflect.Descriptor instead.
 func (*GameMessage) Descriptor() ([]byte, []int) {
-	return file_src_msg_common_proto_rawDescGZIP(), []int{0}
+	return file_msg_common_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *GameMessage) GetMsgId() uint32 {
 	if x != nil {
 		return x.MsgId
+	}
+	return 0
+}
+
+func (x *GameMessage) GetErrCode() int32 {
+	if x != nil {
+		return x.ErrCode
 	}
 	return 0
 }
@@ -87,7 +95,7 @@ type KvInt32Int64 struct {
 func (x *KvInt32Int64) Reset() {
 	*x = KvInt32Int64{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_msg_common_proto_msgTypes[1]
+		mi := &file_msg_common_proto_msgTypes[1]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -100,7 +108,7 @@ func (x *KvInt32Int64) String() string {
 func (*KvInt32Int64) ProtoMessage() {}
 
 func (x *KvInt32Int64) ProtoReflect() protoreflect.Message {
-	mi := &file_src_msg_common_proto_msgTypes[1]
+	mi := &file_msg_common_proto_msgTypes[1]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -113,7 +121,7 @@ func (x *KvInt32Int64) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use KvInt32Int64.ProtoReflect.Descriptor instead.
 func (*KvInt32Int64) Descriptor() ([]byte, []int) {
-	return file_src_msg_common_proto_rawDescGZIP(), []int{1}
+	return file_msg_common_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *KvInt32Int64) GetKey() int32 {
@@ -142,7 +150,7 @@ type BattleActor struct {
 func (x *BattleActor) Reset() {
 	*x = BattleActor{}
 	if protoimpl.UnsafeEnabled {
-		mi := &file_src_msg_common_proto_msgTypes[2]
+		mi := &file_msg_common_proto_msgTypes[2]
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		ms.StoreMessageInfo(mi)
 	}
@@ -155,7 +163,7 @@ func (x *BattleActor) String() string {
 func (*BattleActor) ProtoMessage() {}
 
 func (x *BattleActor) ProtoReflect() protoreflect.Message {
-	mi := &file_src_msg_common_proto_msgTypes[2]
+	mi := &file_msg_common_proto_msgTypes[2]
 	if protoimpl.UnsafeEnabled && x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -168,7 +176,7 @@ func (x *BattleActor) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use BattleActor.ProtoReflect.Descriptor instead.
 func (*BattleActor) Descriptor() ([]byte, []int) {
-	return file_src_msg_common_proto_rawDescGZIP(), []int{2}
+	return file_msg_common_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *BattleActor) GetActorId() int64 {
@@ -185,44 +193,116 @@ func (x *BattleActor) GetName() string {
 	return ""
 }
 
-var File_src_msg_common_proto protoreflect.FileDescriptor
+type GamePlayerInfo struct {
+	state         protoimpl.MessageState
+	sizeCache     protoimpl.SizeCache
+	unknownFields protoimpl.UnknownFields
 
-var file_src_msg_common_proto_rawDesc = []byte{
-	0x0a, 0x14, 0x73, 0x72, 0x63, 0x2f, 0x6d, 0x73, 0x67, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e,
-	0x2e, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x12, 0x04, 0x67, 0x61, 0x6d, 0x65, 0x22, 0x38, 0x0a, 0x0b,
-	0x47, 0x61, 0x6d, 0x65, 0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x15, 0x0a, 0x06, 0x6d,
-	0x73, 0x67, 0x5f, 0x69, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x6d, 0x73, 0x67,
-	0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x18, 0x02, 0x20, 0x01, 0x28, 0x0c,
-	0x52, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x22, 0x36, 0x0a, 0x0c, 0x4b, 0x76, 0x49, 0x6e, 0x74, 0x33,
-	0x32, 0x49, 0x6e, 0x74, 0x36, 0x34, 0x12, 0x10, 0x0a, 0x03, 0x6b, 0x65, 0x79, 0x18, 0x01, 0x20,
-	0x01, 0x28, 0x05, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14, 0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75,
-	0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x22, 0x3b,
-	0x0a, 0x0b, 0x42, 0x61, 0x74, 0x74, 0x6c, 0x65, 0x41, 0x63, 0x74, 0x6f, 0x72, 0x12, 0x18, 0x0a,
-	0x07, 0x61, 0x63, 0x74, 0x6f, 0x72, 0x49, 0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x07,
-	0x61, 0x63, 0x74, 0x6f, 0x72, 0x49, 0x64, 0x12, 0x12, 0x0a, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18,
-	0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d, 0x65, 0x42, 0x06, 0x5a, 0x04, 0x2e,
-	0x2f, 0x70, 0x62, 0x62, 0x06, 0x70, 0x72, 0x6f, 0x74, 0x6f, 0x33,
+	PlayerId int64  `protobuf:"varint,1,opt,name=playerId,proto3" json:"playerId,omitempty"`
+	ServrId  int32  `protobuf:"varint,2,opt,name=servrId,proto3" json:"servrId,omitempty"`
+	NickName string `protobuf:"bytes,3,opt,name=nickName,proto3" json:"nickName,omitempty"`
+}
+
+func (x *GamePlayerInfo) Reset() {
+	*x = GamePlayerInfo{}
+	if protoimpl.UnsafeEnabled {
+		mi := &file_msg_common_proto_msgTypes[3]
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		ms.StoreMessageInfo(mi)
+	}
+}
+
+func (x *GamePlayerInfo) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*GamePlayerInfo) ProtoMessage() {}
+
+func (x *GamePlayerInfo) ProtoReflect() protoreflect.Message {
+	mi := &file_msg_common_proto_msgTypes[3]
+	if protoimpl.UnsafeEnabled && x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use GamePlayerInfo.ProtoReflect.Descriptor instead.
+func (*GamePlayerInfo) Descriptor() ([]byte, []int) {
+	return file_msg_common_proto_rawDescGZIP(), []int{3}
+}
+
+func (x *GamePlayerInfo) GetPlayerId() int64 {
+	if x != nil {
+		return x.PlayerId
+	}
+	return 0
+}
+
+func (x *GamePlayerInfo) GetServrId() int32 {
+	if x != nil {
+		return x.ServrId
+	}
+	return 0
+}
+
+func (x *GamePlayerInfo) GetNickName() string {
+	if x != nil {
+		return x.NickName
+	}
+	return ""
+}
+
+var File_msg_common_proto protoreflect.FileDescriptor
+
+var file_msg_common_proto_rawDesc = []byte{
+	0x0a, 0x10, 0x6d, 0x73, 0x67, 0x5f, 0x63, 0x6f, 0x6d, 0x6d, 0x6f, 0x6e, 0x2e, 0x70, 0x72, 0x6f,
+	0x74, 0x6f, 0x12, 0x04, 0x67, 0x61, 0x6d, 0x65, 0x22, 0x52, 0x0a, 0x0b, 0x47, 0x61, 0x6d, 0x65,
+	0x4d, 0x65, 0x73, 0x73, 0x61, 0x67, 0x65, 0x12, 0x15, 0x0a, 0x06, 0x6d, 0x73, 0x67, 0x5f, 0x69,
+	0x64, 0x18, 0x01, 0x20, 0x01, 0x28, 0x0d, 0x52, 0x05, 0x6d, 0x73, 0x67, 0x49, 0x64, 0x12, 0x18,
+	0x0a, 0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05, 0x52,
+	0x07, 0x65, 0x72, 0x72, 0x43, 0x6f, 0x64, 0x65, 0x12, 0x12, 0x0a, 0x04, 0x62, 0x6f, 0x64, 0x79,
+	0x18, 0x03, 0x20, 0x01, 0x28, 0x0c, 0x52, 0x04, 0x62, 0x6f, 0x64, 0x79, 0x22, 0x36, 0x0a, 0x0c,
+	0x4b, 0x76, 0x49, 0x6e, 0x74, 0x33, 0x32, 0x49, 0x6e, 0x74, 0x36, 0x34, 0x12, 0x10, 0x0a, 0x03,
+	0x6b, 0x65, 0x79, 0x18, 0x01, 0x20, 0x01, 0x28, 0x05, 0x52, 0x03, 0x6b, 0x65, 0x79, 0x12, 0x14,
+	0x0a, 0x05, 0x76, 0x61, 0x6c, 0x75, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x03, 0x52, 0x05, 0x76,
+	0x61, 0x6c, 0x75, 0x65, 0x22, 0x3b, 0x0a, 0x0b, 0x42, 0x61, 0x74, 0x74, 0x6c, 0x65, 0x41, 0x63,
+	0x74, 0x6f, 0x72, 0x12, 0x18, 0x0a, 0x07, 0x61, 0x63, 0x74, 0x6f, 0x72, 0x49, 0x64, 0x18, 0x01,
+	0x20, 0x01, 0x28, 0x03, 0x52, 0x07, 0x61, 0x63, 0x74, 0x6f, 0x72, 0x49, 0x64, 0x12, 0x12, 0x0a,
+	0x04, 0x6e, 0x61, 0x6d, 0x65, 0x18, 0x02, 0x20, 0x01, 0x28, 0x09, 0x52, 0x04, 0x6e, 0x61, 0x6d,
+	0x65, 0x22, 0x62, 0x0a, 0x0e, 0x47, 0x61, 0x6d, 0x65, 0x50, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49,
+	0x6e, 0x66, 0x6f, 0x12, 0x1a, 0x0a, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49, 0x64, 0x18,
+	0x01, 0x20, 0x01, 0x28, 0x03, 0x52, 0x08, 0x70, 0x6c, 0x61, 0x79, 0x65, 0x72, 0x49, 0x64, 0x12,
+	0x18, 0x0a, 0x07, 0x73, 0x65, 0x72, 0x76, 0x72, 0x49, 0x64, 0x18, 0x02, 0x20, 0x01, 0x28, 0x05,
+	0x52, 0x07, 0x73, 0x65, 0x72, 0x76, 0x72, 0x49, 0x64, 0x12, 0x1a, 0x0a, 0x08, 0x6e, 0x69, 0x63,
+	0x6b, 0x4e, 0x61, 0x6d, 0x65, 0x18, 0x03, 0x20, 0x01, 0x28, 0x09, 0x52, 0x08, 0x6e, 0x69, 0x63,
+	0x6b, 0x4e, 0x61, 0x6d, 0x65, 0x42, 0x06, 0x5a, 0x04, 0x2e, 0x2f, 0x70, 0x62, 0x62, 0x06, 0x70,
+	0x72, 0x6f, 0x74, 0x6f, 0x33,
 }
 
 var (
-	file_src_msg_common_proto_rawDescOnce sync.Once
-	file_src_msg_common_proto_rawDescData = file_src_msg_common_proto_rawDesc
+	file_msg_common_proto_rawDescOnce sync.Once
+	file_msg_common_proto_rawDescData = file_msg_common_proto_rawDesc
 )
 
-func file_src_msg_common_proto_rawDescGZIP() []byte {
-	file_src_msg_common_proto_rawDescOnce.Do(func() {
-		file_src_msg_common_proto_rawDescData = protoimpl.X.CompressGZIP(file_src_msg_common_proto_rawDescData)
+func file_msg_common_proto_rawDescGZIP() []byte {
+	file_msg_common_proto_rawDescOnce.Do(func() {
+		file_msg_common_proto_rawDescData = protoimpl.X.CompressGZIP(file_msg_common_proto_rawDescData)
 	})
-	return file_src_msg_common_proto_rawDescData
+	return file_msg_common_proto_rawDescData
 }
 
-var file_src_msg_common_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
-var file_src_msg_common_proto_goTypes = []interface{}{
-	(*GameMessage)(nil),  // 0: game.GameMessage
-	(*KvInt32Int64)(nil), // 1: game.KvInt32Int64
-	(*BattleActor)(nil),  // 2: game.BattleActor
+var file_msg_common_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
+var file_msg_common_proto_goTypes = []interface{}{
+	(*GameMessage)(nil),    // 0: game.GameMessage
+	(*KvInt32Int64)(nil),   // 1: game.KvInt32Int64
+	(*BattleActor)(nil),    // 2: game.BattleActor
+	(*GamePlayerInfo)(nil), // 3: game.GamePlayerInfo
 }
-var file_src_msg_common_proto_depIdxs = []int32{
+var file_msg_common_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for method output_type
 	0, // [0:0] is the sub-list for method input_type
 	0, // [0:0] is the sub-list for extension type_name
@@ -230,13 +310,13 @@ var file_src_msg_common_proto_depIdxs = []int32{
 	0, // [0:0] is the sub-list for field type_name
 }
 
-func init() { file_src_msg_common_proto_init() }
-func file_src_msg_common_proto_init() {
-	if File_src_msg_common_proto != nil {
+func init() { file_msg_common_proto_init() }
+func file_msg_common_proto_init() {
+	if File_msg_common_proto != nil {
 		return
 	}
 	if !protoimpl.UnsafeEnabled {
-		file_src_msg_common_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
+		file_msg_common_proto_msgTypes[0].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*GameMessage); i {
 			case 0:
 				return &v.state
@@ -248,7 +328,7 @@ func file_src_msg_common_proto_init() {
 				return nil
 			}
 		}
-		file_src_msg_common_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
+		file_msg_common_proto_msgTypes[1].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*KvInt32Int64); i {
 			case 0:
 				return &v.state
@@ -260,8 +340,20 @@ func file_src_msg_common_proto_init() {
 				return nil
 			}
 		}
-		file_src_msg_common_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
+		file_msg_common_proto_msgTypes[2].Exporter = func(v interface{}, i int) interface{} {
 			switch v := v.(*BattleActor); i {
+			case 0:
+				return &v.state
+			case 1:
+				return &v.sizeCache
+			case 2:
+				return &v.unknownFields
+			default:
+				return nil
+			}
+		}
+		file_msg_common_proto_msgTypes[3].Exporter = func(v interface{}, i int) interface{} {
+			switch v := v.(*GamePlayerInfo); i {
 			case 0:
 				return &v.state
 			case 1:
@@ -277,18 +369,18 @@ func file_src_msg_common_proto_init() {
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: file_src_msg_common_proto_rawDesc,
+			RawDescriptor: file_msg_common_proto_rawDesc,
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_src_msg_common_proto_goTypes,
-		DependencyIndexes: file_src_msg_common_proto_depIdxs,
-		MessageInfos:      file_src_msg_common_proto_msgTypes,
+		GoTypes:           file_msg_common_proto_goTypes,
+		DependencyIndexes: file_msg_common_proto_depIdxs,
+		MessageInfos:      file_msg_common_proto_msgTypes,
 	}.Build()
-	File_src_msg_common_proto = out.File
-	file_src_msg_common_proto_rawDesc = nil
-	file_src_msg_common_proto_goTypes = nil
-	file_src_msg_common_proto_depIdxs = nil
+	File_msg_common_proto = out.File
+	file_msg_common_proto_rawDesc = nil
+	file_msg_common_proto_goTypes = nil
+	file_msg_common_proto_depIdxs = nil
 }

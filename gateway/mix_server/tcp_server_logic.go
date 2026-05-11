@@ -3,8 +3,8 @@ package mix_server
 import (
 	"context"
 	"fmt"
-	"g7/common/errcode"
 	"g7/common/jwt"
+	"g7/common/logger"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
 	"g7/common/utils"
@@ -16,12 +16,23 @@ import (
 	"strings"
 )
 
+func (gms *GatewayMixServer) writeBackErrorMsg(conn net.Conn, msg *pb.Rsp_AuthClientToGateWay) {
+	byteData, _ := proto.Marshal(msg)
+	_ = protocol.WritePacketToConn(conn, pb.MsgID_MSG_AUTH, 0, byteData)
+}
+
 func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
-	if ok, code, msg := gms.preCheck(conn); !ok {
-		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(code, msg))
+	var code int32
+	var msg string
+	var ok bool
+	defer func() {
+		gms.writeBackErrorMsg(conn, &pb.Rsp_AuthClientToGateWay{ErrCode: code, Reason: msg})
 		_ = conn.Close()
+	}()
+	if ok, code, msg = gms.preCheck(conn); !ok {
 		return
 	}
+
 	global_gateway.GCurrentConnection.Add(1)
 	defer func() {
 		_ = conn.Close()
@@ -30,7 +41,10 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	}()
 
 	sess := tcp_session.NewSession(conn, gms.etcdGrpcAddr)
-	defer sess.Close()
+	defer func() {
+		gms.writeBackErrorMsg(conn, &pb.Rsp_AuthClientToGateWay{ErrCode: code, Reason: msg})
+		sess.Close()
+	}()
 
 	//log.Println("新连接:", conn.RemoteAddr())
 
@@ -38,13 +52,13 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	packet, err := protocol.ReadPacketFromConn(conn)
 
 	if err != nil {
-		log.Println(err.Error())
+		logger.Log.Error(err.Error())
 		return
 	}
 
 	if packet.MsgID != pb.MsgID_MSG_AUTH {
 		packet.Release()
-		log.Println("未认证，断开")
+		logger.Log.Info("未认证，断开")
 		return
 	}
 
@@ -55,7 +69,8 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 
 	// 验证 Token（真实环境：调用登录服RPC/HTTP）
 	if _, ok := gms.checkToken(req.Token, req.GetUerID()); !ok {
-		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(401, "token失效"))
+		code = 401
+		msg = "token失效"
 		return
 	}
 
@@ -64,7 +79,8 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	// --- 获取游戏服地址（从Watch缓存）---
 	gameAddr, ok := gms.gameMonitor.GetGameServerAddr(utils.Int32ToString(req.ServerID), utils.Int64ToString(req.GetPlayerID()))
 	if !ok {
-		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(503, "游戏服维护中"))
+		code = 503
+		msg = "游戏服维护中"
 		return
 	}
 
@@ -72,8 +88,9 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	// 3. 连接游戏服，建立专属 gRPC 流
 	stream, err := gms.connectToGameServer(gameAddr)
 	if err != nil {
-		log.Printf("连接游戏服失败: %v", err)
-		_ = protocol.WritePacketToConn(conn, 1002, 0, errcode.MakeHttpErrCodeRespond(503, "连接游戏服失败"))
+		logger.Log.Warn(fmt.Sprintf("连接游戏服失败: %v", err))
+		code = 503
+		msg = "连接游戏服失败"
 		return
 	}
 	sess.SetGameStream(stream)
@@ -87,7 +104,7 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	sess.RunGoRoutineToRecvFromConn()
 }
 
-func (gms *GatewayMixServer) preCheck(conn net.Conn) (bool, int, string) {
+func (gms *GatewayMixServer) preCheck(conn net.Conn) (bool, int32, string) {
 	clientIP := conn.RemoteAddr().String()
 	// 截取 IP 部分（如果是IPv6或带端口）
 	if idx := strings.Index(clientIP, ":"); idx != -1 {
