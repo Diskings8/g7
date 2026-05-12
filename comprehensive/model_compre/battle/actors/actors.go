@@ -184,13 +184,17 @@ func (a *Actor) castSkill(skillId int32, targetIds []int64, world interfaces.Wor
 	default:
 		effectScore = conf.Score
 	}
+	var OneEvent events.Event
 	for _, v := range targets {
 		v.TakeEffect(a.id, effectScore)
-		world.AddEvent(events.Event{
-			EventType: 1,
-			CasterId:  a.id,
-			TargetId:  v.ID(),
+		OneEvent.Targets = append(OneEvent.Targets, events.SkillUseResult{
+			TargetID:    v.ID(),
+			EffectScore: effectScore,
+			IsCrit:      false,
+			IsDodge:     false,
+			IsBlock:     false,
 		})
 	}
+	world.AddEvent(a.pos, OneEvent)
 	return
 }

@@ -132,25 +132,25 @@ func (r *Room) calcNineGirdsView() {
 	}
 	r.mu.RUnlock()
 	for playerID, rpd := range players {
-		currentView := r.world.GetNineGridsViewActors(playerID)
+		currentViewActors, currentViewEvents := r.world.GetNineGridsViewObjects(playerID)
 		var enterList []int64  // 新进入
 		var leaveList []int64  // 离开（可以不发，或发个 Leave 事件）
 		var updateList []int64 // 留在视野内且变脏的
 		lastView := rpd.GetLastView()
 
-		enterList, updateList, leaveList = r.world.GetDirtyActorsInView(currentView, lastView)
+		enterList, updateList, leaveList = r.world.GetDirtyActorsInView(currentViewActors, lastView)
 		// 无变化直接跳过
 		if len(enterList) == 0 && len(updateList) == 0 && len(leaveList) == 0 {
 			continue
 		}
 
-		snap := r.world.NewWorldSnapshot(enterList, updateList, leaveList)
+		snap := r.world.NewWorldSnapshot(enterList, updateList, leaveList, currentViewEvents)
 		msg := r.marshalGameMessage(pb.MsgID_MSG_World_NineGridsSnapshot, snap)
 		select {
 		case rpd.Ps.send <- msg:
 		default:
 		}
-		rpd.SetLastView(currentView)
+		rpd.SetLastView(currentViewActors)
 	}
 }
 

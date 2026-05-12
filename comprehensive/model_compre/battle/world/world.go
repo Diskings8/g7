@@ -4,6 +4,7 @@ import (
 	"g7/common/logger"
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle/actoractions"
+	"g7/comprehensive/model_compre/battle/common_battle"
 	"g7/comprehensive/model_compre/battle/events"
 	"g7/comprehensive/model_compre/battle/grids"
 	"g7/comprehensive/model_compre/battle/interfaces"
@@ -17,7 +18,6 @@ type World struct {
 	gridMap   grids.GirdMap
 	actors    map[int64]interfaces.Actor    // 所有战斗实体（玩家、怪物等）
 	actionsCh chan actoractions.ActorAction // 带缓冲
-	eventLog  []events.Event                // 本帧产生的逻辑事件（用于下发）
 	frameID   int64
 	mu        sync.RWMutex
 }
@@ -71,7 +71,7 @@ func (w *World) GetDirtyActorsInView(currentView map[int64]struct{}, lastView ma
 	return
 }
 
-func (w *World) NewWorldSnapshot(enterList, updateList, leaveList []int64) (result *pb.WorldSnapshot) {
+func (w *World) NewWorldSnapshot(enterList, updateList, leaveList []int64, eventList []events.Event) (result *pb.WorldSnapshot) {
 	result = &pb.WorldSnapshot{FrameId: w.frameID, LeaveList: leaveList}
 	w.mu.RLock()
 	defer w.mu.RUnlock()
@@ -88,6 +88,9 @@ func (w *World) NewWorldSnapshot(enterList, updateList, leaveList []int64) (resu
 			continue
 		}
 		result.UpdateList = append(result.UpdateList, ac.ToProto(false))
+	}
+	for _, e := range eventList {
+		result.Events = append(result.Events, e.ToProto())
 	}
 	return
 }
@@ -109,22 +112,31 @@ func (w *World) ClearDirtyFlags() {
 	}
 }
 
-func (w *World) GetNineGridsViewActors(playerId int64) (viewActors map[int64]struct{}) {
+func (w *World) ClearTickGird() {
+
+}
+
+func (w *World) GetNineGridsViewObjects(playerId int64) (viewActors map[int64]struct{}, viewEvents []events.Event) {
 	w.mu.RLock()
 	defer w.mu.RUnlock()
 
 	actor, ok := w.actors[playerId]
 
 	if !ok {
-		return nil
+		return nil, nil
 	}
 	gx, gy := w.gridMap.GridCoord(actor.Pos())
 	nGrids := w.gridMap.NineGrids(gx, gy)
+
 	viewActors = make(map[int64]struct{})
+	viewEvents = make([]events.Event, 0)
+
 	for _, g := range nGrids {
-		for _, id := range w.gridMap.GetKeyActor(g) {
+		for _, id := range w.gridMap.GetGirdActors(g) {
 			viewActors[id] = struct{}{}
 		}
+		girdEvents := w.gridMap.GetGirdEvent(g)
+		viewEvents = append(viewEvents, girdEvents...)
 	}
 	return
 }
@@ -162,6 +174,7 @@ func (w *World) FindActors(src interfaces.Actor, actorIds []int64, params ...any
 	return nil
 }
 
-func (w *World) AddEvent(event events.Event) {
-	w.eventLog = append(w.eventLog, event)
+func (w *World) AddEvent(pos common_battle.Vector3D, event events.Event) {
+	x, y := w.gridMap.GridCoord(pos)
+	w.gridMap.SetGirdEvent([2]int32{x, y}, event)
 }
