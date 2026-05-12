@@ -57,22 +57,17 @@ services:
     networks:
       - app-net
     ports:
-      - "3306:3306"      # 改成 ports
-    expose:
-      - "3306"
+      - "3306:3306"
     environment:
       MYSQL_ROOT_PASSWORD: 123456
       MYSQL_CHARSET: utf8mb4
       MYSQL_COLLATION: utf8mb4_unicode_ci
       TZ: Asia/Shanghai
     volumes:
-      - ./mysql_data/data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
       - ./mysql_data/conf:/etc/mysql/conf.d
       - ./mysql_data/init:/docker-entrypoint-initdb.d
-    command:
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --default-time_zone=+8:00
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci --default-time_zone=+8:00 --innodb_flush_log_at_trx_commit=2 --sync_binlog=0 --innodb_buffer_pool_size=256M  --max_connections=512
 
   redis:
     image: docker.1ms.run/redis:7
@@ -99,3 +94,5 @@ services:
 networks:
   app-net:
     driver: bridge
+volumes:
+  mysql-data:

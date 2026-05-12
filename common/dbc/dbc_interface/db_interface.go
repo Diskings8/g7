@@ -13,6 +13,7 @@ type DBInterface interface {
 	Update(model model_common.DBTableInterface, updates any, query any, args ...any) error
 	FindList(table any, query any, params ...any) error // 查询列表，结果存入 table
 	FindListPro(table any, query any, order string, size, page int) error
+	Delete(model model_common.DBTableInterface) error
 	IsTableExists(tableName string) bool
 	Exec(sql string) error
 	TxBegin() DBInterface // 或者用 interface{} 做泛型，这里用具体类型更简单

@@ -7,6 +7,7 @@ import (
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
 	"reflect"
+	"time"
 )
 
 type MySQLDriver struct {
@@ -18,6 +19,9 @@ func (m *MySQLDriver) getDb() *gorm.DB {
 	//if globals.IsDev() {
 	//	return m.db.Debug()
 	//}
+	if m.tx != nil {
+		return m.tx
+	}
 	return m.db
 }
 
@@ -26,12 +30,29 @@ func NewMySQLDriver(dsn string) (*MySQLDriver, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	sqlDB, err := orm.DB()
+	if err != nil {
+		return nil, err
+	}
+
+	// 配置连接池（根据你的服务器配置调整）
+	sqlDB.SetMaxOpenConns(100)                 // 最大同时打开的连接数
+	sqlDB.SetMaxIdleConns(50)                  // 最大空闲连接数
+	sqlDB.SetConnMaxLifetime(30 * time.Second) // 连接最长存活时间
+	sqlDB.SetConnMaxIdleTime(10 * time.Second) // 空闲连接最长存活时间
+
 	driver := &MySQLDriver{db: orm}
 	return driver, nil
 }
 
 func (m *MySQLDriver) AutoMigrate(model model_common.DBTableInterface) error {
 	return m.db.AutoMigrate(model)
+}
+
+func (m *MySQLDriver) Delete(model model_common.DBTableInterface) error {
+
+	return m.getDb().Table(model.TableName()).Delete(model).Error
 }
 
 func (m *MySQLDriver) Insert(model model_common.DBTableInterface) error {

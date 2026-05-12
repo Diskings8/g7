@@ -136,6 +136,7 @@ func (p *Player) ToDao(kind int) SaveDaoD {
 	{
 		generalD.BagData = p.AllBagData
 		generalD.MailData = p.AllMailData
+		generalD.RoomData = p.RoomData
 	}
 	dao.GeneralData = utils.MarshalAndCompress(generalD)
 

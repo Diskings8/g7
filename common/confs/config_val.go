@@ -11,6 +11,7 @@ import (
 
 var (
     GConfigDataItem = ConfigDataItem{}
+    GConfigSkill = ConfigSkill{}
 )
 
 // ReloadAllConfig 统一加载/热重载所有配置
@@ -19,6 +20,9 @@ func ReloadAllConfig() error {
 
     if err := GConfigDataItem.LoadConfig(path); err != nil {
         fmt.Printf("GConfigDataItem.LoadError: %s",err.Error())
+    }
+    if err := GConfigSkill.LoadConfig(path); err != nil {
+        fmt.Printf("GConfigSkill.LoadError: %s",err.Error())
     }
     return nil
 }

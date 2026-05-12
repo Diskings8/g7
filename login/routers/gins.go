@@ -26,6 +26,7 @@ func Register(r *gin.Engine) {
 		playerGroup.POST("/list", api.PlayerList)
 		playerGroup.POST("/create", api.CreatePlayer)
 		playerGroup.POST("/select", api.SelectPlayer)
+		playerGroup.POST("/testC", api.TestCreatePlayer)
 	}
 
 	orderGroup := r.Group("/api/order")

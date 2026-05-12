@@ -37,6 +37,16 @@ func SetKey(key string, value []byte, cacheExpire time.Duration) error {
 	return rDB.Set(context.Background(), key, value, cacheExpire+time.Duration(rand.Intn(120))*time.Minute).Err()
 }
 
+func SetStringKey(key string, value string, cacheExpire time.Duration) error {
+	var ValueSaveTime time.Duration
+	if cacheExpire == -1 || cacheExpire == 0 {
+		ValueSaveTime = time.Duration(0)
+	} else {
+		ValueSaveTime = cacheExpire + time.Duration(rand.Intn(120))*time.Minute
+	}
+	return rDB.Set(context.Background(), key, value, ValueSaveTime).Err()
+}
+
 func MGet(keys []string) ([]interface{}, error) {
 	return rDB.MGet(context.Background(), keys...).Result()
 }

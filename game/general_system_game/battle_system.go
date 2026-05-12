@@ -5,10 +5,12 @@ import (
 	"g7/common/logger"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
+	"g7/common/redisx"
 	"g7/game/const_game"
 	"g7/game/manager_game"
 	"g7/game/model_game"
 	"github.com/golang/protobuf/proto"
+	"strings"
 )
 
 var GBattleSystem = &battleSystem{}
@@ -28,9 +30,35 @@ func (this *battleSystem) GetName() string {
 }
 
 func (this *battleSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Player) {
+	if len(dao.GeneralD.RoomData.RoomId) != 0 {
+		Player.RoomData = dao.GeneralD.RoomData
+	}
 }
 
-func (this *battleSystem) OnEnterGame(Player *model_game.Player) {}
+func (this *battleSystem) OnEnterGame(Player *model_game.Player) {
+	val, _ := redisx.GetKey(redisx.MakeRoomMasterKey(101, 1))
+	vals := strings.Split(val, "#")
+	this.RoomDataChange(vals[0], vals[1], Player)
+}
+
+func (this *battleSystem) RoomDataChange(roomId, roomAddr string, Player *model_game.Player) {
+	Player.RunInActor(func() {
+		Player.RoomData.RoomId = roomId
+		Player.RoomData.RoomAddr = roomAddr
+	})
+	gateWayAddr := Player.GateWayAddr
+	cli, err := protocol.NewGatewayNodeClient(gateWayAddr)
+	if err != nil {
+		logger.Log.Error(err.Error())
+		return
+	}
+	_, err = cli.ConnToRoom(context.Background(), &pb.Req_Node_MakeConnToRoom{PlayerId: Player.PlayerId, RoomId: roomId, RoomAddr: roomAddr})
+	if err != nil {
+		logger.Log.Error(err.Error())
+		return
+	}
+
+}
 
 func (this *battleSystem) ReqToEnterScene(reqData []byte, Player *model_game.Player) (rsp *pb.Rsp_EnterRoom) {
 	req := &pb.Req_EnterRoom{}

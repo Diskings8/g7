@@ -6,7 +6,7 @@ import (
 )
 
 func MakePlayerLoginValue(serverId int32, playerId int64, gameAddr string) string {
-	return fmt.Sprintf("%d_%d_%s", serverId, playerId, gameAddr)
+	return fmt.Sprintf("%d#%d#%s", serverId, playerId, gameAddr)
 }
 
 const (
@@ -17,4 +17,17 @@ const (
 
 func GetPlayerLoginValueIndex(loginVal string, index int) string {
 	return strings.Split(loginVal, "_")[index]
+}
+
+func MakeRoomMasterValue(roomId, roomAddr string) string {
+	return fmt.Sprintf("%s#%s", roomId, roomAddr)
+}
+
+const (
+	RedisRoomMasterValueIndexRoomId = 0
+	RedisRoomMasterValueIndexAddr   = 1
+)
+
+func GetRoomMasterValueIndex(roomValue string, index int) string {
+	return strings.Split(roomValue, "#")[index]
 }

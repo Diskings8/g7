@@ -4,6 +4,7 @@ import (
 	"g7/common/logger"
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle/actoractions"
+	"g7/comprehensive/model_compre/battle/events"
 	"g7/comprehensive/model_compre/battle/grids"
 	"g7/comprehensive/model_compre/battle/interfaces"
 	"sync"
@@ -16,10 +17,12 @@ type World struct {
 	gridMap   grids.GirdMap
 	actors    map[int64]interfaces.Actor    // 所有战斗实体（玩家、怪物等）
 	actionsCh chan actoractions.ActorAction // 带缓冲
-	eventLog  []Event                       // 本帧产生的逻辑事件（用于下发）
-	frameID   uint32
+	eventLog  []events.Event                // 本帧产生的逻辑事件（用于下发）
+	frameID   int64
 	mu        sync.RWMutex
 }
+
+var _ interfaces.World = (*World)(nil)
 
 func NewWorld(room interfaces.Room) *World {
 	w := &World{
@@ -124,4 +127,41 @@ func (w *World) GetNineGridsViewActors(playerId int64) (viewActors map[int64]str
 		}
 	}
 	return
+}
+
+func (w *World) getActor(actorId int64) interfaces.Actor {
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+
+	actor, ok := w.actors[actorId]
+	if ok {
+		return actor
+	}
+	return nil
+}
+
+func (w *World) distance(a, b interfaces.Actor) float64 {
+	//a.Pos(),b.Pos()
+	return 0
+}
+
+func (w *World) FindActors(src interfaces.Actor, actorIds []int64, params ...any) []interfaces.Actor {
+	var targetActors []interfaces.Actor
+	if actorIds != nil {
+		for _, v := range actorIds {
+			t := w.getActor(v)
+			if t == nil {
+				continue
+			}
+			if w.distance(t, src) <= params[0].(float64) {
+				targetActors = append(targetActors, t)
+			}
+		}
+		return targetActors
+	}
+	return nil
+}
+
+func (w *World) AddEvent(event events.Event) {
+	w.eventLog = append(w.eventLog, event)
 }

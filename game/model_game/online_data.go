@@ -28,6 +28,7 @@ func (this *OnlineData) SendMessage(msgId pb.MsgID, data proto.Message) {
 	body, err := proto.Marshal(data)
 	if err != nil {
 		logger.Log.Error(err.Error())
+		return
 	}
 	this.RpcSendChan <- pb.GameMessage{MsgId: uint32(msgId), Body: body}
 }

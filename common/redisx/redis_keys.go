@@ -22,3 +22,11 @@ func MakePlayerLockKey(serverId int32, playerId int64) string {
 func MakePlayerLoginKey(serverId int32, playerId int64) string {
 	return fmt.Sprintf(PlayerLoginKeyPrefix, serverId, playerId)
 }
+
+const (
+	RoomMasterKeyPrefix = "room:master:%d:%d"
+)
+
+func MakeRoomMasterKey(confId, roomType int32) string {
+	return fmt.Sprintf(RoomMasterKeyPrefix, confId, roomType)
+}

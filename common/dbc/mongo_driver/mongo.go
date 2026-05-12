@@ -22,6 +22,11 @@ type MongoDriver struct {
 	tx     mongo.Session // 事务会话
 }
 
+func (m *MongoDriver) Delete(model model_common.DBTableInterface) error {
+	//TODO implement me
+	panic("implement me")
+}
+
 func (m *MongoDriver) BatchInsert(models []model_common.DBTableInterface) error {
 	//TODO implement me
 	panic("implement me")

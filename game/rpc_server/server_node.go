@@ -2,6 +2,7 @@ package rpc_server
 
 import (
 	"context"
+	"fmt"
 	"g7/common/globals"
 	"g7/common/logger"
 	"g7/common/model_common"
@@ -18,7 +19,7 @@ type GameNodeServer struct {
 	pb.UnimplementedGameNodeServiceServer
 }
 
-func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req_Node_CreatePlayer) (*pb.Rsp_Node_CreatePlayer, error) {
+func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req_Node_CreatePlayer) (rsp *pb.Rsp_Node_CreatePlayer, errRsp error) {
 	//logger.Log.Info("pb.Req_Node_CreatePlayer")
 	player := &model_game.Player{
 		UserId:   req.GetUserID(),
@@ -30,12 +31,13 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 	// 初始化各个系统的数据
 	manager_game.GISystemManager.LoadData(&daoD.SaveData, player)
 
-	rsp := &pb.Rsp_Node_CreatePlayer{
+	rsp = &pb.Rsp_Node_CreatePlayer{
 		PlayerID: player.PlayerId,
 		ServerID: player.ServerId,
 		Nickname: player.Nickname,
 		UserID:   player.UserId,
 	}
+	errRsp = nil
 
 	indexPlayer := model_common.GlobalPlayerIndex{
 		PlayerId: player.PlayerId,
@@ -44,31 +46,28 @@ func (s *GameNodeServer) LoginNodeCreatePlayer(_ctx context.Context, req *pb.Req
 		Nickname: player.Nickname,
 	}
 
-	tx := global_game.GGameDB.TxBegin()
-	defer func() {
-		if r := recover(); r != nil {
-			// global_game.GGlobalDB.Del(&indexPlayer) --- IGNORE ---
-			tx.TxRollback()
+	// 主库插入数据
+	var err error
+	if err = global_game.GGameDB.Insert(&daoD.SaveData); err != nil {
+		logger.Log.Error(fmt.Sprintf("主库插入失败: %+v", err))
+		rsp.State = 500
+		return rsp, err
+	}
+
+	// 4. 全局库插入（主库已经提交，这里失败需要补偿）
+	if err = global_game.GGlobalDB.Insert(&indexPlayer); err != nil {
+		logger.Log.Error(fmt.Sprintf("全局库插入失败，执行补偿: %+v", err))
+		// 补偿：删除主库刚插入的数据
+		if rollbackErr := global_game.GGameDB.Delete(&daoD.SaveData); rollbackErr != nil {
+			logger.Log.Error(fmt.Sprintf("补偿失败，数据不一致！: %+v", rollbackErr))
 		}
-	}()
-
-	if err := tx.Insert(&daoD.SaveData); err != nil {
-		logger.Log.Error(err.Error())
-		rsp = &pb.Rsp_Node_CreatePlayer{}
 		rsp.State = 500
-		return rsp, nil
+		return rsp, err
 	}
-
-	if err := global_game.GGlobalDB.Insert(&indexPlayer); err != nil {
-		logger.Log.Error(err.Error())
-		rsp = &pb.Rsp_Node_CreatePlayer{}
-		rsp.State = 500
-	}
-
-	tx.TxCommit()
 
 	rsp.State = 200
-	return rsp, nil
+
+	return
 }
 
 func (s *GameNodeServer) LoginNodeOrderPaid(_ctx context.Context, req *pb.Req_Node_OrderPaid) (*pb.Rsp_Node_OrderPaid, error) {

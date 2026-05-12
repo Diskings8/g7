@@ -80,6 +80,16 @@ func CreatePlayer(c *gin.Context) {
 	c.Data(200, "application/json", result)
 }
 
+func TestCreatePlayer(c *gin.Context) {
+	var req pb.Req_Http_CreatePlayer
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{"code": 400, "msg": "参数错误"})
+		return
+	}
+	c.JSON(http.StatusOK, gin.H{"code": 200, "conf_data": &req})
+	return
+}
+
 // SelectPlayer 选角（返回游戏服Token+地址）
 func SelectPlayer(c *gin.Context) {
 

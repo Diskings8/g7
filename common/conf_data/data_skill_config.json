@@ -1,0 +1,32 @@
+[
+    {
+        "id": 2010001,
+        "name": "普通攻击",
+        "SkillCost": 0.0,
+        "SkillType": 10,
+        "TargetType": 2,
+        "Score": 10.0,
+        "CD": 0.5,
+        "Range": 20.0
+    },
+    {
+        "id": 2010002,
+        "name": "技能攻击",
+        "SkillCost": 5.0,
+        "SkillType": 20,
+        "TargetType": 2,
+        "Score": 20.0,
+        "CD": 5.0,
+        "Range": 200.0
+    },
+    {
+        "id": 2010003,
+        "name": "恢复",
+        "SkillCost": 10.0,
+        "SkillType": 30,
+        "TargetType": 1,
+        "Score": 15.0,
+        "CD": 10.0,
+        "Range": 200.0
+    }
+]

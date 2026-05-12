@@ -16,6 +16,7 @@ type Actor interface {
 	IsDirty() bool
 	ClearDirty()
 	Pos() common_battle.Vector3D
+	TakeEffect(srcId int64, score float64)
 	// 处理输入（仅玩家用）
 	AcceptInput(input actoractions.ActorAction)
 }

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"errors"
 	"flag"
 	"fmt"
 	"g7/common/configx"
@@ -15,7 +16,10 @@ import (
 	"g7/login/internal/service_login"
 	"g7/login/mq_login"
 	"g7/login/routers"
+	"net"
+	"net/http"
 	"os"
+	"time"
 )
 
 func main() {
@@ -81,7 +85,21 @@ func main() {
 	serverAddr = configx.GEnvCfg.Server.Login
 	logger.Log.Info(fmt.Sprintf("登录服启动绑定%s：%s", globals.Container, serverAddr))
 
-	if err := r.Run(serverAddr); err != nil {
-		logger.Log.Fatal("登录服务启动失败:" + err.Error())
+	// 替换原来的 r.Run(serverAddr)
+	srv := &http.Server{
+		Addr:         serverAddr,
+		Handler:      r,
+		ReadTimeout:  10 * time.Second,
+		WriteTimeout: 10 * time.Second,
+		IdleTimeout:  30 * time.Second,
+	}
+
+	ln, err := net.Listen("tcp", serverAddr)
+	if err != nil {
+		logger.Log.Fatal("监听端口失败: " + err.Error())
+	}
+
+	if err := srv.Serve(ln); err != nil && !errors.Is(err, http.ErrServerClosed) {
+		logger.Log.Fatal("登录服务启动失败: " + err.Error())
 	}
 }

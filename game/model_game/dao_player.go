@@ -27,6 +27,7 @@ type PlayerDao struct {
 type generalData struct {
 	BagData  AllBagData  `json:"bagData"`
 	MailData AllMailData `json:"mailData"`
+	RoomData RoomData    `json:"roomData"`
 }
 
 type cultivationData struct {

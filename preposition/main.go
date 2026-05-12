@@ -64,4 +64,14 @@ func doAutoCreateDB() {
 		panic("创建数据库失败: " + err.Error())
 	}
 	println("数据库创建成功！")
+
+	p = configx.GEnvCfg.MySQLGame
+	dbT = dbc.InitDB(globals.DBMysql, pp.Dsn())
+	dbName = configx.GEnvCfg.MySQLGame.DbNamePrefix + "_91001"
+	createDBSQL = fmt.Sprintf("CREATE DATABASE IF NOT EXISTS %s DEFAULT CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;", dbName)
+	err = dbT.Exec(createDBSQL)
+	if err != nil {
+		panic("创建数据库失败: " + err.Error())
+	}
+	println("数据库创建成功！")
 }

@@ -40,12 +40,6 @@ func (this *mailSystem) GetName() string {
 
 func (this *mailSystem) LoadData(dao *model_game.PlayerDao, Player *model_game.Player) {
 	Player.AllMailData = dao.GeneralD.MailData
-	if Player.AllMailData.CurBaseMailId < this.curBaseId {
-		//logger.Log.Info("base mail has changed")
-		go this.syncBaseMailToPlayer(Player.AllMailData.CurBaseMailId, this.curBaseId, Player.PlayerId)
-		Player.AllMailData.CurBaseMailId = this.curBaseId
-		// 数据库批量获取然后生成
-	}
 
 }
 
@@ -100,7 +94,12 @@ func (this *mailSystem) syncBaseMailToPlayer(srcId, tarId, playerId int64) {
 func (this *mailSystem) DailyReset(Player *model_game.Player) {}
 
 func (this *mailSystem) OnEnterGame(Player *model_game.Player) {
-
+	if Player.AllMailData.CurBaseMailId < this.curBaseId {
+		//logger.Log.Info("base mail has changed")
+		go this.syncBaseMailToPlayer(Player.AllMailData.CurBaseMailId, this.curBaseId, Player.PlayerId)
+		Player.AllMailData.CurBaseMailId = this.curBaseId
+		// 数据库批量获取然后生成
+	}
 }
 
 /*

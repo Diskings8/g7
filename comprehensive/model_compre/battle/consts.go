@@ -15,3 +15,8 @@ const (
 const (
 	ActorTypeMonster ActorType = iota + 100
 )
+
+const (
+	AttributesHp = iota + 1
+	AttributesMp
+)

@@ -1,10 +1,14 @@
 package actors
 
 import (
+	"fmt"
+	"g7/common/confs"
+	"g7/common/logger"
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle"
 	"g7/comprehensive/model_compre/battle/actoractions"
 	"g7/comprehensive/model_compre/battle/common_battle"
+	"g7/comprehensive/model_compre/battle/events"
 	"g7/comprehensive/model_compre/battle/interfaces"
 	"g7/comprehensive/model_compre/battle/skills"
 	"g7/comprehensive/model_compre/battle/statemachine"
@@ -24,22 +28,27 @@ func NewActor(actorId int64, actorType battle.ActorType, pos common_battle.Vecto
 }
 
 type Actor struct {
+	Attributes
+	States
+	Skills
+	KillerId    int64
 	dirty       bool
 	id          int64
 	actorType   battle.ActorType
 	pos         common_battle.Vector3D
 	targetPos   common_battle.Vector3D
-	inputAction []*pb.GameMessage // 从房间 inputChan 收到的输入
-	skills      []skills.Skill
+	inputAction []*pb.GameMessage         // 从房间 inputChan 收到的输入
 	state       statemachine.StateMachine // 状态机管理待机、移动、攻击等
-	moveSpeed   float64                   // 移动速度 例如 5.0
-	isMoving    bool                      // 是否在移动
 }
 
 var _ interfaces.Actor = (*Actor)(nil)
 
 func (a *Actor) Init() {
-	a.moveSpeed = 5
+	a.Attributes.DefaultAttributes()
+	a.States.DefaultStates()
+	a.skills = make(map[int32]skills.Skill)
+	a.skillCDs = make(map[int32]time.Duration)
+
 }
 
 func (a *Actor) ID() int64 {
@@ -70,6 +79,9 @@ func (a *Actor) Update(delta time.Duration, world interfaces.World) {
 
 	// 3. 状态机更新
 	a.state.Update(delta)
+
+	// 4.cd更新
+	a.Skills.UpdateAllCD(delta)
 }
 
 func (a *Actor) AcceptInput(input actoractions.ActorAction) {
@@ -87,12 +99,16 @@ func (a *Actor) processInput(action *pb.GameMessage, world interfaces.World) {
 			Y: moveReq.Y,
 			Z: moveReq.Z, // 大部分游戏 Y 是高度
 		}
-		a.isMoving = true
+		a.States.IsMoving = true
+	case pb.MsgID_MSG_Actor_UseSkill:
+		var useSkillReq pb.Action_UseSkill
+		_ = proto.Unmarshal(action.Body, &useSkillReq)
+		a.castSkill(useSkillReq.GetSkillId(), useSkillReq.GetTargetIds(), world)
 	}
 }
 
 func (a *Actor) doMove(delta time.Duration) {
-	if !a.isMoving {
+	if !a.States.IsMoving {
 		return
 	}
 	// 帧时间（秒）
@@ -107,7 +123,7 @@ func (a *Actor) doMove(delta time.Duration) {
 	distSq := dx*dx + dy*dy + dz*dz
 	if distSq < 0.0001 {
 		a.pos = a.targetPos
-		a.isMoving = false
+		a.States.IsMoving = false
 		return
 	}
 	a.dirty = true
@@ -121,7 +137,7 @@ func (a *Actor) doMove(delta time.Duration) {
 	dirZ := dz / dist
 
 	// 每帧移动步长
-	step := a.moveSpeed * dt
+	step := a.MoveSpeed * dt
 
 	// 3D 位置更新（完全匹配你的坐标系）
 	a.pos.X += dirX * step
@@ -131,4 +147,50 @@ func (a *Actor) doMove(delta time.Duration) {
 
 func (a *Actor) Pos() common_battle.Vector3D {
 	return a.pos
+}
+
+func (a *Actor) castSkill(skillId int32, targetIds []int64, world interfaces.World) {
+	if a.States.IsDead {
+		return
+	}
+
+	conf, ok := confs.GConfigSkill.Find(skillId)
+	if !ok {
+		logger.Log.Warn(fmt.Sprintf("%d skill %d not exist", a.id, skillId))
+		return
+	}
+	if !a.Skills.IsCDOk(skillId) {
+		logger.Log.Warn(fmt.Sprintf("%d skill %d not cd enough", a.id, skillId))
+		return
+	}
+	if !a.Attributes.IsEnough(battle.AttributesMp, conf.Skillcost) {
+		logger.Log.Warn(fmt.Sprintf("%d skill %d not cost %f enough", a.id, skillId, conf.Skillcost))
+		return
+	}
+	a.Attributes.Cost(battle.AttributesMp, conf.Skillcost)
+
+	a.Skills.StartSkillCD(skillId, time.Duration(conf.Cd))
+	// 判断对象合法性
+
+	targets := world.FindActors(a, targetIds, conf.Range)
+	if targets == nil {
+		logger.Log.Warn(fmt.Sprintf("%d skill %d not range actors ", a.id, skillId))
+		return
+	}
+	var effectScore float64
+	switch conf.Skilltype {
+	case 1:
+		effectScore = conf.Score * (-1)
+	default:
+		effectScore = conf.Score
+	}
+	for _, v := range targets {
+		v.TakeEffect(a.id, effectScore)
+		world.AddEvent(events.Event{
+			EventType: 1,
+			CasterId:  a.id,
+			TargetId:  v.ID(),
+		})
+	}
+	return
 }

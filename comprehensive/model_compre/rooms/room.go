@@ -18,6 +18,7 @@ type PlayAction struct {
 type Room struct {
 	mu            sync.RWMutex
 	RoomId        string
+	ConfId        int32
 	players       map[int64]*RoomPlayerData
 	members       []string
 	inputChan     chan PlayAction
@@ -28,6 +29,7 @@ type Room struct {
 
 func NewRoom(confId int32, roomId string, members []string) *Room {
 	r := &Room{
+		ConfId:        confId,
 		RoomId:        roomId,
 		players:       make(map[int64]*RoomPlayerData),
 		members:       members,
