@@ -20,3 +20,9 @@ func (v3d *Vector3D) Add(add Vector3D) Vector3D {
 func (v3d *Vector3D) Mul(f float64) Vector3D {
 	return *v3d
 }
+
+type Pos struct {
+	CurPos    Vector3D
+	OldPos    Vector3D
+	TargetPos Vector3D
+}

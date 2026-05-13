@@ -2,12 +2,13 @@ package world
 
 import (
 	"g7/comprehensive/model_compre/battle/actoractions"
+	"g7/comprehensive/model_compre/battle/interfaces"
 	"time"
 )
 
 func (w *World) Tick(delta time.Duration) {
 	w.frameID++
-	w.gridMap.GirdEventClear() // 清空事件
+	w.gridMap.GridEventClear() // 清空事件
 
 	// 1. 收集本帧所有输入（非阻塞，一次清空 channel）
 	var actions []actoractions.ActorAction
@@ -35,17 +36,16 @@ DONE:
 	w.mu.RUnlock()
 
 	//todo other event
-
-	w.rebuildGrid()
 }
 
-func (w *World) rebuildGrid() {
-	w.gridMap.GirdActorsClear()
-	w.mu.RLock()
-	defer w.mu.RUnlock()
-	for id, a := range w.actors {
-		gx, gy := w.gridMap.GridCoord(a.Pos())
-		key := [2]int32{gx, gy}
-		w.gridMap.SetGirdActor(key, id)
+func (w *World) UpdateActorGrid(a interfaces.Actor) {
+	if a.IsStateMoving() {
+		newx, newy := w.gridMap.GridCoord(a.GetPos().CurPos)
+		oldx, oldy := w.gridMap.GridCoord(a.GetPos().OldPos)
+
+		if newx != oldx || newy != oldy {
+			w.gridMap.RemoveActor(oldx, oldy, a.ID())
+			w.gridMap.SetGridActor(newx, newy, a.ID())
+		}
 	}
 }

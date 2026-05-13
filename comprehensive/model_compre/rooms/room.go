@@ -66,7 +66,7 @@ func (r *Room) RemovePlayer(playerId int64) {
 }
 
 func (r *Room) EnterPlayerActor(playerId int64, actorInfo *pb.BattleActor) {
-	worldActor := actors.NewPlayerActor(playerId, actorInfo)
+	worldActor := actors.NewPlayerActor(playerId, actorInfo, r.world)
 	r.world.AddActor(&worldActor)
 }
 
@@ -140,7 +140,7 @@ func (r *Room) calcNineGirdsView() {
 
 		enterList, updateList, leaveList = r.world.GetDirtyActorsInView(currentViewActors, lastView)
 		// 无变化直接跳过
-		if len(enterList) == 0 && len(updateList) == 0 && len(leaveList) == 0 {
+		if len(enterList) == 0 && len(updateList) == 0 && len(leaveList) == 0 && len(currentViewEvents) == 0 {
 			continue
 		}
 

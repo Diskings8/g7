@@ -5,12 +5,14 @@ import "g7/common/protos/pb"
 type Event struct {
 	EventType int32
 	SkillId   int32
+	Seq       int32
 	CasterId  int64
 	Targets   []SkillUseResult
 }
 
 func (e *Event) ToProto() *pb.GirdEvents {
 	result := &pb.GirdEvents{
+		Seq:         e.Seq,
 		EventType:   e.EventType,
 		SkillId:     e.SkillId,
 		CastActorId: e.CasterId,

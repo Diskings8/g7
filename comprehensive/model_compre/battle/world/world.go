@@ -15,7 +15,7 @@ import (
 type World struct {
 	room      interfaces.Room
 	running   atomic.Bool
-	gridMap   grids.GirdMap
+	gridMap   grids.GridMap
 	actors    map[int64]interfaces.Actor    // 所有战斗实体（玩家、怪物等）
 	actionsCh chan actoractions.ActorAction // 带缓冲
 	frameID   int64
@@ -125,17 +125,17 @@ func (w *World) GetNineGridsViewObjects(playerId int64) (viewActors map[int64]st
 	if !ok {
 		return nil, nil
 	}
-	gx, gy := w.gridMap.GridCoord(actor.Pos())
+	gx, gy := w.gridMap.GridCoord(actor.GetPos().CurPos)
 	nGrids := w.gridMap.NineGrids(gx, gy)
 
 	viewActors = make(map[int64]struct{})
 	viewEvents = make([]events.Event, 0)
 
 	for _, g := range nGrids {
-		for _, id := range w.gridMap.GetGirdActors(g) {
+		for _, id := range w.gridMap.GetGridActors(g[0], g[1]) {
 			viewActors[id] = struct{}{}
 		}
-		girdEvents := w.gridMap.GetGirdEvent(g)
+		girdEvents := w.gridMap.GetGridEvent(g[0], g[1])
 		viewEvents = append(viewEvents, girdEvents...)
 	}
 	return
@@ -171,10 +171,16 @@ func (w *World) FindActors(src interfaces.Actor, actorIds []int64, params ...any
 		}
 		return targetActors
 	}
+	w.mu.RLock()
+	defer w.mu.RUnlock()
+	for _, v := range w.actors {
+		targetActors = append(targetActors, v)
+		return targetActors
+	}
 	return nil
 }
 
 func (w *World) AddEvent(pos common_battle.Vector3D, event events.Event) {
 	x, y := w.gridMap.GridCoord(pos)
-	w.gridMap.SetGirdEvent([2]int32{x, y}, event)
+	w.gridMap.SetGridEvent(x, y, event)
 }

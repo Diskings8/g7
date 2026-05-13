@@ -103,9 +103,9 @@ func SelectUse(int int32) *pb.Req_AuthClientToGateWay {
 	case 1:
 		return &pb.Req_AuthClientToGateWay{
 			UerID:    2044258565992091648,
-			PlayerID: 2044315259879165952,
+			PlayerID: 2054066758209376256,
 			ServerID: 91001,
-			Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDQ0MjU4NTY1OTkyMDkxNjQ4LCJ1aWQiOjIwNDQzMTUyNTk4NzkxNjU5NTIsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc3OTUzMDE5NSwiaWF0IjoxNzc2OTM4MTk1fQ.j-UwFzARER7RF02dBvEoOr_4TlB3dfAml6lvDIjmW3M",
+			Token:    "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX2lkIjoyMDQ0MjU4NTY1OTkyMDkxNjQ4LCJ1aWQiOjIwNTQwNjY3NTgyMDkzNzYyNTYsInNlcnZlcl9pZCI6OTEwMDEsImV4cCI6MTc4MTE4NjU0NSwiaWF0IjoxNzc4NTk0NTQ1fQ.tlALaY0P7m6Leu_egF6mC80C2_s8YP_JByUdLrcewag",
 		}
 	case 2:
 		return &pb.Req_AuthClientToGateWay{

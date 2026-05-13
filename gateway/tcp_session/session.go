@@ -129,9 +129,7 @@ func (s *Session) AuthToRoom() {
 	msgBody, _ := proto.Marshal(&msg)
 	req := &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_AUTH), Body: msgBody}
 	err := s.roomStream.Send(req)
-	if err == nil {
-		logger.Log.Info("send auth success")
-	} else {
+	if err != nil {
 		logger.Log.Error(err.Error())
 	}
 }
@@ -252,11 +250,6 @@ func (s *Session) RunGoRoutineToRecvFromRoom() {
 		if err != nil {
 			log.Printf("%d 房间服流断开: %v", s.playerID, err)
 			return
-		}
-		if pb.MsgID(pkt.MsgId) == pb.MsgID_MSG_World_NineGridsSnapshot {
-			t := &pb.WorldSnapshot{}
-			errx := proto.Unmarshal(pkt.Body, t)
-			fmt.Println(t, errx)
 		}
 		s.sendToConn(pkt)
 	}

@@ -18,6 +18,8 @@ func HandleLogic(MsgId pb.MsgID, data []byte, player *model_game.Player) (rsp pr
 		rsp = handleGmCmd(data, player)
 	case pb.MsgID_MSG_Req_EnterScene:
 		rsp = handleMsgEnterScene(data, player)
+	case pb.MsgID_MSG_Req_StartMatch:
+		rsp = handleMsgStartMatch(data, player)
 	}
 	return
 }
@@ -39,4 +41,10 @@ func handleMsgCreateOrder(req []byte, player *model_game.Player) (rsp proto.Mess
 
 func handleMsgEnterScene(req []byte, player *model_game.Player) (rsp proto.Message) {
 	return general_system_game.GBattleSystem.ReqToEnterScene(req, player)
+}
+
+func handleMsgStartMatch(req []byte, player *model_game.Player) (rsp proto.Message) {
+	reqD := &pb.Req_StartMatch{}
+	proto.Unmarshal(req, reqD)
+	return general_system_game.GMatchSystem.StartMatch(reqD, player)
 }

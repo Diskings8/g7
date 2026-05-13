@@ -26,7 +26,6 @@ import (
 
 	"google.golang.org/grpc"
 
-	"net/http"
 	_ "net/http/pprof"
 )
 
@@ -47,13 +46,13 @@ func main() {
 	logger.Init()
 	logger.Log.Info(fmt.Sprintf("游戏服%s 启动中...", globals.ServerId))
 
-	go func() {
-		// 端口随便选，不和你的服务冲突即可 比如 6060 / 9876
-		err := http.ListenAndServe("0.0.0.0:6060", nil)
-		if err != nil {
-			panic(err)
-		}
-	}()
+	//go func() {
+	//	// 端口随便选，不和你的服务冲突即可 比如 6060 / 9876
+	//	err := http.ListenAndServe("0.0.0.0:6060", nil)
+	//	if err != nil {
+	//		panic(err)
+	//	}
+	//}()
 
 	//
 	_ = confs.ReloadAllConfig()

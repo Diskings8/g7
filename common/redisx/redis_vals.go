@@ -16,7 +16,7 @@ const (
 )
 
 func GetPlayerLoginValueIndex(loginVal string, index int) string {
-	return strings.Split(loginVal, "_")[index]
+	return strings.Split(loginVal, "#")[index]
 }
 
 func MakeRoomMasterValue(roomId, roomAddr string) string {

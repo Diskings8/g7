@@ -23,7 +23,7 @@ func (gms *GatewayMixServer) GetConnCount(_ctx context.Context, req *pb.Req_Node
 
 func (gms *GatewayMixServer) ConnToRoom(_ctx context.Context, req *pb.Req_Node_MakeConnToRoom) (*pb.Rsp_Node_MakeConnToRoom, error) {
 	rsp := &pb.Rsp_Node_MakeConnToRoom{State: 2}
-	logger.Log.Info(fmt.Sprintf("RoomManagerServer.ConnToRoom:%+v", req))
+	//logger.Log.Info(fmt.Sprintf("RoomManagerServer.ConnToRoom:%+v", req))
 	sess := global_gateway.GConnSessionMap.FindSessionByPlayerId(req.PlayerId)
 	if sess == nil {
 		logger.Log.Info(fmt.Sprintf("RoomManagerServer.ConnToRoom session emopty"))

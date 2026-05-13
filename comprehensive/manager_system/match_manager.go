@@ -32,7 +32,7 @@ func (mm *matchManager) Init() {
 
 func (mm *matchManager) NewMatcher(matcher *pb.MatchWaiter) matchs.WaitingInfo {
 	return matchs.WaitingInfo{
-		ConfId:      1,
+		ConfId:      matcher.GetConfId(),
 		TeamID:      matcher.GetTeamId(),
 		Rating:      matcher.GetScore(),
 		EnterTime:   time.Now(),
@@ -49,7 +49,7 @@ func (mm *matchManager) getConfMatcher(confId int32) *matchs.Matcher {
 	mm.mu.RUnlock()
 	if !ok {
 		mm.mu.Lock()
-		mm.confMatcher[confId] = matchs.NewMatcher()
+		mm.confMatcher[confId] = matchs.NewMatcher(confId)
 		mm.confMatcher[confId].SetCallbackFunc(mm.callBackFunc)
 		mm.confKeys = append(mm.confKeys, confId)
 		mm.mu.Unlock()
@@ -75,7 +75,7 @@ func (mm *matchManager) Stop() {
 }
 
 func (mm *matchManager) matchLoop() {
-	ticker := time.NewTicker(1000 * time.Millisecond) // 每1秒尝试一次
+	ticker := time.NewTicker(500 * time.Millisecond) // 每1秒尝试一次
 	defer ticker.Stop()
 	for {
 		select {
@@ -128,6 +128,9 @@ func (mm *matchManager) callBackFunc(result *matchs.MatchResult) {
 		return
 	}
 	for _, oneLoginVal := range memberLoginVals {
+		if oneLoginVal == nil {
+			continue
+		}
 		loginVal := oneLoginVal.(string)
 		gameServerAddr := redisx.GetPlayerLoginValueIndex(loginVal, redisx.RedisPlayerLoginValIndexGameServerAddr)
 		serverMap[gameServerAddr] = append(serverMap[gameServerAddr], loginVal)

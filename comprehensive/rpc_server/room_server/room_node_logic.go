@@ -13,7 +13,7 @@ func (rms *RoomMixServer) Init(etcdAddr string) {
 
 func (rms *RoomMixServer) CreateRoom(_ctx context.Context, req *pb.Req_Node_CreateRoom) (rsp *pb.Rsp_Node_CreateRoom, e error) {
 	roomId := req.GetMatchId()
-	//logger.Log.Info(roomId)
+	//logger.Log.Info(fmt.Sprintf("%s : member: %+v", roomId, req.GetMatchMember()))
 	rsp = &pb.Rsp_Node_CreateRoom{
 		RoomId:   roomId,
 		State:    1,

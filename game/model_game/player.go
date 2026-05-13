@@ -162,7 +162,7 @@ func (p *Player) ToDao(kind int) SaveDaoD {
 
 // Kick 必须在主线程执行
 func (p *Player) Kick(reason string) {
-	logger.Log.Debug(fmt.Sprintf("player %d kick success by reason:%s", p.PlayerId, reason))
+	//logger.Log.Debug(fmt.Sprintf("player %d kick success by reason:%s", p.PlayerId, reason))
 
 	p.OfflineAt = time.Now()
 	p.SendMessage(pb.MsgID_MSG_HeartBeat, &pb.Notify_Kick{Reason: reason})

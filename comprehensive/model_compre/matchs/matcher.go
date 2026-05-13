@@ -12,10 +12,10 @@ type Matcher struct {
 	cb        func(result *MatchResult)
 }
 
-func NewMatcher() *Matcher {
+func NewMatcher(confId int32) *Matcher {
 	return &Matcher{
 		matchType: 1,
-		confId:    1,
+		confId:    confId,
 		pool:      NewLocalMatchPool(),
 	}
 }
@@ -45,7 +45,7 @@ func (m *Matcher) TryMatch() *MatchResult {
 	// 1. 先处理扩圈
 	m.processExpand()
 
-	TeamCount := m.getTeamCountByMatchType()
+	TeamCount := m.getTeamCountByConfId()
 	// 2. 获取所有等待玩家
 	if m.pool.Size() < TeamCount {
 		return nil // 不够10人
@@ -63,8 +63,8 @@ func (m *Matcher) TryMatch() *MatchResult {
 	return nil
 }
 
-func (m *Matcher) getTeamCountByMatchType() int {
-	switch m.matchType {
+func (m *Matcher) getTeamCountByConfId() int {
+	switch m.confId {
 	case 1:
 		return 1
 	default:
@@ -80,13 +80,13 @@ func (m *Matcher) tryMatchForWaiter(anchor *WaitingInfo) *MatchResult {
 
 	// 查找候选
 	candidates := m.pool.FindByRatingRange(minRating, maxRating, anchor.TeamID, 50)
-	waitCompetingTeamCount := m.getTeamCountByMatchType()
+	waitCompetingTeamCount := m.getTeamCountByConfId()
 	if len(candidates) < (waitCompetingTeamCount - 1) {
 		return nil // 候选不足
 	}
 
 	// 尝试组成队伍
-	teamCount := m.getTeamCountByMatchType()
+	teamCount := m.getTeamCountByConfId()
 	teams := m.buildCompetingTeams(append([]WaitingItem{anchor.ToWaitingItem()}, candidates...), teamCount, 1)
 
 	return &MatchResult{

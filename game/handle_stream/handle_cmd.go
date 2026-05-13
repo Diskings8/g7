@@ -60,7 +60,8 @@ func handleGmCmd(reqD []byte, player *model_game.Player) proto.Message {
 	case "mailAll":
 		general_system_game.GMailSystem.SendDefaultSystemTypeMail("test", "test content", []model_common.Attachment{{ItemID: 1032, Count: 1, Bind: 0}}, time.Now().Unix(), 3, "tester")
 	case "match":
-		general_system_game.GMatchSystem.StartMatch(player)
+		k := utils.StringToInt32(cmds[1])
+		general_system_game.GMatchSystem.StartMatch(&pb.Req_StartMatch{ConfId: k}, player)
 	case "goal":
 		switch cmds[1] {
 		case "add":

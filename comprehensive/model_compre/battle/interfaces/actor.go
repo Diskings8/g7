@@ -14,8 +14,9 @@ type Actor interface {
 	Update(delta time.Duration, world World)
 	ToProto(bool) *pb.ActorState
 	IsDirty() bool
+	IsStateMoving() bool
 	ClearDirty()
-	Pos() common_battle.Vector3D
+	GetPos() common_battle.Pos
 	TakeEffect(srcId int64, score float64)
 	// 处理输入（仅玩家用）
 	AcceptInput(input actoractions.ActorAction)

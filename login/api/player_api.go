@@ -119,9 +119,9 @@ func SelectPlayer(c *gin.Context) {
 		return
 	}
 	rsp := pb.Rsp_Http_SelectPlayer{
+		UserID:   reqs.GetUID(),
 		ServerID: reqs.GetServerID(),
 		PlayerID: reqs.GetPlayerID(),
-		ID:       reqs.GetUID(),
 		Token:    gameToken,
 	}
 

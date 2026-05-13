@@ -12,12 +12,12 @@ type Attributes struct {
 }
 
 func (as *Attributes) DefaultAttributes() {
-	as.MaxHp = 100
+	as.MaxHp = 10000
 	as.Hp = as.MaxHp
-	as.MaxMp = 100
+	as.MaxMp = 10000
 	as.Mp = as.MaxHp
 
-	as.MoveSpeed = 5
+	as.MoveSpeed = 500
 }
 
 func (as *Attributes) IsEnough(attri int, val float64) bool {
@@ -34,7 +34,7 @@ func (as *Attributes) IsEnough(attri int, val float64) bool {
 func (as *Attributes) Cost(attri int, val float64) {
 	switch attri {
 	case battle.AttributesHp:
-		as.Hp = max(as.Mp-val, 0)
+		as.Hp = max(as.Hp-val, 0)
 		as.Hp = min(as.Hp, as.MaxHp)
 	case battle.AttributesMp:
 		as.Mp = max(as.MaxMp-val, 0)
@@ -50,4 +50,12 @@ type States struct {
 
 func (s *States) DefaultStates() {
 
+}
+
+func (s *States) IsStateMoving() bool {
+	return s.IsMoving
+}
+
+func (s *States) IsStateDead() bool {
+	return s.IsDead
 }

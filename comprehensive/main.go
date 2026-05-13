@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"g7/common/configx"
+	"g7/common/confs"
 	"g7/common/cronx"
 	"g7/common/etcd"
 	"g7/common/globals"
@@ -16,6 +17,8 @@ import (
 	"g7/comprehensive/rpc_server/roommanager_server"
 	"google.golang.org/grpc"
 	"net"
+	"net/http"
+	_ "net/http/pprof"
 	"os"
 	"os/signal"
 	"syscall"
@@ -33,6 +36,8 @@ func main() {
 	var confStr = globals.GetEnvConfPath()
 	configx.LoadEnvConf(confStr)
 
+	confs.ReloadAllConfig()
+
 	// 3、初始化日志
 	logger.Init()
 	logger.Log.Info(fmt.Sprintf("综合服%s 启动中...", globals.ServerId))
@@ -42,6 +47,13 @@ func main() {
 
 	// 初始化mq
 	//global_game.GGlobalMQ = mqc.InitMQProducer(configx.GEnvCfg.MQ.Kind, configx.GEnvCfg.MQ.Dsn)
+
+	go func() {
+		err := http.ListenAndServe("0.0.0.0:6062", nil)
+		if err != nil {
+			panic(err)
+		}
+	}()
 
 	// 注册etcd
 	etcd.InitETCD(configx.GEnvCfg.Etcd.Dsn)
@@ -95,7 +107,7 @@ func main() {
 	}
 	if matchServer != nil {
 		matchServer.GracefulStop()
-		
+
 	}
 	logger.Log.Info("所有服务已退出，进程结束")
 }

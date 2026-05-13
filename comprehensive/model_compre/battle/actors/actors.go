@@ -17,13 +17,13 @@ import (
 	"time"
 )
 
-func NewActor(actorId int64, actorType battle.ActorType, pos common_battle.Vector3D) Actor {
+func NewActor(actorId int64, actorType battle.ActorType, pos common_battle.Vector3D, world interfaces.World) Actor {
 	a := Actor{
 		id:        actorId,
 		actorType: actorType,
-		pos:       pos,
 	}
-	a.Init()
+	a.CurPos = pos
+	a.Init(world)
 	return a
 }
 
@@ -31,19 +31,21 @@ type Actor struct {
 	Attributes
 	States
 	Skills
-	KillerId    int64
-	dirty       bool
-	id          int64
-	actorType   battle.ActorType
-	pos         common_battle.Vector3D
-	targetPos   common_battle.Vector3D
+	common_battle.Pos
+	KillerId  int64
+	dirty     bool
+	id        int64
+	world     interfaces.World
+	actorType battle.ActorType
+
 	inputAction []*pb.GameMessage         // 从房间 inputChan 收到的输入
 	state       statemachine.StateMachine // 状态机管理待机、移动、攻击等
 }
 
 var _ interfaces.Actor = (*Actor)(nil)
 
-func (a *Actor) Init() {
+func (a *Actor) Init(world interfaces.World) {
+	a.world = world
 	a.Attributes.DefaultAttributes()
 	a.States.DefaultStates()
 	a.skills = make(map[int32]skills.Skill)
@@ -61,6 +63,10 @@ func (a *Actor) Type() battle.ActorType {
 
 func (a *Actor) IsDirty() bool {
 	return a.dirty
+}
+
+func (a *Actor) IsStateMoving() bool {
+	return a.States.IsMoving
 }
 
 func (a *Actor) ClearDirty() {
@@ -94,7 +100,7 @@ func (a *Actor) processInput(action *pb.GameMessage, world interfaces.World) {
 	case pb.MsgID_MSG_Actor_Move:
 		var moveReq pb.Action_Move
 		_ = proto.Unmarshal(action.Body, &moveReq)
-		a.targetPos = common_battle.Vector3D{
+		a.TargetPos = common_battle.Vector3D{
 			X: moveReq.X,
 			Y: moveReq.Y,
 			Z: moveReq.Z, // 大部分游戏 Y 是高度
@@ -102,8 +108,12 @@ func (a *Actor) processInput(action *pb.GameMessage, world interfaces.World) {
 		a.States.IsMoving = true
 	case pb.MsgID_MSG_Actor_UseSkill:
 		var useSkillReq pb.Action_UseSkill
-		_ = proto.Unmarshal(action.Body, &useSkillReq)
-		a.castSkill(useSkillReq.GetSkillId(), useSkillReq.GetTargetIds(), world)
+		err := proto.Unmarshal(action.Body, &useSkillReq)
+		if err != nil {
+			logger.Log.Warn(fmt.Sprintf("%+v:%s", err.Error(), string(action.Body)))
+			return
+		}
+		a.castSkill(&useSkillReq, world)
 	}
 }
 
@@ -115,19 +125,18 @@ func (a *Actor) doMove(delta time.Duration) {
 	dt := delta.Seconds()
 
 	// 3D 方向向量（你的坐标规则）
-	dx := a.targetPos.X - a.pos.X // 前后
-	dy := a.targetPos.Y - a.pos.Y // 左右
-	dz := a.targetPos.Z - a.pos.Z // 上下
+	a.OldPos = a.CurPos
+	dx := a.TargetPos.X - a.CurPos.X // 前后
+	dy := a.TargetPos.Y - a.CurPos.Y // 左右
+	dz := a.TargetPos.Z - a.CurPos.Z // 上下
 
 	// 3D 距离平方（优化，不用开根号）
 	distSq := dx*dx + dy*dy + dz*dz
 	if distSq < 0.0001 {
-		a.pos = a.targetPos
+		a.CurPos = a.TargetPos
 		a.States.IsMoving = false
 		return
 	}
-	a.dirty = true
-
 	// 3D 距离
 	dist := math.Sqrt(distSq)
 
@@ -140,20 +149,21 @@ func (a *Actor) doMove(delta time.Duration) {
 	step := a.MoveSpeed * dt
 
 	// 3D 位置更新（完全匹配你的坐标系）
-	a.pos.X += dirX * step
-	a.pos.Y += dirY * step
-	a.pos.Z += dirZ * step
+	a.CurPos.X += dirX * step
+	a.CurPos.Y += dirY * step
+	a.CurPos.Z += dirZ * step
 }
 
-func (a *Actor) Pos() common_battle.Vector3D {
-	return a.pos
+func (a *Actor) GetPos() common_battle.Pos {
+	return a.Pos
 }
 
-func (a *Actor) castSkill(skillId int32, targetIds []int64, world interfaces.World) {
+func (a *Actor) castSkill(reqSkill *pb.Action_UseSkill, world interfaces.World) {
 	if a.States.IsDead {
 		return
 	}
-
+	skillId := reqSkill.GetSkillId()
+	targetIds := reqSkill.GetTargetIds()
 	conf, ok := confs.GConfigSkill.Find(skillId)
 	if !ok {
 		logger.Log.Warn(fmt.Sprintf("%d skill %d not exist", a.id, skillId))
@@ -184,7 +194,11 @@ func (a *Actor) castSkill(skillId int32, targetIds []int64, world interfaces.Wor
 	default:
 		effectScore = conf.Score
 	}
-	var OneEvent events.Event
+	var OneEvent = events.Event{
+		CasterId: a.id,
+		SkillId:  skillId,
+		Seq:      reqSkill.GetSeq(),
+	}
 	for _, v := range targets {
 		v.TakeEffect(a.id, effectScore)
 		OneEvent.Targets = append(OneEvent.Targets, events.SkillUseResult{
@@ -195,6 +209,6 @@ func (a *Actor) castSkill(skillId int32, targetIds []int64, world interfaces.Wor
 			IsBlock:     false,
 		})
 	}
-	world.AddEvent(a.pos, OneEvent)
+	world.AddEvent(a.CurPos, OneEvent)
 	return
 }
