@@ -1,7 +1,7 @@
 package global_gateway
 
 import (
-	"g7/gateway/tcp_session"
+	"g7/gateway/conn_session"
 	"sync/atomic"
 )
 
@@ -11,4 +11,8 @@ func GetConnCount() int32 {
 	return GCurrentConnection.Load()
 }
 
-var GConnSessionMap = tcp_session.GetSessionManager()
+var GConnSessionMap = conn_session.GetSessionManager()
+
+func AllSessionMapInit() {
+	GConnSessionMap.Init()
+}

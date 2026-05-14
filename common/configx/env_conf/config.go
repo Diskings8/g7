@@ -56,9 +56,10 @@ type Etcd struct {
 }
 
 type GateWay struct {
-	Addr    string `yaml:"addr"`
-	Port    string `yaml:"port"`
-	RpcPort string `yaml:"rpc_port"`
+	Addr     string `yaml:"addr"`
+	Port     string `yaml:"port"`
+	RpcPort  string `yaml:"rpc_port"`
+	HttpPort string `yaml:"http_port"`
 }
 
 func (gw *GateWay) Dsn() string {
@@ -67,6 +68,10 @@ func (gw *GateWay) Dsn() string {
 
 func (gw *GateWay) RpcDsn() string {
 	return fmt.Sprintf("%s:%s", gw.Addr, gw.RpcPort)
+}
+
+func (gw *GateWay) HttpDsn() string {
+	return fmt.Sprintf("%s:%s", gw.Addr, gw.HttpPort)
 }
 
 type Env struct {

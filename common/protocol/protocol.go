@@ -6,10 +6,13 @@ import "sync"
 // [4字节长度][2字节协议ID]
 
 const (
-	HeaderSize     = 4 + 4 + 4 // 长度固定
-	lengthSizeTail = 4
-	seqSizeTail    = 8
-	msgIdSizeTail  = 12
+	TcpHeaderSize     = 4 + 4 + 4 // 长度固定
+	TcpLengthSizeTail = 4
+	TcpSeqSizeTail    = 8
+	TcpMsgIdSizeTail  = 12
+)
+const (
+	WBMsgIdSize = 4
 )
 
 var msgBufPool = sync.Pool{
@@ -22,6 +25,6 @@ var msgBufPool = sync.Pool{
 
 var headerBufPool = sync.Pool{
 	New: func() interface{} {
-		return make([]byte, HeaderSize)
+		return make([]byte, TcpHeaderSize)
 	},
 }

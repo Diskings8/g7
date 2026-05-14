@@ -11,10 +11,17 @@ import (
 	"net"
 )
 
-func RunGrpcServer(lis net.Listener, etcdGrpcAddr string) {
+func RunGrpcServer(ctx context.Context, lis net.Listener, etcdGrpcAddr string) {
 	grpcServer := grpc.NewServer()
 	pb.RegisterGatewayNodeServiceServer(grpcServer, &GatewayMixServer{etcdGrpcAddr: etcdGrpcAddr})
-	grpcServer.Serve(lis)
+	go grpcServer.Serve(lis)
+	go func() {
+		select {
+		case <-ctx.Done():
+			grpcServer.Stop()
+		}
+	}()
+	return
 }
 
 func (gms *GatewayMixServer) GetConnCount(_ctx context.Context, req *pb.Req_Node_ConnCount) (*pb.Rsp_Node_ConnCount, error) {

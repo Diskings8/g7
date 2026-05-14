@@ -1,12 +1,12 @@
-package tcp_session
+package conn_session
 
 import (
+	"context"
 	"fmt"
 	"g7/common/logger"
-	"g7/common/protocol"
+	"g7/common/netc"
 	"g7/common/protos/pb"
 	"log"
-	"net"
 	"sync"
 	"sync/atomic"
 	"time"
@@ -16,7 +16,8 @@ import (
 
 // Session 会话：网关只存这些！绝对不存业务数据！
 type Session struct {
-	conn       net.Conn
+	ctx        context.Context
+	conn       netc.NetConnInterface
 	userID     int64 // 用户ID
 	playerID   int64 // 角色ID
 	serverID   int32 // 要连接的游戏服ID
@@ -35,11 +36,15 @@ type Session struct {
 	etcdGatewayGrpcAddr string
 }
 
-func NewSession(conn net.Conn, etcdGatewayGrpcAddr string) *Session {
-	sess := &Session{conn: conn}
+func NewSession(ctx context.Context, conn netc.NetConnInterface, etcdGatewayGrpcAddr string) *Session {
+	sess := &Session{conn: conn, ctx: ctx}
 	sess.Init(etcdGatewayGrpcAddr)
-	gSessionManager.NewSession(sess, conn)
+	gSessionManager.NewSession(conn, sess)
 	return sess
+}
+
+func AllSessionClose() {
+	gSessionManager.AllClose()
 }
 
 func (s *Session) Init(etcdGatewayGrpcAddr string) {
@@ -135,8 +140,11 @@ func (s *Session) AuthToRoom() {
 }
 
 func (s *Session) RunGoRoutineToRecvFromConn() {
+	defer func() {
+		recover()
+	}()
 	for {
-		packet, err := protocol.ReadPacketFromConn(s.conn)
+		packet, err := s.conn.ReadFromConn()
 		if err != nil {
 			log.Printf("客户端断开: %v", err)
 			return
@@ -162,13 +170,16 @@ func (s *Session) switchToSelectStream(gameMessage *pb.GameMessage) {
 }
 
 func (s *Session) RunGoRoutineToSendToConn() {
+	defer func() {
+		recover()
+	}()
 	for !s.closed {
 		select {
 		case msg, ok := <-s.connSend:
 			if !ok {
 				return
 			}
-			err := protocol.WritePacketToConn(s.conn, pb.MsgID(msg.MsgId), s.newSeq(), msg.Body)
+			err := s.conn.WriteToConn(s.newSeq(), msg)
 			if err != nil {
 				log.Printf("write to conn error: %v", err)
 				s.Close()

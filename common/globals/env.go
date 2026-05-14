@@ -1,5 +1,12 @@
 package globals
 
+import (
+	"log"
+	"os"
+	"os/signal"
+	"syscall"
+)
+
 // Env 全局环境变量
 var (
 	Env          string // 开发环境
@@ -8,6 +15,7 @@ var (
 	EtcdGrpcAddr string // 注册到etcd的地址
 	Container    string // 容器
 	Platform     string //
+	SysSigChan   chan os.Signal
 )
 
 const (
@@ -58,4 +66,13 @@ func GetServerInstance() string {
 
 func GetEtcdAddr() string {
 	return EtcdGrpcAddr
+}
+
+func InitSysSigChan() {
+	SysSigChan = make(chan os.Signal, 1)
+	signal.Notify(SysSigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-SysSigChan
+		log.Println("\n收到退出信号，开始优雅关闭服务...")
+	}()
 }

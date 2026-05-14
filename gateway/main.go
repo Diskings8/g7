@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"g7/common/configx"
@@ -23,6 +24,8 @@ func main() {
 	flag.StringVar(&globals.Platform, "platform", "91", "平台id")
 	flag.StringVar(&globals.Container, "container", "docker", "容器类型：local/docker")
 	flag.Parse()
+
+	globals.InitSysSigChan()
 
 	// 获取环境配置
 	var confStr = globals.GetEnvConfPath()
@@ -70,50 +73,54 @@ func main() {
 	mix_server.GMixServer.Init(etcdRpcAddr)
 
 	//
-	global_gateway.GConnSessionMap.Init()
+	global_gateway.AllSessionMapInit()
 
 	//监听grpc服务
-	var tcpServerAddr, rpcServerAddr string
+	var tcpServerAddr, rpcServerAddr, httpServerAddr string
 	tcpServerAddr = configx.GEnvCfg.GateWay.Dsn()
 	rpcServerAddr = configx.GEnvCfg.GateWay.RpcDsn()
+	httpServerAddr = configx.GEnvCfg.GateWay.HttpDsn()
 
-	lisGrpc, err := net.Listen("tcp", rpcServerAddr)
-	if err != nil {
-		log.Fatal(err)
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	runGrpcServer := func() {
+
+		lisGrpc, err := net.Listen("tcp", rpcServerAddr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("网关Server启动" + configx.GEnvCfg.GateWay.RpcDsn())
+		mix_server.RunGrpcServer(ctx, lisGrpc, rpcServerAddr)
+
 	}
-	go mix_server.RunGrpcServer(lisGrpc, rpcServerAddr)
 
 	// 开始tcp服务
-	lisTcp, err := net.Listen("tcp", tcpServerAddr)
-	if err != nil {
-		log.Fatal(err)
-	}
-	log.Println("网关启动" + configx.GEnvCfg.GateWay.Dsn())
+	runTcpServer := func() {
 
-	for {
-		conn, _ := lisTcp.Accept()
-		go mix_server.GMixServer.HandleClient(conn)
-		//go handle(conn)
-	}
-}
-
-// 测试用
-func _handle(conn net.Conn) {
-	defer func() {
-		_ = conn.Close()
-	}()
-	buf := make([]byte, 4096)
-	n, _ := conn.Read(buf)
-	log.Println("客户端消息:", string(buf[:n]))
-
-	// 示例：获取游戏服
-	games, _ := etcd.GetGameServersByServerID("91001")
-	if len(games) > 0 {
-		log.Println("转发到游戏服:", games[0])
+		lisTcp, err := net.Listen("tcp", tcpServerAddr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("网关TcpServer启动" + configx.GEnvCfg.GateWay.Dsn())
+		mix_server.RunTcpServer(ctx, lisTcp, etcdTcpAddr)
 	}
 
-	gateways, _ := etcd.GetAllGateways()
-	if len(gateways) > 0 {
-		log.Println("转发到游戏服:", gateways[0])
+	runHttpServer := func() {
+		lisTcp, err := net.Listen("tcp", httpServerAddr)
+		if err != nil {
+			log.Fatal(err)
+		}
+		log.Println("网关HttpServer启动" + configx.GEnvCfg.GateWay.HttpDsn())
+		mix_server.RunHttpServer(ctx, lisTcp, httpServerAddr)
 	}
+
+	runGrpcServer()
+	runTcpServer()
+	runHttpServer()
+
+	<-globals.SysSigChan
+	log.Println("正在关闭 所有 服务...")
+	cancel()
+
 }

@@ -6,6 +6,8 @@ import (
 	"flag"
 	"fmt"
 	"g7/common/cronx"
+	"g7/common/netc"
+	"g7/common/netc/tcp_conn"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
 	"g7/common/utils"
@@ -18,7 +20,7 @@ import (
 	"github.com/golang/protobuf/proto"
 )
 
-var gConn net.Conn
+var gConn netc.NetConnInterface
 
 var RemoteAddr = "123.207.11.230:31001"
 var LocalAddr = "127.0.0.1:10001"
@@ -46,7 +48,7 @@ func main() {
 func runConnect() {
 	if gConn == nil {
 		conn, err := net.Dial("tcp", LocalAddr)
-		gConn = conn
+		gConn = tcp_conn.NewNetConn(conn)
 		if err != nil {
 			fmt.Println("连接网关失败：", err)
 			return
@@ -58,7 +60,7 @@ func runConnect() {
 	MakeMsgToSend(pb.MsgID_MSG_Req_EnterGame, &pb.Req_LoginGame{})
 
 	for {
-		pkg, errx := protocol.ReadPacketFromConn(gConn)
+		pkg, errx := gConn.ReadFromConn()
 		if errx != nil {
 			if errors.Is(errx, io.EOF) {
 				fmt.Println("网络断开")
@@ -126,7 +128,7 @@ func firstMsg() {
 
 func MakeMsgToSend(MsgId pb.MsgID, message proto.Message) (rsp any) {
 	msgBody, _ := proto.Marshal(message)
-	_ = protocol.WritePacketToConn(gConn, MsgId, 0, msgBody)
+	gConn.WriteToConn(0, &pb.GameMessage{MsgId: uint32(MsgId), Body: msgBody})
 	return
 }
 
@@ -134,7 +136,7 @@ func heartbeat() {
 	if gConn == nil {
 		return
 	}
-	_ = protocol.WritePacketToConn(gConn, pb.MsgID_MSG_HeartBeat, 0, []byte(""))
+	gConn.WriteToConn(0, &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_HeartBeat), Body: []byte("")})
 	return
 }
 

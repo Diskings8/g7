@@ -54,6 +54,7 @@ gateWay:
   addr: "127.0.0.1"
   port: "10001"
   rpc_port: "10002"
+  http_port: "10003"
 
 env:
   reset_hour: 5

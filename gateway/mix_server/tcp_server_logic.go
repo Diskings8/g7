@@ -4,24 +4,46 @@ import (
 	"context"
 	"fmt"
 	"g7/common/jwt"
-	"g7/common/logger"
+	"g7/common/netc"
+	"g7/common/netc/tcp_conn"
 	"g7/common/protocol"
 	"g7/common/protos/pb"
-	"g7/common/utils"
+	"g7/gateway/conn_session"
 	"g7/gateway/global_gateway"
-	"g7/gateway/tcp_session"
 	"github.com/golang/protobuf/proto"
 	"log"
 	"net"
 	"strings"
 )
 
-func (gms *GatewayMixServer) writeBackErrorMsg(conn net.Conn, msg *pb.Rsp_AuthClientToGateWay) {
-	byteData, _ := proto.Marshal(msg)
-	_ = protocol.WritePacketToConn(conn, pb.MsgID_MSG_AUTH, 0, byteData)
+func RunTcpServer(ctx context.Context, lis net.Listener, etcdTcpAddr string) {
+	go func() {
+		defer func() { recover() }()
+		<-ctx.Done()
+		conn_session.AllSessionClose()
+		_ = lis.Close()
+	}()
+
+	go func() {
+		defer func() { recover() }()
+		for {
+			conn, err := lis.Accept()
+			if err != nil {
+				return
+			}
+			go GMixServer.HandleClient(ctx, conn)
+		}
+	}()
+	return
 }
 
-func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
+func (gms *GatewayMixServer) writeBackErrorMsg(conn netc.NetConnInterface, msg *pb.Rsp_AuthClientToGateWay) {
+	byteData, _ := proto.Marshal(msg)
+	conn.WriteToConn(0, &pb.GameMessage{MsgId: uint32(pb.MsgID_MSG_AUTH), Body: byteData})
+}
+
+func (gms *GatewayMixServer) HandleClient(ctx context.Context, nConn net.Conn) {
+	conn := tcp_conn.NewNetConn(nConn)
 	var code int32
 	var msg string
 	var ok bool
@@ -40,7 +62,7 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 		global_gateway.GCurrentConnection.Add(-1)
 	}()
 
-	sess := tcp_session.NewSession(conn, gms.etcdGrpcAddr)
+	sess := conn_session.NewSession(ctx, conn, gms.etcdGrpcAddr)
 	defer func() {
 		gms.writeBackErrorMsg(conn, &pb.Rsp_AuthClientToGateWay{ErrCode: code, Reason: msg})
 		sess.Close()
@@ -49,63 +71,22 @@ func (gms *GatewayMixServer) HandleClient(conn net.Conn) {
 	//log.Println("新连接:", conn.RemoteAddr())
 
 	// 第一步：必须先认证（第一条消息）
-	packet, err := protocol.ReadPacketFromConn(conn)
-
+	packet, err := conn.ReadFromConn()
 	if err != nil {
-		logger.Log.Error(err.Error())
-		return
-	}
-
-	if packet.MsgID != pb.MsgID_MSG_AUTH {
-		packet.Release()
-		logger.Log.Info("未认证，断开")
-		return
-	}
-
-	// 解析认证
-	var req pb.Req_AuthClientToGateWay
-	_ = proto.Unmarshal(packet.Body, &req)
-	packet.Release()
-
-	// 验证 Token（真实环境：调用登录服RPC/HTTP）
-	if _, ok := gms.checkToken(req.Token, req.GetUerID()); !ok {
 		code = 401
-		msg = "token失效"
+		msg = "请求失败"
 		return
 	}
 
-	// --- 认证成功！会话赋值 ---
-	sess.SetOwner(req.GetUerID(), req.GetPlayerID(), req.GetServerID())
-	// --- 获取游戏服地址（从Watch缓存）---
-	gameAddr, ok := gms.gameMonitor.GetGameServerAddr(utils.Int32ToString(req.ServerID), utils.Int64ToString(req.GetPlayerID()))
-	if !ok {
-		code = 503
-		msg = "游戏服维护中"
+	code, msg = gms.ServerAuth(sess, packet)
+	if code != 0 {
 		return
 	}
 
-	// --- 连接游戏服 ---
-	// 3. 连接游戏服，建立专属 gRPC 流
-	stream, err := gms.connectToGameServer(gameAddr)
-	if err != nil {
-		logger.Log.Warn(fmt.Sprintf("连接游戏服失败: %v", err))
-		code = 503
-		msg = "连接游戏服失败"
-		return
-	}
-	sess.SetGameStream(stream)
-
-	//log.Printf("认证成功：uid=%d role=%d serverID=%d", sess.userID, sess.playerID, sess.serverID)
-
-	// --- 开始双向透传 ---
-	go sess.RunGoRoutineToRecvFromGame()
-	go sess.RunGoRoutineToSendToGame()
-	go sess.RunGoRoutineToSendToConn()
-	sess.RunGoRoutineToRecvFromConn()
 }
 
-func (gms *GatewayMixServer) preCheck(conn net.Conn) (bool, int32, string) {
-	clientIP := conn.RemoteAddr().String()
+func (gms *GatewayMixServer) preCheck(conn netc.NetConnInterface) (bool, int32, string) {
+	clientIP := conn.RemoteAddr()
 	// 截取 IP 部分（如果是IPv6或带端口）
 	if idx := strings.Index(clientIP, ":"); idx != -1 {
 		clientIP = clientIP[:idx]
