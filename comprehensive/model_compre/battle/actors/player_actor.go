@@ -16,6 +16,6 @@ func NewPlayerActor(actorId int64, battleInfo *pb.BattleActor, world interfaces.
 	pa := PlayerActor{
 		BattleInfo: battleInfo,
 	}
-	pa.Actor = NewActor(actorId, battle.ActorTypePlayer, common_battle.Vector3D{}, world)
+	pa.Actor = NewActor(actorId, battle.ActorTypePlayer, common_battle.Vector3D{X: 280, Y: 140}, world)
 	return pa
 }

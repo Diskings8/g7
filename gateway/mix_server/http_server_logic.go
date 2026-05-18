@@ -61,6 +61,10 @@ func (gms *GatewayMixServer) upGradeWB(ctx context.Context, w http.ResponseWrite
 	conn := websocket_conn.NewWebSocketConn(wbConn)
 	sess := conn_session.NewSession(ctx, conn, gms.etcdGrpcAddr)
 	global_gateway.GConnSessionMap.NewSession(conn, sess)
+	defer func() {
+		sess.Close()
+		conn.Close()
+	}()
 	// 第一步：必须先认证（第一条消息）
 	packet, err := conn.ReadFromConn()
 

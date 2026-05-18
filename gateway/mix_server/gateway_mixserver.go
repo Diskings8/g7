@@ -101,5 +101,7 @@ func (gms *GatewayMixServer) ServerAuth(sess *conn_session.Session, packet *prot
 	go sess.RunGoRoutineToSendToGame()
 	go sess.RunGoRoutineToSendToConn()
 	sess.RunGoRoutineToRecvFromConn()
+	code = 402
+	msg = "客户端断开"
 	return
 }

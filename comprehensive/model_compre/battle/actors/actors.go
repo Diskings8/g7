@@ -76,6 +76,7 @@ func (a *Actor) ClearDirty() {
 func (a *Actor) Update(delta time.Duration, world interfaces.World) {
 	// 1. 处理所有缓存输入
 	for _, input := range a.inputAction {
+		//logger.Log.Info(fmt.Sprintf("%+v", input))
 		a.processInput(input, world)
 	}
 	a.inputAction = a.inputAction[:0]
@@ -100,12 +101,19 @@ func (a *Actor) processInput(action *pb.GameMessage, world interfaces.World) {
 	case pb.MsgID_MSG_Actor_Move:
 		var moveReq pb.Action_Move
 		_ = proto.Unmarshal(action.Body, &moveReq)
-		a.TargetPos = common_battle.Vector3D{
+		reqMovePos := common_battle.Vector3D{
 			X: moveReq.X,
 			Y: moveReq.Y,
 			Z: moveReq.Z, // 大部分游戏 Y 是高度
 		}
-		a.States.IsMoving = true
+		if !world.CheckPosBlock(reqMovePos) {
+			a.TargetPos = reqMovePos
+			a.States.IsMoving = true
+			//logger.Log.Info(fmt.Sprintf("move pos:%v", reqMovePos))
+		} else {
+			logger.Log.Info(fmt.Sprintf("move pos:%v block", reqMovePos))
+		}
+
 	case pb.MsgID_MSG_Actor_UseSkill:
 		var useSkillReq pb.Action_UseSkill
 		err := proto.Unmarshal(action.Body, &useSkillReq)
@@ -121,6 +129,7 @@ func (a *Actor) doMove(delta time.Duration) {
 	if !a.States.IsMoving {
 		return
 	}
+	a.dirty = true
 	// 帧时间（秒）
 	dt := delta.Seconds()
 
@@ -139,19 +148,24 @@ func (a *Actor) doMove(delta time.Duration) {
 	}
 	// 3D 距离
 	dist := math.Sqrt(distSq)
+	// 每帧移动步长
+	step := a.MoveSpeed * dt
 
+	if dist <= step {
+		a.CurPos = a.TargetPos
+		a.States.IsMoving = false
+		return
+	}
 	// 单位方向向量
 	dirX := dx / dist
 	dirY := dy / dist
 	dirZ := dz / dist
 
-	// 每帧移动步长
-	step := a.MoveSpeed * dt
-
 	// 3D 位置更新（完全匹配你的坐标系）
 	a.CurPos.X += dirX * step
 	a.CurPos.Y += dirY * step
 	a.CurPos.Z += dirZ * step
+	//fmt.Println(a.CurPos)
 }
 
 func (a *Actor) GetPos() common_battle.Pos {

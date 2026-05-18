@@ -25,6 +25,11 @@ type GameStreamServer struct {
 	globalSequence uint64
 }
 
+func (s *GameStreamServer) makeDefaultGameMessage(msgId uint32, data proto.Message) *pb.GameMessage {
+	body, _ := proto.Marshal(data)
+	return &pb.GameMessage{MsgId: uint32(msgId), Body: body}
+}
+
 // Stream 实现双向流方法
 func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err error) {
 	log.Println("玩家流连接建立")
@@ -43,6 +48,11 @@ func (s *GameStreamServer) Stream(stream pb.GameStreamService_StreamServer) (err
 			//logger.Log.Warn(fmt.Sprintf("%d,MsgID_MSG_AUTH", pkt.MsgId))
 			var rsp *pb.Rsp_AuthClientToGateWay
 			player, rsp = s.handleAuth(pkt.GetBody(), stream, streamId, StreamCancel)
+			logger.Log.Info(fmt.Sprintf("%+v", rsp))
+			if player == nil {
+				stream.Send(s.makeDefaultGameMessage(pkt.GetMsgId(), rsp))
+				return nil
+			}
 			player.SendMessage(pb.MsgID(pkt.GetMsgId()), rsp)
 			continue
 		}
@@ -103,7 +113,8 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 	req := pb.Req_AuthClientToGame{}
 	err := proto.Unmarshal(data, &req)
 	rsp = &pb.Rsp_AuthClientToGateWay{
-		ErrCode: 200,
+		ErrCode:    503,
+		PlayerInfo: &pb.GamePlayerInfo{},
 	}
 	if err != nil {
 		rsp.ErrCode = 503
@@ -122,6 +133,8 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		player.StreamCancelFunc = cancelFunc
 		player.IsOnline = true
 		player.OfflineAt = time.Time{}
+
+		rsp.ErrCode = 200
 		rsp.PlayerInfo = player.ToClientInfo()
 		//logger.Log.Info(fmt.Sprintf("玩家 %d 重连成功", player.PlayerId))
 		return
@@ -133,7 +146,9 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 		// 2.2 Redis加载失败，兜底从MySQL加载冷数据
 		playerDao, err = db_game.GetPlayerByID(req.PlayerID)
 		if err != nil {
-			logger.Log.Info(fmt.Sprintf("玩家 %d MySQL加载失败: %v", req.PlayerID, err))
+			logger.Log.Info(fmt.Sprintf("玩家请求 %+v MySQL加载失败: %v", req.GetPlayerID(), err))
+			rsp.ErrCode = 503
+			rsp.Reason = err.Error()
 			return
 		}
 		// 2.3 加载成功后，回填Redis（下次登录走缓存）
@@ -153,6 +168,7 @@ func (s *GameStreamServer) handleAuth(data []byte, stream pb.GameStreamService_S
 	//
 	manager_game.OnLineRunning(player)
 	rsp.PlayerInfo = player.ToClientInfo()
+	rsp.ErrCode = 200
 	return
 }
 

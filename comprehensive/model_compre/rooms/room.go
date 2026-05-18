@@ -2,6 +2,7 @@ package rooms
 
 import (
 	"context"
+	"g7/common/maps"
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle/actors"
 	"g7/comprehensive/model_compre/battle/world"
@@ -37,7 +38,8 @@ func NewRoom(confId int32, roomId string, members []string) *Room {
 		pendingInputs: make([]PlayAction, 0, 2000),
 		tickRate:      50 * time.Millisecond,
 	}
-	r.world = world.NewWorld(r)
+	mapD := maps.GTiledManager.GetMap("FlowerRoom")
+	r.world = world.NewWorld(r, mapD)
 	return r
 }
 
@@ -68,6 +70,7 @@ func (r *Room) RemovePlayer(playerId int64) {
 func (r *Room) EnterPlayerActor(playerId int64, actorInfo *pb.BattleActor) {
 	worldActor := actors.NewPlayerActor(playerId, actorInfo, r.world)
 	r.world.AddActor(&worldActor)
+	r.world.InitActorGrid(&worldActor)
 }
 
 func (r *Room) Start(ctx context.Context) {

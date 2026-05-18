@@ -17,7 +17,7 @@ func (as *Attributes) DefaultAttributes() {
 	as.MaxMp = 10000
 	as.Mp = as.MaxHp
 
-	as.MoveSpeed = 500
+	as.MoveSpeed = 50
 }
 
 func (as *Attributes) IsEnough(attri int, val float64) bool {

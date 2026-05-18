@@ -14,6 +14,7 @@ func (p *Player) ToBattleActor() *pb.BattleActor {
 	p.RunInActor(func() {
 		battleActor.ActorId = p.PlayerId
 		battleActor.Name = p.Nickname
+
 	})
 	return battleActor
 }

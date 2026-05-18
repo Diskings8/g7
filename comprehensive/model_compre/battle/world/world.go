@@ -2,6 +2,7 @@ package world
 
 import (
 	"g7/common/logger"
+	"g7/common/maps/maps_data"
 	"g7/common/protos/pb"
 	"g7/comprehensive/model_compre/battle/actoractions"
 	"g7/comprehensive/model_compre/battle/common_battle"
@@ -16,6 +17,7 @@ type World struct {
 	room      interfaces.Room
 	running   atomic.Bool
 	gridMap   grids.GridMap
+	mapD      maps_data.MapData
 	actors    map[int64]interfaces.Actor    // 所有战斗实体（玩家、怪物等）
 	actionsCh chan actoractions.ActorAction // 带缓冲
 	frameID   int64
@@ -24,10 +26,11 @@ type World struct {
 
 var _ interfaces.World = (*World)(nil)
 
-func NewWorld(room interfaces.Room) *World {
+func NewWorld(room interfaces.Room, mapD maps_data.MapData) *World {
 	w := &World{
 		actors:    make(map[int64]interfaces.Actor),
 		actionsCh: make(chan actoractions.ActorAction, 2000),
+		mapD:      mapD,
 		room:      room,
 	}
 	w.gridMap.Init()
@@ -96,6 +99,7 @@ func (w *World) NewWorldSnapshot(enterList, updateList, leaveList []int64, event
 }
 
 func (w *World) PushInput(actorId int64, action *pb.GameMessage) {
+	//logger.Log.Info(fmt.Sprintf("recv player:%v", action))
 	select {
 	case w.actionsCh <- actoractions.ActorAction{ActorId: actorId, Action: action}:
 	default:
@@ -183,4 +187,8 @@ func (w *World) FindActors(src interfaces.Actor, actorIds []int64, params ...any
 func (w *World) AddEvent(pos common_battle.Vector3D, event events.Event) {
 	x, y := w.gridMap.GridCoord(pos)
 	w.gridMap.SetGridEvent(x, y, event)
+}
+
+func (w *World) CheckPosBlock(pos common_battle.Vector3D) bool {
+	return maps_data.IsBlock(w.mapD, pos.X, pos.Y)
 }

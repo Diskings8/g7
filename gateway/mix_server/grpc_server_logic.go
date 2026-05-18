@@ -41,6 +41,7 @@ func (gms *GatewayMixServer) ConnToRoom(_ctx context.Context, req *pb.Req_Node_M
 		log.Printf("连接房间服失败: %v:%+v", err, req)
 		return rsp, nil
 	}
+	//logger.Log.Info("get  connect")
 	roomId := req.GetRoomId()
 	sess.SetRoomStream(stream, roomId)
 	go sess.RunGoRoutineToRecvFromRoom()

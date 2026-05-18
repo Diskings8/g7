@@ -31,6 +31,7 @@ func (rms *RoomMixServer) Stream(stream pb.RoomStreamService_StreamServer) (err 
 			err = errors.New("not have auth playerStream")
 			break
 		}
+		//logger.Log.Info(fmt.Sprintf("%d,%s", pkt.MsgId, pkt.Body))
 		playerStream.Recv(pkt)
 	}
 	StreamCancel()
@@ -51,5 +52,6 @@ func (rms *RoomMixServer) handleAuth(msgBody []byte, stream pb.RoomStreamService
 	}
 	room.SetPlayerStream(req.GetPlayerID(), stream)
 	ps, ok := room.GetPlayerStream(req.GetPlayerID())
+	//logger.Log.Info("auth to room")
 	return ps
 }

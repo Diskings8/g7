@@ -1,6 +1,7 @@
 package model_game
 
 import (
+	"fmt"
 	"g7/common/logger"
 	"g7/common/protos/pb"
 	"github.com/golang/protobuf/proto"
@@ -27,7 +28,7 @@ type OnlineData struct {
 func (this *OnlineData) SendMessage(msgId pb.MsgID, data proto.Message) {
 	body, err := proto.Marshal(data)
 	if err != nil {
-		logger.Log.Error(err.Error())
+		logger.Log.Error(fmt.Sprintf("%+v: %s", data, err.Error()))
 		return
 	}
 	this.RpcSendChan <- pb.GameMessage{MsgId: uint32(msgId), Body: body}

@@ -9,6 +9,7 @@ import (
 	"g7/common/etcd"
 	"g7/common/globals"
 	"g7/common/logger"
+	"g7/common/maps"
 	"g7/common/protos/pb"
 	"g7/common/redisx"
 	"g7/comprehensive/manager_system"
@@ -80,6 +81,8 @@ func main() {
 
 	//初始化管理系
 	manager_system.GMatchManager.Init()
+
+	maps.LoadAllMaps()
 
 	sigChan := make(chan os.Signal, 1)
 	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)

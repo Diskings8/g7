@@ -30,6 +30,7 @@ type Session struct {
 	connSend   chan *pb.GameMessage
 	gameSend   chan *pb.GameMessage
 	roomSend   chan *pb.GameMessage
+	roomClose  chan struct{}
 	// 限流
 	pktCount            int32
 	pktTime             int64
@@ -51,6 +52,7 @@ func (s *Session) Init(etcdGatewayGrpcAddr string) {
 	s.connSend = make(chan *pb.GameMessage, 400)
 	s.roomSend = make(chan *pb.GameMessage, 400)
 	s.gameSend = make(chan *pb.GameMessage, 400)
+	s.roomClose = make(chan struct{}, 1)
 	s.etcdGatewayGrpcAddr = etcdGatewayGrpcAddr
 }
 
@@ -149,10 +151,6 @@ func (s *Session) RunGoRoutineToRecvFromConn() {
 			log.Printf("客户端断开: %v", err)
 			return
 		}
-		if packet.MsgID == pb.MsgID_MSG_AUTH {
-			logger.Log.Info("再次认证")
-			continue
-		}
 		gameMessage := &pb.GameMessage{MsgId: uint32(packet.MsgID), Body: packet.Body}
 		s.switchToSelectStream(gameMessage)
 		packet.Release()
@@ -242,10 +240,16 @@ func (s *Session) RunGoRoutineToSendToRoom() {
 			if !ok {
 				return
 			}
-			_ = s.roomStream.Send(&pb.GameMessage{
+
+			err := s.roomStream.Send(&pb.GameMessage{
 				MsgId: msg.MsgId,
 				Body:  msg.Body,
 			})
+			if err != nil {
+				return
+			}
+		case <-s.roomClose:
+			return
 		}
 	}
 }
@@ -260,8 +264,10 @@ func (s *Session) RunGoRoutineToRecvFromRoom() {
 		pkt, err := s.roomStream.Recv()
 		if err != nil {
 			log.Printf("%d 房间服流断开: %v", s.playerID, err)
+			s.roomClose <- struct{}{}
 			return
 		}
+		//log.Println(fmt.Sprintf("%+v", pkt))
 		s.sendToConn(pkt)
 	}
 }

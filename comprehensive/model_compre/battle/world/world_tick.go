@@ -1,6 +1,7 @@
 package world
 
 import (
+	"fmt"
 	"g7/comprehensive/model_compre/battle/actoractions"
 	"g7/comprehensive/model_compre/battle/interfaces"
 	"time"
@@ -16,6 +17,7 @@ func (w *World) Tick(delta time.Duration) {
 		select {
 		case act := <-w.actionsCh:
 			actions = append(actions, act)
+			//fmt.Println("action:", actions)
 		default:
 			goto DONE
 		}
@@ -32,6 +34,7 @@ DONE:
 	// 角色执行操作
 	for _, a := range w.actors {
 		a.Update(delta, w)
+		w.UpdateActorGrid(a)
 	}
 	w.mu.RUnlock()
 
@@ -46,6 +49,12 @@ func (w *World) UpdateActorGrid(a interfaces.Actor) {
 		if newx != oldx || newy != oldy {
 			w.gridMap.RemoveActor(oldx, oldy, a.ID())
 			w.gridMap.SetGridActor(newx, newy, a.ID())
+			fmt.Println("change gird", newx, newy)
 		}
 	}
+}
+
+func (w *World) InitActorGrid(a interfaces.Actor) {
+	newx, newy := w.gridMap.GridCoord(a.GetPos().CurPos)
+	w.gridMap.SetGridActor(newx, newy, a.ID())
 }

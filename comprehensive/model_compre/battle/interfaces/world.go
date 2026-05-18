@@ -12,4 +12,5 @@ type World interface {
 	Tick(delta time.Duration)  // 单帧逻辑
 	FindActors(src Actor, actorIds []int64, params ...any) []Actor
 	AddEvent(common_battle.Vector3D, events.Event)
+	CheckPosBlock(pos common_battle.Vector3D) bool
 }
